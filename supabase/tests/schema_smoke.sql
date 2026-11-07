@@ -8,7 +8,7 @@ do $$
 declare u uuid := gen_random_uuid(); v uuid := gen_random_uuid(); c1 bigint; c2 bigint; n bigint; o bigint; cot uuid; cu bigint; i bigint;
 begin
   insert into auth.users(id) values (u), (v);
-  insert into compradores(sujeto_auth, telefono, nombre, zona, colonia) values (u, '5511111111', 'Lupita', 'Coyoacán', 'San Lucas') returning id into c1;
+  update compradores set telefono = '5511111111', nombre = 'Lupita', zona = 'Coyoacán', colonia = 'San Lucas' where sujeto_auth = u returning id into c1;
   -- identidad obligatoria, ubicación en pareja
   assert pg_temp.falla($q$insert into compradores(sujeto_auth, latitud) values (gen_random_uuid(), 19.3)$q$), 'lat sin lng / sin FK';
   insert into negocios(nombre, telefono, zona, colonia, direccion, categoria, productos, sujeto_auth, verificado)
@@ -44,6 +44,25 @@ begin
   delete from auth.users where id = v;
   assert not (select verificado from negocios where id = n), 'negocio sin cuenta deja de estar verificado';
   perform limpiar_efimeros();
+end $$;
+
+-- registro → comprador automático; barrido; avisos propios
+do $$
+declare u uuid := gen_random_uuid(); w uuid := gen_random_uuid(); c bigint; n bigint; o bigint; cot uuid;
+begin
+  insert into auth.users(id, raw_user_meta_data) values (u, '{"nombre":"Beto"}'), (w, '{}');
+  select id into c from compradores where sujeto_auth = u;
+  assert c is not null and (select nombre from compradores where id = c) = 'Beto', 'comprador creado al registrarse';
+  insert into negocios(nombre, telefono, zona, direccion, categoria, productos, wa_jid, verificado) values ('Barrido','5599999999','Coyoacán','Calle 9 #9','comida','[{"nombre":"x","precio":1}]','w1',true) returning id into n;
+  insert into ordenes(comprador_id, negocio_id, items, monto, creado) values (c, n, '[]', 5, now() - interval '9 minutes') returning id into o;
+  perform barrido_sql();
+  assert (select estado from ordenes where id = o) = 'expirada', 'pedido sin respuesta expira';
+  insert into notificaciones(comprador_id, tipo, titulo) values (c, 'cupon', 'Para Beto'), ((select id from compradores where sujeto_auth = w), 'cupon', 'Para otra');
+  perform set_config('request.jwt.claim.sub', u::text, true);
+  set local role authenticated;
+  assert (select count(*) from notificaciones) = 1, 'solo ve sus avisos';
+  begin perform 1 from ordenes limit 1; assert false, 'authenticated leyó ordenes'; exception when insufficient_privilege then null; end;
+  reset role;
 end $$;
 
 -- RLS: anon no lee nada y solo puede dar de alta negocios sin verificar
