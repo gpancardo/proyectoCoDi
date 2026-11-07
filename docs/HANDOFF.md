@@ -8,10 +8,10 @@ El producto cambia de WhatsApp a una app standalone desarrollada por otro integr
 
 ## Estado de este checkout
 
-- GitHub está operativo. `main` ya contiene la guía de producto y Git; las ramas oficiales son `main`, `dev` y `stg`.
-- La guía de producto y Git llegó a `main` por PRs; `dev`, `stg` y `main` están sincronizadas en contenido. Se conservaron los merges entre ramas para que las próximas promociones sigan el flujo sin conflictos de archivos duplicados.
-- Las ramas remotas `develop` y `staging` se eliminaron. `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
-- El checkout conserva cambios locales sin commit en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. No descartarlos; el ajuste de vinculación QR de WhatsApp quedó obsoleto.
+- GitHub está operativo. Las ramas oficiales son `main`, `dev` y `stg`. Producto y reglas Git están en `main`; cada cambio se promueve con PR y CI.
+- Usa merge commits en las promociones para conservar la relación de historial, sobre todo cuando una rama agrega archivos que también se agregaron en otra.
+- `develop` y `staging` son aliases retirados; si un workspace viejo los vuelve a publicar, verifica que no tengan commits propios antes de borrarlos. `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
+- Hay cambios locales sin commit en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. Consérvalos; el ajuste de vinculación QR de WhatsApp quedó obsoleto.
 - Se actualizaron README, AGENTS, PRODUCTO, DESIGN, VOZ-DE-MARCA y este handoff; se agregó `docs/BACKEND.md`.
 - Aún no existe servicio HTTP en `backend/`; no hay contrato implementado ni integración con la app. El backend anterior vive dentro de `bot/index.js` y acopla negocio/pagos a WhatsApp.
 
@@ -43,4 +43,4 @@ Usar `feature/<área>-<cambio>` atómicas desde `dev`; abrir PR `feature/* → d
 
 El siguiente cambio técnico debe ser una feature branch acordada para **API de catálogo y búsqueda determinista**, con filtros validados y ranking explicable. Incluir contrato concreto, esquema/índices si hacen falta, endpoint y datos de ejemplo. Después conectar agente opcional sin hacerlo requisito de búsqueda. El pago se integra cuando autenticación y ciclo de pedido estén definidos.
 
-Las promociones previas pasaron el check `bot` de CI. No se ejecutaron pruebas locales adicionales para el refresh documental. El repo aún no tiene la API nueva.
+Las promociones documentales pasaron CI. No se ejecutaron pruebas locales adicionales. El repo aún no tiene la API nueva.
