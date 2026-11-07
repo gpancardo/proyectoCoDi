@@ -127,25 +127,20 @@ cobrar · te llegó · completo · al instante · tu negocio · vendiste · esca
 | Sin internet | Sin señal. Revisa tu conexión e inténtalo de nuevo. |
 | No se pudo generar el QR | No pudimos generar el cobro. Inténtalo de nuevo en un momento. |
 
-### WhatsApp (el bot)
+### App standalone
 
-Mismas reglas de voz. Si la persona escribe con dificultad, el bot le recuerda que también puede mandar nota de voz.
+Mismas reglas de voz: frases breves, acción siguiente clara y estados que no dependan solo del color. El dictado puede ser una opción de entrada, pero el recorrido principal funciona con búsqueda y filtros tocables.
 
 | Momento | Texto |
 |---|---|
-| La cuenta | **{Negocio}** · lista de productos · **Total: $120** · Recoges en: {dirección} |
-| Pregunta de confirmación | ¿Lo pido? |
-| El negocio aceptó | {Negocio} aceptó tu pedido 12. Te llegó un cobro de $120 a la app de tu banco. Ábrela y apruébalo. |
-| Recordatorio de cobro | Tu cobro de $120 sigue esperando en la app de tu banco. |
-| Pagado (a quien pidió) | ✅ ¡Pagado! Ya le llegaron $120 a {Negocio}. Tu código para recoger: 4821 |
-| Pagado (al negocio) | ✅ ¡Pagado! Ya te llegaron $120 (pedido 12). |
-| Pedido listo | Tu pedido 12 ya está listo. Pasa a: {dirección}. Tu código: 4821 |
-| El negocio no contestó | {Negocio} no contestó a tiempo. ¿Te busco otra opción? |
-| Cobro vencido | El cobro del pedido 12 ya venció. ¿Te lo mando otra vez? Responde *sí*. |
-| Algo falló | Algo falló de mi lado. ¿Me lo repites? |
+| Cotización | Revisa los productos y el total antes de confirmar. |
+| Espera de pago | Abre la app de tu banco para aprobar el cobro de $120. |
+| Pagado | ✅ ¡Pagado! Tu código para recoger: 4821 |
+| Pedido listo | Tu pedido ya está listo. Pasa a {dirección}. |
+| Negocio cerrado | Este negocio está cerrado. Mira otras opciones cercanas. |
 | Resumen al negocio | Hoy vendiste $1,240 en 38 cobros. Lo que más salió: {producto}. |
 
-El negocio solo necesita estas palabras, escritas o por nota de voz: *sí* (o 👍), *no*, *listo*, *hoy*, *cerrar* y *abrir*.
+En la app, el negocio usa acciones visibles para aceptar, rechazar, marcar listo, consultar el resumen y cambiar disponibilidad.
 
 ## 6. Mensajes de marca
 
