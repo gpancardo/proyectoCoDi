@@ -1,6 +1,3 @@
 # Configuración mínima del CLI de Supabase. Vincular con: supabase link --project-ref <ref>
 project_id = "barrio"
 
-# pey llama a esta función sin JWT de Supabase; la protege la firma Standard Webhooks.
-[functions.pey-webhook]
-verify_jwt = false

@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
 import { Supabase } from './supabase.js';
 import { buscarDeterminista, seccionesDescubrimiento } from './search.js';
+import { manejar, Fallo } from './rutas.js';
+import { barrido, recibirWebhook } from './pagos.js';
 import { combinarFiltros, embeddingConsulta, explicarCandidatos, interpretarConsulta } from './agent.js';
 
 const env = process.env;
@@ -15,15 +17,15 @@ function filtros(url) { return Object.fromEntries(url.searchParams.entries()); }
 async function persona(req) {
   const header = req.headers.authorization;
   if (!db || !header?.startsWith('Bearer ')) return null;
-  const session = await db.sesion(header);
+  const session = await db.sesion(header.slice(7));
   if (!session?.id) return null;
-  const comprador = await db.comprador(session.id);
-  return comprador ? { session, comprador } : null;
+  const [comprador, negocio] = await Promise.all([db.get('compradores', `sujeto_auth=eq.${session.id}&select=id,nombre,telefono&limit=1`), db.get('negocios', `sujeto_auth=eq.${session.id}&select=id,nombre&limit=1`)]);
+  return { session, comprador: comprador[0] ?? null, negocio: negocio[0] ?? null };
 }
 async function contexto(req) {
   if (!db) throw new Error('API sin configurar');
   const auth = await persona(req);
-  return { negocios: await db.negocios(), auth, perfil: auth ? await db.perfil(auth.comprador.id) : null };
+  return { negocios: await db.negocios(), auth, perfil: auth?.comprador ? await db.perfil(auth.comprador.id) : null };
 }
 
 const app = createServer(async (req, res) => {
@@ -62,15 +64,27 @@ const app = createServer(async (req, res) => {
       return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: interpretacion && recuperados ? 'agent_rag' : 'deterministic_fallback', filters: search, answer: explicacion?.answer ?? interpretacion?.answer ?? 'Te muestro coincidencias del catálogo disponible.' } });
     }
     if (req.method === 'POST' && url.pathname === '/api/v1/discovery/events') {
-      const auth = await persona(req); if (!auth) return fallo(res, 401, 'UNAUTHENTICATED', 'Inicia sesión para guardar tus preferencias.');
+      const auth = await persona(req); if (!auth?.comprador) return fallo(res, 401, 'UNAUTHENTICATED', 'Inicia sesión para guardar tus preferencias.');
       const entrada = await cuerpo(req);
       const permitidos = ['search', 'view', 'save', 'order'];
       if (!permitidos.includes(entrada.type)) return fallo(res, 422, 'INVALID_EVENT', 'Ese evento no está permitido.', 'type');
       await db.evento({ p_comprador_id: auth.comprador.id, p_tipo: entrada.type, p_categoria: entrada.category ?? null, p_consulta: String(entrada.query ?? '').slice(0, 160) || null, p_negocio_id: Number.isInteger(entrada.business_id) ? entrada.business_id : null });
       return enviar(res, 202, { data: { accepted: true } });
     }
+    if (req.method === 'POST' && url.pathname === '/webhooks/pey') { // cuerpo crudo: la firma se calcula sobre él
+      let raw = ''; for await (const parte of req) { raw += parte; if (raw.length > 100_000) { res.writeHead(413); return res.end(); } }
+      if (!db || !env.PEY_WEBHOOK_SECRET) { res.writeHead(500); return res.end('webhook sin configurar'); }
+      const [status, texto] = await recibirWebhook(db, env.PEY_WEBHOOK_SECRET, raw, req.headers);
+      res.writeHead(status); return res.end(texto);
+    }
+    if (req.method === 'POST' && url.pathname === '/internal/sweep') { // respaldo de cron externo
+      if (!env.CRON_SECRET || req.headers.authorization !== `Bearer ${env.CRON_SECRET}`) return fallo(res, 401, 'UNAUTHENTICATED', 'No autorizado.');
+      await barrido(db); return enviar(res, 200, { data: { ok: true } });
+    }
+    if (url.pathname.startsWith('/api/v1/') && db && await manejar({ db, req, res, url, auth: await persona(req), cuerpo: () => cuerpo(req), enviar })) return;
     return fallo(res, 404, 'NOT_FOUND', 'No encontramos esa ruta.');
   } catch (error) {
+    if (error instanceof Fallo) return fallo(res, error.status, error.code, error.message, error.field);
     if (error instanceof SyntaxError) return fallo(res, 400, 'INVALID_JSON', 'El cuerpo debe ser JSON válido.');
     if (/demasiado grande/.test(error.message)) return fallo(res, 413, 'PAYLOAD_TOO_LARGE', error.message);
     if (/rango de precio|amount_minor/.test(error.message)) return fallo(res, 422, 'INVALID_FILTER', error.message);
@@ -79,5 +93,9 @@ const app = createServer(async (req, res) => {
   }
 });
 
-if (process.env.NODE_ENV !== 'test') app.listen(port, () => console.log(`Barrio API lista en :${port}`));
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => console.log(`Barrio API lista en :${port}`));
+  // ponytail: barrido en el mismo proceso cada minuto; con varias instancias moverlo a un cron único (/internal/sweep)
+  if (db) setInterval(() => barrido(db).catch((e) => console.error('barrido', e.message)), 60_000).unref();
+}
 export { app };

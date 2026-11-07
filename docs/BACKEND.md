@@ -46,7 +46,13 @@ Prefijo `/api/v1`; JSON UTF-8; errores con `{ "error": { "code": "...", "message
 | `GET /businesses/{business_id}` | Perfil público y catálogo disponible |
 | `POST /orders/quotes` | Validar artículos/cantidades contra precios vigentes y devolver cotización con caducidad |
 | `POST /orders` | Crear pedido desde `quote_id` e idempotency key; exige confirmación explícita del resumen |
-| `GET /orders/{order_id}` | Leer pedido si la sesión tiene acceso |
+| `GET /orders`, `GET /orders/{order_id}` | Pedidos propios (comprador) o del negocio; el código de recogida solo se ve al comprador desde `pagada` |
+| `POST /me`, `GET /me/profile` | Alta del comprador de la sesión (nombre, 10 dígitos para el push); perfil con insignias y avance |
+| `GET /me/notifications`, `POST /coupons/{id}/accept\|decline` | Avisos de cupones; al aceptar, se autoaplica en las cotizaciones de ese negocio |
+| `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | El negocio publica cupones (porcentaje o monto, mínimo, vencimiento); se avisa solo a quien ya pagó un pedido ahí |
+| `POST /orders/{order_id}/reject` | Rechazo del negocio asignado |
+| `POST /webhooks/pey` | Webhook de pey (firma Standard Webhooks, dedupe por `webhook-id`) |
+| `POST /internal/sweep` | Barrido con `CRON_SECRET`: reconciliación con pey, vencimientos, cancelación a 8 min |
 | `POST /orders/{order_id}/cancel` | Cancelar solo en estados permitidos, mediante transición atómica |
 | `POST /orders/{order_id}/accept` | Aceptación autenticada del negocio asignado |
 | `POST /orders/{order_id}/ready` | Marcar listo por el negocio asignado |
@@ -59,7 +65,7 @@ El endpoint de cotización calcula precios y total desde catálogo del servidor.
 
 Conservar y formalizar la máquina de estados existente en migraciones/código. Toda transición usa compare-and-set (estado anterior esperado); solo se crea otro intento de cobro cuando el anterior vence. Un webhook firmado es idempotente y solo confirma si la referencia corresponde y el monto pagado cubre el pedido. Un proceso de reconciliación consulta a pey como respaldo. La respuesta al cliente no revela datos bancarios ni secretos.
 
-El siguiente corte crea `intentos_cobro` y `eventos_webhook`; no reutiliza `ordenes.pey_ref` como historial. Un intento guarda vía, referencia de pey, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide dos intentos vigentes por pedido. El webhook persiste primero su identificador para deduplicar, localiza el intento por referencia, valida monto y actualiza con condición de estado. Un pago tardío de un intento vencido requiere revisión; nunca confirma automáticamente un intento nuevo.
+Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `eventos_webhook`; no reutiliza `ordenes.pey_ref` como historial. Un intento guarda vía, referencia de pey, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide dos intentos vigentes por pedido. El webhook persiste primero su identificador para deduplicar, localiza el intento por referencia, valida monto y actualiza con condición de estado. Un pago tardío de un intento vencido requiere revisión; nunca confirma automáticamente un intento nuevo.
 
 ### Seguridad mínima
 
@@ -69,6 +75,12 @@ El siguiente corte crea `intentos_cobro` y `eventos_webhook`; no reutiliza `orde
 - CORS limitado a los orígenes de la app/web publicados; TLS obligatorio; secretos solo en el entorno del servidor.
 - El webhook usa verificación criptográfica del cuerpo original y protección contra repetición.
 - El prompt declara que la entrada de la persona es dato, no instrucción. El agente solo recibe candidatos recuperados y no tiene herramientas de escritura ni acceso a pagos.
+
+## Cupones e insignias
+
+- **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** del negocio y lo resta en el servidor (`descuento_minor`, total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
+- **Insignias:** derivadas de pedidos pagados, sin tabla: 3 en la misma colonia, 5 en la misma alcaldía o 3 en el mismo negocio (`REGLAS_INSIGNIAS` en `backend/src/pedidos.js`). `GET /me/profile` devuelve también las que van en progreso. Requiere `negocios.colonia`.
+- `negocios.sujeto_auth` liga la sesión de Supabase Auth con el negocio (rol negocio); `compradores.sujeto_auth`, con el comprador.
 
 ## Entrega por etapas
 

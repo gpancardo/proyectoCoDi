@@ -6,7 +6,7 @@ API HTTP para la aplicación standalone. Este corte entrega **Descubrir** y **Bu
 
 Implementado: catálogo público, filtros y ranking determinista, perfil por señales explícitas, recuperación vectorial opcional, agente con JSON Schema y fallback sin OpenAI.
 
-Pendiente: cotización, pedidos, gestión de negocio, intentos de cobro, webhook integrado y reconciliación. No se deben anunciar esas rutas hasta que existan y tengan pruebas.
+También: cotización, pedidos, gestión del negocio, intentos de cobro, webhook de pey (`/webhooks/pey`), barrido/reconciliación, cupones e insignias (ver `docs/BACKEND.md`). Pendiente: prueba end-to-end contra Supabase y pey reales. Variables nuevas en `.env.example` (`PEY_API_KEY`, `PEY_MOCK`, `PEY_WEBHOOK_SECRET`, `CRON_SECRET`).
 
 ## Operación local
 
@@ -23,6 +23,6 @@ Usa `npm run check` y `npm test` antes de integrar.
 
 La sesión se valida con Supabase Auth y el backend busca al comprador por `sujeto_auth`; nunca acepta un comprador enviado por la app. El perfil no usa cobros ni datos sensibles.
 
-## Pagos, siguiente corte obligatorio
+## Pagos
 
 Cada cobro debe vivir en `intentos_cobro`, no en un campo de la orden: referencia pey, vía, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide más de un intento vigente. El webhook guarda primero su ID de evento, verifica firma/cuerpo crudo, referencia y monto, y solo entonces hace una transición condicional. La reconciliación consulta pey para intentos vivos. Un pago tardío de un intento vencido requiere revisión y jamás confirma un intento nuevo.
