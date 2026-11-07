@@ -5,7 +5,7 @@ export class Supabase {
     if (!respuesta.ok) throw Object.assign(new Error(`Supabase respondió ${respuesta.status}`), { status: respuesta.status });
     return respuesta.status === 204 ? null : respuesta.json();
   }
-  negocios() { return this.request('/rest/v1/negocios?select=id,nombre,zona,direccion,categoria,productos,verificado,abierto&verificado=eq.true&order=id.asc'); }
+  negocios() { return this.request('/rest/v1/negocios?select=id,nombre,descripcion,imagen_url,zona,colonia,direccion,latitud,longitud,categoria,productos,verificado,abierto&verificado=eq.true&order=id.asc'); }
   perfil(compradorId) { return this.request(`/rest/v1/perfiles_descubrimiento?comprador_id=eq.${encodeURIComponent(compradorId)}&select=categorias&limit=1`).then((r) => r[0] ?? null); }
   documentos(embedding) { return this.request('/rest/v1/rpc/match_catalogo_documentos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ p_embedding: `[${embedding.join(',')}]`, p_limite: 40 }) }); }
   documentosPendientes() { return this.request('/rest/v1/catalogo_documentos?embedding=is.null&select=negocio_id,contenido&order=actualizado.asc&limit=100'); }

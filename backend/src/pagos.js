@@ -105,6 +105,7 @@ export async function barrido(db) {
   }
   const sinResponder = await db.actualizar('ordenes', `estado=eq.pendiente&creado=lt.${iso(MINUTOS.negocioSinResponder)}`, { estado: 'expirada', actualizado: ahora.toISOString() });
   await Promise.all(sinResponder.map((o) => liberarCupon(db, o)));
+  await db.request('/rest/v1/rpc/limpiar_efimeros', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
 }
 
 // Un pedido que no se cobra devuelve el cupón a "aceptado" para el siguiente intento.
