@@ -2,7 +2,7 @@ export class Supabase {
   constructor({ url, serviceKey, anonKey }) { this.url = url.replace(/\/$/, ''); this.serviceKey = serviceKey; this.anonKey = anonKey; }
   async request(path, options = {}) {
     const respuesta = await fetch(`${this.url}${path}`, { ...options, headers: { apikey: this.serviceKey, Authorization: `Bearer ${this.serviceKey}`, ...(options.headers ?? {}) }, signal: AbortSignal.timeout(8000) });
-    if (!respuesta.ok) throw new Error(`Supabase respondió ${respuesta.status}`);
+    if (!respuesta.ok) throw Object.assign(new Error(`Supabase respondió ${respuesta.status}`), { status: respuesta.status });
     return respuesta.status === 204 ? null : respuesta.json();
   }
   negocios() { return this.request('/rest/v1/negocios?select=id,nombre,zona,direccion,categoria,productos,verificado,abierto&verificado=eq.true&order=id.asc'); }
@@ -17,4 +17,10 @@ export class Supabase {
   }
   comprador(subject) { return this.request(`/rest/v1/compradores?sujeto_auth=eq.${encodeURIComponent(subject)}&select=id&limit=1`).then((r) => r[0] ?? null); }
   evento(body) { return this.request('/rest/v1/rpc/registrar_evento_descubrimiento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
+  // Genéricos para pedidos/cobros. `filtro` es una query PostgREST construida por el backend, nunca por el cliente.
+  get(tabla, filtro) { return this.request(`/rest/v1/${tabla}?${filtro}`); }
+  insertar(tabla, filas) { return this.request(`/rest/v1/${tabla}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(filas) }); }
+  // PATCH condicionado: devuelve las filas cambiadas; [] significa que el estado previo ya no coincidía.
+  actualizar(tabla, filtro, cambios) { return this.request(`/rest/v1/${tabla}?${filtro}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(cambios) }); }
+  crearComprador(fila) { return this.request('/rest/v1/compradores?on_conflict=sujeto_auth', { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation,resolution=merge-duplicates' }, body: JSON.stringify(fila) }); }
 }

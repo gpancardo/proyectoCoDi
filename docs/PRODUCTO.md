@@ -54,7 +54,8 @@ La app requiere una sesión de comprador. Su perfil de descubrimiento aprende so
 5. **Cobro CoDi** al comprador (respaldos: link de pago de pey y después QR), confirmación por webhook y reconciliación consultando a pey, y código de recogida.
 6. **Recordatorios y cancelación automática** (el negocio no contesta, la persona no aprueba el cobro).
 7. **Landing y registro de negocios** (GitHub Pages) con menú y precios.
-8. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
+8. **Promociones:** el negocio publica cupones; la app avisa a quien ya compró ahí y, si los acepta, se descuentan solos al cobrar. **Insignias** en el perfil por comprar varias veces en la misma colonia, alcaldía o negocio.
+9. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
 
 ### Después del hackathon
 
