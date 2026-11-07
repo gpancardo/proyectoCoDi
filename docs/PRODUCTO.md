@@ -10,7 +10,7 @@
 
 ## 1. Resumen
 
-**Barrio** conecta a la gente con negocios cercanos desde una **aplicación standalone**. La app consulta una API propia para explorar, cotizar y pedir; pey permite cobrar con CoDi. WhatsApp deja de ser canal del producto.
+**Barrio** conecta a la gente con negocios cercanos desde una **aplicación standalone**. La app ofrece dos puertas: **Descubrir**, un recorrido tradicional tipo Uber Eats, y **Buscar con Barrio**, un agente con RAG que encuentra coincidencias del catálogo real y las explica. La API propia cotiza y pide; pey permite cobrar con CoDi. WhatsApp deja de ser canal del producto.
 
 La persona busca "10 tacos de canasta, por Coyoacán", compara opciones y elige un negocio. Barrio muestra una cotización calculada por el servidor; al confirmar, el negocio recibe el pedido en su superficie de gestión. Al aceptar, llega un **cobro CoDi a la app del banco**. La persona lo aprueba, recibe un código para recoger y el negocio ve el pago confirmado.
 
@@ -41,20 +41,21 @@ La economía de barrio está formada por unidades económicas pequeñas, creadas
 | **Mari**, puesto de quesadillas | Fila en la hora pico, mucho ruido | Aceptación automática; cobro sin dar cambio |
 | **Chuy**, taller mecánico en su cochera | Cobros grandes, varias cotizaciones | Revisar pedidos y mostrar una cuenta desglosada y clara |
 
-La app requiere una sesión de comprador. El mecanismo de identidad y los datos mínimos de perfil se definirán en el contrato de backend antes de implementarlos.
+La app requiere una sesión de comprador. Su perfil de descubrimiento aprende solo de señales explícitas: búsquedas, vistas, guardados y pedidos. No usa datos de pago ni deja que el agente infiera atributos sensibles.
 
 ## 5. Alcance
 
 ### MVP para el hackathon (lo que se muestra en la demo)
 
-1. **Explorar en la app:** búsqueda, categorías, zona/distancia, disponibilidad, apertura y rango de precio; resultados comparables inspirados en apps de reparto.
-2. **Búsqueda híbrida:** filtros y coincidencias deterministas siempre disponibles; el agente opcional interpreta consultas libres, y su salida estructurada se valida en servidor.
+1. **Descubrir en la app:** inicio navegable tipo Uber Eats con categorías, carruseles y negocios abiertos; zona, disponibilidad, apertura y rango de precio.
+2. **Buscar con Barrio:** un agente interpreta la consulta, recupera candidatos del catálogo (RAG) y devuelve matches explicables. Los filtros deterministas siguen siendo la autoridad y siempre están disponibles.
 3. **Cuenta con total calculado por el sistema** a partir del menú del negocio. Un solo "¿Lo pido?".
 4. **El negocio gestiona el pedido** desde una superficie autenticada y actualiza aceptación, preparación y disponibilidad. Opcional: aceptación automática.
 5. **Cobro CoDi** al comprador (respaldos: link de pago de pey y después QR), confirmación por webhook y reconciliación consultando a pey, y código de recogida.
 6. **Recordatorios y cancelación automática** (el negocio no contesta, la persona no aprueba el cobro).
 7. **Landing y registro de negocios** (GitHub Pages) con menú y precios.
-8. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
+8. **Promociones:** el negocio publica cupones; la app avisa a quien ya compró ahí y, si los acepta, se descuentan solos al cobrar. **Insignias** en el perfil por comprar varias veces en la misma colonia, alcaldía o negocio.
+9. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
 
 ### Después del hackathon
 
@@ -109,16 +110,18 @@ Negocio marca "Listo" → la app muestra el estado a Lupita
 | Cobro sin aprobar, 20 min | Cobro vencido; opción para generar otro intento |
 | Falla el push (p. ej. sin CoDi activo) | Se manda un link de pago (CoDi o tarjeta); si también falla, un QR; si todo falla, se avisa y se ofrece reintentar |
 
-### 6.4 Búsqueda clara y accesible
+### 6.4 Descubrimiento, perfil y búsqueda con Barrio
 
-La búsqueda ofrece categorías y filtros deterministas además de texto libre. El agente puede traducir lenguaje natural a filtros tipados, pero su indisponibilidad nunca bloquea explorar o comprar. La app comunica apertura, distancia, disponibilidad y coincidencias sin esconder el criterio del orden.
+**Descubrir** permite navegar aunque no se escriba nada: categorías y carruseles de negocios abiertos. El orden base es estable y visible; el perfil solo da un impulso leve a categorías que la persona buscó, vio, guardó o pidió antes.
+
+**Buscar con Barrio** sigue esta secuencia: consulta libre → filtros tipados → recuperación de fragmentos del catálogo → ranking determinista → explicación breve. El agente recibe únicamente esos candidatos; no puede inventar un negocio, precio, producto, disponibilidad ni total. Si el modelo, embeddings o recuperación fallan, la API usa búsqueda textual y filtros sobre el catálogo completo. La app comunica por qué aparece cada match y permite corregir filtros.
 
 ## 7. Arquitectura
 
 ```
 App standalone ──HTTPS──► Backend Barrio [backend/]
-                                    ├─ búsqueda determinista SQL (siempre)
-                                    ├─ agente OpenAI opcional → filtros tipados validados
+                                    ├─ Descubrir: categorías/ranking determinista (siempre)
+                                    ├─ Buscar con Barrio: RAG + agente → filtros tipados validados
                                     ├─ pedidos y pagos: reglas de dominio + SQL
                                     └─ cobro ──► pey POST /codi/pn (respaldos: /payment-link/create, /codi/qr)
                                                           │
@@ -160,9 +163,10 @@ Referencia: **docs.pey.mx** (OpenAPI en `docs.pey.mx/openapi.json`, versión 202
 
 | Tarea | Modelo | Entrada → salida |
 |---|---|---|
-| Interpretación asistida de búsqueda | Modelo del backend, por configurar | consulta libre → filtros/categorías tipados para validar en servidor |
+| Interpretación y explicación de búsqueda | Modelo del backend, por configurar | consulta libre + candidatos recuperados → filtros/categorías tipados y explicación breve |
+| Recuperación semántica | Modelo de embeddings del backend | documento de catálogo → vector; consulta → candidatos de catálogo |
 
-El agente no confirma pedidos, accede a secretos, altera estados ni calcula importes. El backend ejecuta toda consulta validada y las operaciones de dominio.
+El agente no confirma pedidos, accede a secretos, altera estados ni calcula importes. Tampoco escribe el perfil: el backend registra señales tipadas y construye afinidades por categoría. El backend ejecuta toda consulta validada y las operaciones de dominio.
 
 ## 8. Modelo de datos
 
@@ -170,8 +174,11 @@ Definido en `supabase/migrations/`. Resumen:
 
 ```
 compradores (id, sujeto_auth, nombre, zona)
+perfiles_descubrimiento (comprador_id, categorias{}, actualizado)
+eventos_descubrimiento (comprador_id, negocio_id, tipo[search|view|save|order], categoria, consulta)
 negocios    (id, nombre, contacto, verificado, zona, direccion, categoria,
              productos[{nombre, precio}], auto_aceptar, abierto, pey_bank_account_id, embedding)
+catalogo_documentos (negocio_id, contenido, embedding)
 ordenes     (id, comprador_id, negocio_id, items[], notas, monto, codigo,
              estado[pendiente|aceptada|cobrada|pagada|lista|rechazada|expirada|vencida|cancelada],
              pey_ref, rastreo, creado, pagada_en)
@@ -243,7 +250,8 @@ El modelo actual de Supabase conserva campos heredados de WhatsApp. La migració
 **Tomadas**
 - Producto: app standalone para descubrir, pedir y pagar con CoDi.
 - Canal: app → API HTTPS propia. WhatsApp deja de ser canal del producto.
-- Búsqueda: filtros deterministas y coincidencia explicable, más agente opcional para lenguaje libre.
+- Descubrimiento: navegación estilo marketplace con personalización ligera, explicable y basada en señales explícitas.
+- Búsqueda: RAG y agente para encontrar y explicar matches del catálogo; filtros deterministas como autoridad y fallback.
 - Datos: Supabase/Postgres; pey para cobros. El servidor es dueño de las credenciales y reglas de pedidos.
 - App y backend son tareas separadas que se coordinan mediante `BACKEND.md`.
 - Fuera del MVP: alta de menú por foto.

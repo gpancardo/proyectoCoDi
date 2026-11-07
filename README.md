@@ -13,7 +13,7 @@ pey ──webhook firmado──► Backend/Supabase ──► estado del pedido 
 
 | Ruta | Contenido |
 |---|---|
-| `backend/` | API y casos de uso del servidor (en construcción) |
+| `backend/` | API HTTP: Descubrir, búsqueda determinista, perfil y Buscar con Barrio (RAG) |
 | `supabase/` | Migraciones, función de webhook y datos de demo |
 | `web/` | Landing y registro existentes; pendientes de adaptar al backend |
 | `docs/PRODUCTO.md` | Fuente de verdad del producto |
@@ -23,7 +23,7 @@ pey ──webhook firmado──► Backend/Supabase ──► estado del pedido 
 
 ## Estado
 
-El esquema de Supabase y la integración existente de pey son base reutilizable, pero el servicio actual está acoplado a WhatsApp y no constituye todavía una API para la app. El contrato y el plan están en [docs/BACKEND.md](docs/BACKEND.md). La app y el backend deben acordar ese contrato antes de implementar clientes.
+El primer corte de API para descubrimiento y búsqueda ya vive en `backend/`; requiere migrar Supabase y configurar los secretos del servidor. Pedidos, gestión del negocio y pagos siguen pendientes. El contrato está en [docs/BACKEND.md](docs/BACKEND.md).
 
 ## Desarrollo
 
