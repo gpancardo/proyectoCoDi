@@ -153,7 +153,7 @@ Referencia: **docs.pey.mx** (OpenAPI en `docs.pey.mx/openapi.json`, versión 202
 | Webhook | `codi.pn.payment_received`, `codi.qr.payment_received` | `amount`, `transactionId`, `codiQrId` (solo QR), `datePaid`, `metadata.trackingKey` |
 
 - Los webhooks usan **Standard Webhooks** (`webhook-id`, `webhook-timestamp`, `webhook-signature`). El secreto `whsec_…` se ve al crear el webhook en portal.mipey.mx → Desarrollador. Un webhook por API key.
-- **pey no tiene entorno de pruebas** ("próximamente"). Los organizadores piden probar con **un centavo ($0.01)**; se hace en producción. Pey publica una CLABE de prueba en sus docs.
+- **pey no tiene entorno de pruebas** ("próximamente"). Los organizadores piden probar con **un centavo ($0.01)**; se hace en producción. Pey habilitó CLABEs pre-autorizadas para el hackathon; instrucciones, reglas de prueba y entrega en [`PEY.md`](PEY.md).
 - Dar de alta una cuenta CoDi propia por negocio tarda ~5 días hábiles. Para la demo, todos los cobros caen en la cuenta ligada a la API key.
 - 🟡 **Confirmar con los mentores de pey:** si existe un entorno de desarrollo para el hackathon, cómo simular un pago, y si el push falla de forma explícita cuando el número no tiene CoDi activo.
 

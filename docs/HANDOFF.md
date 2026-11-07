@@ -26,6 +26,12 @@ El producto cambia de WhatsApp a una app standalone desarrollada por otro integr
 
 Contrato propuesto y rutas: [`BACKEND.md`](BACKEND.md). Ninguna ruta se debe presentar como implementada hasta que exista y esté integrada.
 
+## Plan ajustado a pey (hackathon)
+
+1. Registrar en <https://portal.pey.mx> una de las CLABEs pre-autorizadas (ver [`PEY.md`](PEY.md); no van en Git) y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
+2. Configurar `PEY_API_KEY`, `PEY_MOCK=0` y `PEY_WEBHOOK_SECRET` en el entorno del backend; probar **solo $0.01** (no se devuelve).
+3. Entrega: **domingo 8 nov, 1:00 PM**, a hola@aibuilders.lat.
+
 ## Reglas que se conservan
 
 - El servidor calcula importes desde catálogo/precios vigentes; el modelo y el cliente no deciden totales.
