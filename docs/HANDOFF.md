@@ -8,9 +8,9 @@ El producto cambia de WhatsApp a una app standalone desarrollada por otro integr
 
 ## Estado de este checkout
 
-- GitHub está operativo. Las ramas oficiales son `main`, `dev` y `stg`. La documentación de producto y Git ya está en `main`; cada promoción pasa por PR y CI.
-- Promociona con merge commits para conservar la relación entre ramas. Los squash anteriores causaron conflictos add/add en `docs/HANDOFF.md`; ya se enlazaron los historiales de `dev`, `stg` y `main`.
-- `develop` es un alias viejo sin protección que apunta al commit anterior al cambio; `staging` se retiró. Las ramas `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
+- GitHub está operativo. Las ramas oficiales son `main`, `dev` y `stg`. Producto y reglas Git están en `main`; cada cambio se promueve con PR y CI.
+- Usa merge commits en las promociones para conservar la relación de historial, sobre todo cuando una rama agrega archivos que también se agregaron en otra.
+- `develop` y `staging` son aliases retirados; si un workspace viejo los vuelve a publicar, verifica que no tengan commits propios antes de borrarlos. `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
 - Hay cambios locales sin commit en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. Consérvalos; el ajuste de vinculación QR de WhatsApp quedó obsoleto.
 - Se actualizaron README, AGENTS, PRODUCTO, DESIGN, VOZ-DE-MARCA y este handoff; se agregó `docs/BACKEND.md`.
 - Aún no existe servicio HTTP en `backend/`; no hay contrato implementado ni integración con la app. El backend anterior vive dentro de `bot/index.js` y acopla negocio/pagos a WhatsApp.
