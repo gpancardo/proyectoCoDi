@@ -4,7 +4,7 @@
 > Producto y alcance: ver `PRODUCTO.md` · Voz de marca: ver `VOZ-DE-MARCA.md`
 > Estado: **propuesta para discusión** (decisiones abiertas marcadas con 🟡)
 >
-> **Alcance:** Barrio se muestra hoy en tres superficies: la landing y el registro (`web/`), los mensajes de WhatsApp del bot y, en una fase 2, la app de mostrador. Los componentes de pantalla de §7 (Cobrar, QR, Pagado) son de esa fase 2; la landing usa los mismos tokens, tipografía y reglas.
+> **Alcance:** La experiencia objetivo es una app standalone de comprador y negocio, más landing y registro (`web/`). Las pantallas de búsqueda, catálogo, pedido, cobro CoDi y estado pagado pertenecen a la app. El bot de WhatsApp es legado y no define el diseño nuevo.
 
 ---
 
@@ -198,11 +198,11 @@ body {
 - Sonido corto de caja registradora y vibración.
 - Regresa sola a la pantalla de cobro a los 3 s.
 
-### Mensajes de WhatsApp (el bot)
-- Mismas reglas que la interfaz: de tú, corto, sin emoji. La única excepción es el ✅ de "¡Pagado!". El 👍 no es adorno: es la forma en que el negocio acepta un pedido.
-- Negritas con *asteriscos* para el negocio, el total y el código. Montos como `$55` y `$1,240`.
-- En charla, máximo 2 líneas. La cuenta va como tarjeta de texto: negocio, productos, total, dónde recoger.
-- Siempre texto; si la persona mandó voz, también va una nota de voz.
+### Mensajes y estados dentro de la app
+- De tú, corto, sin emoji. La única excepción es ✅ en "¡Pagado!".
+- Priorizar tarjetas de negocio comparables: nombre, categoría, distancia/zona, abierto, disponibilidad y precios.
+- La cuenta debe mostrar negocio, productos, cantidad, subtotal, total y forma de entrega antes de confirmar.
+- Mostrar estados con texto e indicador visual accesible; no depender solo del color.
 
 ## 8. Espaciado y forma
 

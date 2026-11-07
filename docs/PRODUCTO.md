@@ -1,7 +1,7 @@
-# Barrio — Pide en tu barrio y paga con CoDi, por WhatsApp
+# Barrio — Encuentra negocios de tu barrio y paga con CoDi
 
 > Documento de producto · DevDay Exchange Community Hackathon CDMX (7–8 nov 2026)
-> Equipo: 4 personas · Stack: OpenAI + Supabase + CoDi vía API de pey
+> Equipo: 4 personas · Stack: app standalone + API propia + Supabase + CoDi vía API de pey
 > Identidad visual: `DESIGN.md` · Voz: `VOZ-DE-MARCA.md` · Guía para agentes: `../AGENTS.md`
 > **Este archivo es la fuente de verdad del producto.** Si el código o cualquier otro documento lo contradice, se corrige aquí primero.
 > Estado: definición vigente (decisiones abiertas marcadas con 🟡)
@@ -10,11 +10,11 @@
 
 ## 1. Resumen
 
-**Barrio** conecta a la gente con los negocios de su barrio por **WhatsApp**, con **voz o texto**, y reduce a lo mínimo el uso de **CoDi**.
+**Barrio** conecta a la gente con negocios cercanos desde una **aplicación standalone**. La app consulta una API propia para explorar, cotizar y pedir; pey permite cobrar con CoDi. WhatsApp deja de ser canal del producto.
 
-La persona le dice a Barrio qué quiere ("10 tacos de canasta, por Coyoacán"). Barrio encuentra el negocio, le muestra la cuenta con el total y, con un solo "sí", le avisa al negocio. El negocio responde "sí" (o 👍, o ni eso si activó la aceptación automática) y a la persona le llega un **cobro CoDi directo a la app de su banco**. Lo aprueba, le llega un código para recoger, y el dinero llega al negocio **al instante y sin comisión**.
+La persona busca "10 tacos de canasta, por Coyoacán", compara opciones y elige un negocio. Barrio muestra una cotización calculada por el servidor; al confirmar, el negocio recibe el pedido en su superficie de gestión. Al aceptar, llega un **cobro CoDi a la app del banco**. La persona lo aprueba, recibe un código para recoger y el negocio ve el pago confirmado.
 
-Nadie instala nada: todo ocurre en el WhatsApp que ya usan.
+La persona usa una app dedicada, diseñada para buscar y comprar de forma directa. La app y el backend se desarrollan como componentes separados por integrantes distintos del equipo.
 
 ## 2. Problema
 
@@ -36,25 +36,25 @@ La economía de barrio está formada por unidades económicas pequeñas, creadas
 
 | Persona | Contexto | Qué necesita |
 |---|---|---|
-| **Lupita**, compradora | Quiere comer o resolver algo cerca, ya tiene app de banco, no quiere bajar otra app | Pedir hablando, ver el total antes, pagar con un toque |
-| **Don Beto**, tiendita de abarrotes | Atiende solo, manos ocupadas, celular Android de gama media | Que el pedido llegue con la cuenta hecha y responder "sí" |
+| **Lupita**, compradora | Quiere comer o resolver algo cerca y pagar desde su banco | Encontrar opciones, comparar, ver el total antes y pagar con un toque |
+| **Don Beto**, tiendita de abarrotes | Atiende solo, manos ocupadas, celular Android de gama media | Recibir pedidos claros y actualizar su disponibilidad |
 | **Mari**, puesto de quesadillas | Fila en la hora pico, mucho ruido | Aceptación automática; cobro sin dar cambio |
-| **Chuy**, taller mecánico en su cochera | Cobros grandes, ruido de herramientas | Responder por nota de voz; cuenta desglosada y clara |
+| **Chuy**, taller mecánico en su cochera | Cobros grandes, varias cotizaciones | Revisar pedidos y mostrar una cuenta desglosada y clara |
 
-Quien compra **no instala nada y no se registra**: su nombre sale de su perfil de WhatsApp y su teléfono, del número desde el que escribe.
+La app requiere una sesión de comprador. El mecanismo de identidad y los datos mínimos de perfil se definirán en el contrato de backend antes de implementarlos.
 
 ## 5. Alcance
 
 ### MVP para el hackathon (lo que se muestra en la demo)
 
-1. **Pedir por WhatsApp con voz o texto.** Las notas de voz se transcriben y entran al mismo agente que el texto. Si la persona mandó voz, la respuesta llega en texto y en nota de voz.
-2. **Descubrimiento:** datos fijos (alcaldía, abierto/cerrado) filtran en SQL; la búsqueda semántica (RAG con pgvector) ordena. Una sola recomendación a la vez.
+1. **Explorar en la app:** búsqueda, categorías, zona/distancia, disponibilidad, apertura y rango de precio; resultados comparables inspirados en apps de reparto.
+2. **Búsqueda híbrida:** filtros y coincidencias deterministas siempre disponibles; el agente opcional interpreta consultas libres, y su salida estructurada se valida en servidor.
 3. **Cuenta con total calculado por el sistema** a partir del menú del negocio. Un solo "¿Lo pido?".
-4. **Negocio responde con 5 palabras** (`sí`, `no`, `listo`, `hoy`, `cerrar`/`abrir`), escritas o por voz, o con un 👍 al mensaje del pedido. Opcional: aceptación automática.
-5. **Cobro CoDi por push** al número del comprador (respaldos: link de pago de pey y después QR), confirmación de pago por webhook de pey y, si falla, consultando a pey cada 30 s, y código de recogida.
+4. **El negocio gestiona el pedido** desde una superficie autenticada y actualiza aceptación, preparación y disponibilidad. Opcional: aceptación automática.
+5. **Cobro CoDi** al comprador (respaldos: link de pago de pey y después QR), confirmación por webhook y reconciliación consultando a pey, y código de recogida.
 6. **Recordatorios y cancelación automática** (el negocio no contesta, la persona no aprueba el cobro).
 7. **Landing y registro de negocios** (GitHub Pages) con menú y precios.
-8. **Resumen del día** para el negocio: escribe `hoy` y recibe total, número de cobros y lo que más salió.
+8. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
 
 ### Después del hackathon
 
@@ -68,25 +68,25 @@ Quien compra **no instala nada y no se registra**: su nombre sale de su perfil d
 ### 6.1 Pedido y pago
 
 ```
-Lupita (texto o nota de voz)
-   │  "10 tacos de canasta, por Coyoacán"
+Lupita (app)
+   │  busca "tacos de canasta", filtra por Coyoacán y compara
    ▼
-Barrio busca (SQL: abierto + alcaldía → pgvector: lo más parecido)
+La API busca (filtros deterministas + relevancia textual; agente opcional)
    │  recomienda UNA opción
    ▼
 Resumen (el total lo calcula el código, no el modelo)
    │  *Tacos Doña Lupe* · 10 × Taco de canasta — $120 · *Total: $120*
-   │  "¿Lo pido?"  →  "sí"
+   │  total visible → confirmar pedido
    ▼
-Negocio recibe el pedido por WhatsApp ── "sí" / 👍 / (automático)
+Negocio recibe el pedido en su superficie de gestión ── acepta / rechaza
    ▼
 pey: cobro CoDi por push al teléfono de Lupita  (respaldos: link de pago, QR)
    ▼
 Lupita aprueba en la app de su banco
    ▼
-Webhook de pey → Supabase → "¡Pagado!" a los dos + código de 4 dígitos
+Webhook firmado de pey → estado guardado → la app muestra "¡Pagado!" + código de recogida
    ▼
-Negocio escribe "listo" → Lupita recibe "Tu pedido ya está listo"
+Negocio marca "Listo" → la app muestra el estado a Lupita
 ```
 
 ### 6.2 Reglas que no dependen del modelo
@@ -96,44 +96,46 @@ Negocio escribe "listo" → Lupita recibe "Tu pedido ya está listo"
 - **Los cambios de estado son atómicos:** dos "sí" seguidos no generan dos cobros.
 - **Un cobro nuevo solo se genera cuando el anterior ya venció**, nunca dos vivos para el mismo pedido.
 - **El webhook verifica la firma, es idempotente y exige que el monto pagado alcance.**
-- **Un negocio solo recibe pedidos después de que su WhatsApp le escribe al bot** (prueba de que el número es suyo).
+- **Un negocio solo recibe pedidos si está verificado y abierto**, y cada acción se autoriza contra su sesión.
 - Lo que escribe la persona son datos, no instrucciones para el modelo.
 
 ### 6.3 Tiempos
 
 | Situación | Qué pasa |
 |---|---|
-| Negocio sin responder, 3 min | Recordatorio al negocio |
-| Negocio sin responder, 8 min | Se cancela el pedido y se le ofrece otra opción a la persona |
-| Cobro sin aprobar, 5 min | Recordatorio a la persona |
-| Cobro sin aprobar, 20 min | Cobro vencido; "¿Te lo mando otra vez?" |
+| Negocio sin responder, 3 min | Aviso en la app al negocio |
+| Negocio sin responder, 8 min | Se cancela el pedido y se le ofrecen otras opciones a la persona |
+| Cobro sin aprobar, 5 min | Recordatorio en la app |
+| Cobro sin aprobar, 20 min | Cobro vencido; opción para generar otro intento |
 | Falla el push (p. ej. sin CoDi activo) | Se manda un link de pago (CoDi o tarjeta); si también falla, un QR; si todo falla, se avisa y se ofrece reintentar |
 
-### 6.4 Texto y voz son de primer nivel
+### 6.4 Búsqueda clara y accesible
 
-Las dos entradas llegan al mismo agente. El texto acepta la forma de hablar de la voz (abreviaturas, sin acentos, números en dígitos o letra). Las respuestas siempre llegan también en texto, que se puede releer y lo leen los lectores de pantalla.
+La búsqueda ofrece categorías y filtros deterministas además de texto libre. El agente puede traducir lenguaje natural a filtros tipados, pero su indisponibilidad nunca bloquea explorar o comprar. La app comunica apertura, distancia, disponibilidad y coincidencias sin esconder el criterio del orden.
 
 ## 7. Arquitectura
 
 ```
-Comprador / Negocio ──WhatsApp──► Bot (Node + Baileys, WhatsApp Web)         [bot/]
-                                    ├─ voz → OpenAI transcripción
-                                    ├─ agente OpenAI (Responses API + herramientas)
-                                    │    perfil y pedidos: SQL  ·  búsqueda: pgvector
-                                    └─ cobro ──► pey  POST /codi/pn  (respaldos: /payment-link/create, /codi/qr)
+App standalone ──HTTPS──► Backend Barrio [backend/]
+                                    ├─ búsqueda determinista SQL (siempre)
+                                    ├─ agente OpenAI opcional → filtros tipados validados
+                                    ├─ pedidos y pagos: reglas de dominio + SQL
+                                    └─ cobro ──► pey POST /codi/pn (respaldos: /payment-link/create, /codi/qr)
                                                           │
                        banco del comprador: aprobar ◄─────┘
                                 │
-              pey ──webhook firmado──► Edge Function pey-webhook          [supabase/functions/]
+              pey ──webhook firmado──► Backend / Edge Function             [supabase/functions/]
                                          └─ ordenes.estado = 'pagada'
-                                                    │ Realtime
-                              Bot ◄─────────────────┘  avisa a los dos
+                                                    │ API / canal autenticado
+                              App ◄─────────────────┘  muestra el estado
 
-Supabase: Postgres + pgvector + Realtime + Edge Functions                   [supabase/]
+Supabase: Postgres + funciones de búsqueda/webhook                           [supabase/]
 Landing y registro de negocios: GitHub Pages (HTML estático)                [web/]
 ```
 
-El bot **no necesita URL pública**: pey avisa a Supabase y Supabase avisa al bot por Realtime. Un barrido cada 30 s recupera avisos perdidos.
+El backend expone una API HTTPS autenticada. El cliente no usa credenciales de servidor ni escribe directamente en tablas. El webhook y la reconciliación mantienen el estado de pago; la app consulta el pedido o recibe cambios por un canal autenticado.
+
+Contrato de rutas y responsabilidades: [`BACKEND.md`](BACKEND.md).
 
 ### 7.1 Integración con pey
 
@@ -152,39 +154,36 @@ Referencia: **docs.pey.mx** (OpenAPI en `docs.pey.mx/openapi.json`, versión 202
 - Dar de alta una cuenta CoDi propia por negocio tarda ~5 días hábiles. Para la demo, todos los cobros caen en la cuenta ligada a la API key.
 - 🟡 **Confirmar con los mentores de pey:** si existe un entorno de desarrollo para el hackathon, cómo simular un pago, y si el push falla de forma explícita cuando el número no tiene CoDi activo.
 
-> **Riesgo #1.** Si no hay API key a tiempo, el bot corre con `PEY_MOCK=1`: cobros falsos con la misma interfaz. Para simular el pago se marca la orden como `pagada` en Supabase. La API key real se conecta después.
+> **Riesgo #1.** Si no hay API key a tiempo, el backend debe usar un adaptador de pagos simulado en desarrollo; nunca presentar una simulación como pago real. Para pruebas locales, aislar esos datos del proyecto de producción.
 
 ### 7.2 Uso de OpenAI
 
 | Tarea | Modelo | Entrada → salida |
 |---|---|---|
-| Agente (conversación y herramientas) | `gpt-5.4-mini`, razonamiento bajo (`OPENAI_MODEL=gpt-5-mini` si la cuenta no lo tiene) | texto + perfil + pedidos recientes → respuesta o llamada a herramienta |
-| Transcripción | `gpt-4o-mini-transcribe` | audio OGG de WhatsApp → texto |
-| Voz de respuesta | `gpt-4o-mini-tts` (Opus) | texto → nota de voz |
-| Embeddings | `text-embedding-3-small` | descripción del negocio y consulta → vector de 1536 |
+| Interpretación asistida de búsqueda | Modelo del backend, por configurar | consulta libre → filtros/categorías tipados para validar en servidor |
 
-Herramientas del agente: `guardar_perfil`, `buscar_negocios`, `cotizar`, `confirmar_pedido`, `cancelar_pedido`, `reintentar_pago`.
+El agente no confirma pedidos, accede a secretos, altera estados ni calcula importes. El backend ejecuta toda consulta validada y las operaciones de dominio.
 
 ## 8. Modelo de datos
 
 Definido en `supabase/migrations/`. Resumen:
 
 ```
-compradores (id, telefono, wa_jid, nombre, zona, ultima_respuesta)
-negocios    (id, nombre, telefono, wa_jid, verificado, zona, direccion, categoria,
+compradores (id, sujeto_auth, nombre, zona)
+negocios    (id, nombre, contacto, verificado, zona, direccion, categoria,
              productos[{nombre, precio}], auto_aceptar, abierto, pey_bank_account_id, embedding)
 ordenes     (id, comprador_id, negocio_id, items[], notas, monto, codigo,
              estado[pendiente|aceptada|cobrada|pagada|lista|rechazada|expirada|vencida|cancelada],
-             wa_msgs[], pey_ref, rastreo, creado, pagada_en)
+             pey_ref, rastreo, creado, pagada_en)
 ```
 
-La base garantiza lo importante: precios válidos, montos entre 0 y 1,000,000, teléfonos de 10 dígitos y que la página pública solo pueda registrar negocios sin verificar.
+El modelo actual de Supabase conserva campos heredados de WhatsApp. La migración al contrato nuevo debe sustituirlos por identidad de aplicación y permisos por rol sin debilitar las restricciones de precio, monto o verificación del negocio.
 
 ## 9. Superficies
 
-1. **WhatsApp (el producto).** Un solo número para compradores y negocios. El bot distingue a un negocio por su teléfono registrado.
-2. **Landing** (`web/index.html`): explica en 10 segundos y lleva a WhatsApp o al registro.
-3. **Registro de negocios** (`web/registro.html`): datos, menú con precios y aceptación automática. Al terminar entrega un link para compartir con clientes.
+1. **App standalone:** búsqueda, catálogo, cotización, pedidos y estado de pago; gestión para negocios.
+2. **Landing** (`web/index.html`): prototipo legado; requiere actualización para explicar y enlazar la app.
+3. **Registro de negocios** (`web/registro.html`): prototipo legado; debe enviar el alta al backend antes de volver a usarse.
 
 **Criterios de diseño:** botones grandes, una sola acción principal por pantalla, alto contraste, cero jerga financiera (ver `VOZ-DE-MARCA.md`), funciona en Android de gama media y con señal débil.
 
@@ -194,15 +193,15 @@ La base garantiza lo importante: precios válidos, montos entre 0 y 1,000,000, t
 
 | Rol | Responsable | Entregables |
 |---|---|---|
-| **Pagos / backend** | _ | Integración pey real (push, QR, webhook), Supabase desplegado, número del bot vinculado |
-| **IA** | _ | Prompt del agente, búsqueda, set de 20 pedidos de prueba (voz y texto), afinar transcripción |
-| **Frontend** | _ | Landing y registro, QR y link por negocio, pruebas en Android real |
+| **Backend** | _ | API autenticada, catálogo/búsqueda, pedidos y pagos con pey; estados y permisos |
+| **IA / búsqueda** | _ | Filtros deterministas, ranking explicable y agente opcional con fallback |
+| **App** | _ | App standalone de comprador y gestión de negocio; integración por contrato |
 | **Producto / pitch** (Alejandro) | Alejandro | Este documento, guion de demo, video, datos del problema |
 
 | Hora | Hito |
 |---|---|
-| Sáb 14:00 | Proyecto Supabase creado y migración aplicada; bot conectado a WhatsApp y a OpenAI con `PEY_MOCK=1` |
-| Sáb 15:30 | **Flujo completo de punta a punta**, aunque sea feo: voz o texto → cuenta → negocio acepta → cobro → pagado |
+| Sáb 14:00 | Contrato app/API y autenticación acordados; backend conectado a Supabase |
+| Sáb 15:30 | **Flujo completo de punta a punta**: búsqueda → cotización → aceptación → cobro → pagado |
 | Sáb 16:00 | Fin del día presencial; lista de pendientes priorizada |
 | Dom 10:00 | pey real conectado y probado con $0.01; landing publicada; pulido |
 | Dom 11:30 | Grabación del video demo |
@@ -211,8 +210,8 @@ La base garantiza lo importante: precios válidos, montos entre 0 y 1,000,000, t
 ## 11. Demo (≈2 min)
 
 1. **Problema (20 s):** "Don Beto pierde 4% con terminal o vive del efectivo. CoDi es gratis, pero pedir y cobrar con CoDi cuesta más trabajo que un billete."
-2. **Pedido por voz (50 s):** nota de voz → cuenta con total → "sí" → el negocio responde 👍 → cobro en el celular → se aprueba con $0.01 reales → "¡Pagado!" y código.
-3. **El negocio (20 s):** escribe `listo`, luego `hoy`: "Hoy vendiste $0.01 en 1 cobro".
+2. **Descubrimiento y pedido (50 s):** buscar, filtrar por zona, comparar negocios → cuenta con total → confirmar → el negocio acepta → cobro en el celular → aprobar $0.01 → "¡Pagado!" y código.
+3. **El negocio (20 s):** acepta el pedido, lo marca listo y ve el resumen del día.
 4. **Cierre (30 s):** sin comisión, sin instalar nada, replicable a cada barrio.
 
 ## 12. Impacto y modelo
@@ -233,24 +232,25 @@ La base garantiza lo importante: precios válidos, montos entre 0 y 1,000,000, t
 | Riesgo | Mitigación |
 |---|---|
 | No hay API key de pey a tiempo, y pey no tiene sandbox | `PEY_MOCK=1`; conectar el real el domingo y probar con $0.01 |
-| WhatsApp Web no es la API oficial; Meta puede bloquear el número | Número secundario, solo responder a quien escribe, sin mensajes masivos; video de respaldo |
+| API y app aún no están implementadas | Reducir alcance a contrato v1, búsqueda, pedido y pago; priorizar un flujo vertical funcional |
 | El comprador no tiene CoDi activo en su banco | Link de pago de pey (CoDi o tarjeta) en el mismo celular. Ojo: la comisión de tarjeta no está documentada; no se promete "sin comisión" en ese caso |
-| El modelo inventa precios | Total calculado por código y solo productos del menú |
-| La nota de voz de respuesta no suena en algún celular | La respuesta siempre llega también en texto |
-| Ruido de fondo afecta la transcripción | El texto siempre funciona igual; transcripción dudosa se pide de nuevo |
-| Webhook de pey no llega | El bot consulta a pey cada 30 s (`GET /transaction/{id}`) y marca la orden pagada; también se puede marcar a mano en la demo |
+| El modelo inventa precios | El agente solo propone filtros; total calculado por backend y productos del menú |
+| El agente no interpreta una consulta | Mantener filtros deterministas, búsqueda textual y categorías como fallback |
+| Webhook de pey no llega | Backend reconcilia con pey (`GET /transaction/{id}`) y actualiza el pedido idempotentemente |
 
 ## 15. Decisiones
 
 **Tomadas**
-- Producto: Barrio por WhatsApp (descubrimiento + pedido + cobro CoDi). Barrio Mostrador queda para después.
-- Backend: Supabase (Postgres, pgvector, Realtime, Edge Functions). Landing y registro en GitHub Pages.
-- Canal: WhatsApp Web (Baileys), no la API oficial de Meta.
-- Modelos: ver §7.2.
+- Producto: app standalone para descubrir, pedir y pagar con CoDi.
+- Canal: app → API HTTPS propia. WhatsApp deja de ser canal del producto.
+- Búsqueda: filtros deterministas y coincidencia explicable, más agente opcional para lenguaje libre.
+- Datos: Supabase/Postgres; pey para cobros. El servidor es dueño de las credenciales y reglas de pedidos.
+- App y backend son tareas separadas que se coordinan mediante `BACKEND.md`.
 - Fuera del MVP: alta de menú por foto.
 
 **Abiertas** 🟡
-1. Número de WhatsApp del bot y quién lo escanea.
-2. API key de pey, cuenta CoDi de la demo y quién habla con los mentores.
-3. Giro estrella para la demo: tiendita, quesadillas o taller. *Propuesta: tiendita, y quesadillas para mostrar la aceptación automática.*
-4. Quién prueba con un CoDi real y con un número sin CoDi.
+1. Proveedor de identidad y modelo de sesión/roles para comprador y negocio.
+2. Ubicación: zona, coordenadas, permiso y fallback manual.
+3. Pesos y explicación del orden de resultados; campos disponibles del catálogo.
+4. API key de pey, cuenta CoDi de demo y responsable de probar $0.01.
+5. Responsable de migrar el registro web legado al backend.
