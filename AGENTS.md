@@ -19,10 +19,11 @@ feature/<área>-<cambio> → dev → stg → main
 ```
 
 - `main`: versión estable; solo recibe promoción desde `stg` por PR.
-- `stg`: integración candidata; PR desde `dev`, revisión y validación de punta a punta.
+- `stg`: integración candidata; PR desde `dev`, validación de punta a punta y autoaprobación cuando cumpla los criterios abajo.
 - `dev`: integración diaria; PR desde feature branches.
 - Cada tarea empieza en una feature branch atómica y descriptiva, creada desde `dev`, por ejemplo `feature/catalog-deterministic-search` o `feature/orders-api-contract`.
-- No trabajar directamente en ramas compartidas ni hacer push/merge sin revisión. Commits pequeños; documentar cambios de producto/API.
+- No trabajar directamente en ramas compartidas. Commits pequeños; documentar cambios de producto/API.
+- Una PR se **autoaprueba** y puede promoverse cuando: fue rebaseada contra su rama destino, no tiene conflictos, el árbol queda limpio, CI está en verde y las pruebas relevantes (incluidas las de dinero/estado/parseo si aplican) pasan. Si falla cualquiera, requiere intervención humana.
 - Antes de subir, actualizar con `git pull --rebase`; resolver conflictos revisando el resultado completo.
 
 ## Reglas del dominio

@@ -37,7 +37,7 @@ Contrato propuesto y rutas: [`BACKEND.md`](BACKEND.md). Ninguna ruta se debe pre
 
 ## Git y ramas
 
-Usar `feature/<área>-<cambio>` atómicas desde `dev`; abrir PR `feature/* → dev → stg → main`. No trabajar directo en ramas compartidas ni promover sin revisión. Antes de empezar y de subir, revisar `git status`, actualizar con `git pull --rebase` y resolver cualquier trabajo local sin borrarlo. Conserva primero los cuatro cambios locales en `bot/` o pide a su responsable que los guarde en una rama propia.
+Usar `feature/<área>-<cambio>` atómicas desde `dev`; abrir PR `feature/* → dev → stg → main`. No trabajar directo en ramas compartidas. La PR se autoaprueba y puede promoverse si fue rebaseada contra su destino, no tiene conflictos, el árbol está limpio y CI/pruebas relevantes pasan; cualquier falla exige intervención humana. Antes de empezar y de subir, revisar `git status`, actualizar con `git pull --rebase` y resolver cualquier trabajo local sin borrarlo. Conserva primero los cuatro cambios locales en `bot/` o pide a su responsable que los guarde en una rama propia.
 
 ## Próximo corte recomendado
 
