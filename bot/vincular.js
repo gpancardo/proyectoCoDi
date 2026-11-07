@@ -3,6 +3,7 @@
 import makeWASocket, { useMultiFileAuthState, DisconnectReason } from 'baileys'
 import qrcode from 'qrcode-terminal'
 import pino from 'pino'
+import { opcionesSocket } from './whatsapp.js'
 
 const telefono = process.env.BOT_PHONE?.replace(/\D/g, '')
 let pidiendoCodigo = false
@@ -13,7 +14,7 @@ async function conectar(primera) {
     console.log('Este número ya está vinculado (bot/auth/). Corre npm start.')
     process.exit(0)
   }
-  const sock = makeWASocket({ auth: state, logger: pino({ level: 'silent' }) })
+  const sock = makeWASocket(await opcionesSocket(state, pino({ level: 'silent' })))
   sock.ev.on('creds.update', saveCreds)
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr && telefono) {

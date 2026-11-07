@@ -16,12 +16,19 @@ pey ──webhook──► Supabase (Edge Function) ──Realtime──► bot:
 | `docs/` | [Producto](docs/PRODUCTO.md) · [Diseño](docs/DESIGN.md) · [Voz de marca](docs/VOZ-DE-MARCA.md) |
 | [`AGENTS.md`](AGENTS.md) | Reglas del repo, comandos y checklist para conectar |
 
-## Arrancar
+## Arrancar (ruta mínima al MVP)
 
-1. **Supabase:** la migración `supabase/migrations/…_init.sql` ya está aplicada en el proyecto del equipo. Para otro proyecto: pegarla en el SQL Editor (o `supabase link` + `supabase db push`). Después, `supabase/seed.sql` con tu teléfono de prueba.
-2. **Webhook de pey:** la función `pey-webhook` ya está desplegada; falta apagar *Verify JWT* en su Settings, registrar su URL en portal.mipey.mx y guardar el `whsec_…` como secret `PEY_WEBHOOK_SECRET`.
-3. **Bot:** `cd bot && cp .env.example .env`, llenar las llaves, y `npm ci && npm run diagnostico`. Cuando diga "Todo listo": `npm start`. Con `BOT_PHONE` en `.env` se vincula con un código de 8 caracteres; si no, con un QR. Sin API key de pey, deja `PEY_MOCK=1`.
-4. **Web:** poner el número del bot en `web/config.js` y activar Settings → Pages → Source: *GitHub Actions*.
+Todo el código y la base de datos ya están listos. Faltan solo tus llaves y vincular el WhatsApp:
+
+1. **Llaves** en `bot/.env` (`cp .env.example .env`): `OPENAI_API_KEY` y `SUPABASE_SECRET_KEY` (Supabase → Settings → API Keys → Secret keys → *default* → Copy). Sin API key de pey, deja `PEY_MOCK=1`; con ella, pon `PEY_API_KEY` y borra `PEY_MOCK`.
+2. **Vincular el WhatsApp del bot:** pon `BOT_PHONE=52XXXXXXXXXX` en `.env` y corre `npm run vincular`. Sale un código de 8 caracteres: en el celular del bot, WhatsApp → Dispositivos vinculados → Vincular con el número de teléfono.
+3. **Negocio de prueba:** en el SQL Editor de Supabase, pega `supabase/seed.sql` con el teléfono (10 dígitos) del WhatsApp que va a hacer de negocio. Tiene un "Taco de prueba" de **$0.01**.
+4. `npm ci && npm run diagnostico`; cuando diga "Todo listo", `npm start`.
+5. **Probar:** desde otro WhatsApp (el comprador) escribe "quiero un taco de prueba". El negocio responde 👍 o "sí" y el cobro de un centavo llega al banco del comprador.
+
+El webhook de pey es **opcional**: el bot confirma los pagos consultando a pey cada 5 s. Si lo quieres: registra `…/functions/v1/pey-webhook` en portal.mipey.mx, guarda el `whsec_…` como secret `PEY_WEBHOOK_SECRET` y apaga *Verify JWT* en la función.
+
+La web no necesita desplegarse para probar: abre `web/registro.html` en tu navegador. GitHub Pages no se despliega por ahora (el workflow es manual).
 
 Para simular un pago con `PEY_MOCK=1`: `update ordenes set estado='pagada', pagada_en=now() where id=<N>;`
 

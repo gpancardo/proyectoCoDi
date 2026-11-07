@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js'
 import assert from 'node:assert/strict'
 import { setTimeout as espera } from 'node:timers/promises'
 import { MODELO, TRANSCRIPCION, VOZ, EMBEDDINGS, SUPABASE_KEY } from './config.js'
+import { opcionesSocket } from './whatsapp.js'
 
 process.env.TZ ??= 'America/Mexico_City' // "hoy" es el día del negocio, no el del servidor
 
@@ -554,24 +555,34 @@ async function revisarTiempos() {
         }
       } catch (e) { console.error('tiempos', o.id, e.message) }
     }
-    // Respaldo del webhook: preguntarle a pey por los cobros sin confirmar. Es la única vía para los links de pago.
-    if (!MOCK) {
-      const desde24h = new Date(Date.now() - 24 * 3600e3).toISOString()
-      const { data: abiertas } = await db.from('ordenes').select('id, monto, pey_ref, pey_via')
-        .in('estado', ['cobrada', 'vencida']).not('pey_ref', 'is', null).gte('creado', desde24h)
-      for (const o of abiertas ?? []) {
-        try {
-          const ruta = { link: `/payment-link/${o.pey_ref}`, qr: `/transaction/codi/qr/${o.pey_ref}` }[o.pey_via] ?? `/transaction/${o.pey_ref}`
-          const pago = pagoConfirmado(o.pey_via, await pey(ruta), o.monto)
-          if (pago) await cambiarEstado(o.id, ['cobrada', 'vencida'], 'pagada', { pagada_en: new Date().toISOString(), rastreo: pago.rastreo })
-        } catch (e) { console.error('consulta a pey', o.id, e.message) }
-      }
-    }
+    await consultarPagos(24 * 60) // respaldo del webhook, también para cobros viejos
     // Pagos cuyo aviso por Realtime se perdió (bot apagado, canal caído)
     const { data: pagadas } = await db.from('ordenes').select('id').eq('estado', 'pagada').eq('avisado_pago', false)
     for (const { id } of pagadas ?? []) await avisarPago(id).catch((e) => console.error('avisarPago', id, e.message))
   } finally {
     revisando = false
+  }
+}
+
+// Respaldo del webhook: preguntarle a pey por los cobros sin confirmar. Es la única vía para los links de pago.
+// Cada 5 s para los cobros de los últimos 3 min (el pago llega casi al instante) y cada 30 s para los de las últimas 24 h.
+let consultando = false
+async function consultarPagos(minutos) {
+  if (MOCK || consultando) return
+  consultando = true
+  try {
+    const desde = new Date(Date.now() - minutos * 60e3).toISOString()
+    const { data: abiertas } = await db.from('ordenes').select('id, monto, pey_ref, pey_via')
+      .in('estado', ['cobrada', 'vencida']).not('pey_ref', 'is', null).gte('creado', desde)
+    for (const o of abiertas ?? []) {
+      try {
+        const ruta = { link: `/payment-link/${o.pey_ref}`, qr: `/transaction/codi/qr/${o.pey_ref}` }[o.pey_via] ?? `/transaction/${o.pey_ref}`
+        const pago = pagoConfirmado(o.pey_via, await pey(ruta), o.monto)
+        if (pago && await cambiarEstado(o.id, ['cobrada', 'vencida'], 'pagada', { pagada_en: new Date().toISOString(), rastreo: pago.rastreo })) await avisarPago(o.id)
+      } catch (e) { console.error('consulta a pey', o.id, e.message) }
+    }
+  } finally {
+    consultando = false
   }
 }
 
@@ -659,7 +670,7 @@ let intentos = 0
 let pidiendoCodigo = false
 async function conectar() {
   const { state, saveCreds } = await useMultiFileAuthState('auth')
-  sock = makeWASocket({ auth: state, logger })
+  sock = makeWASocket(await opcionesSocket(state, logger))
   sock.ev.on('creds.update', saveCreds)
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr && process.env.BOT_PHONE && !state.creds.registered) {
@@ -674,7 +685,11 @@ async function conectar() {
       console.log('✅ WhatsApp conectado')
       intentos = 0
       marcarConectado()
-      if (!relojes) { relojes = true; setInterval(() => revisarTiempos().catch((e) => console.error('tiempos', e)), 30e3) }
+      if (!relojes) {
+        relojes = true
+        setInterval(() => revisarTiempos().catch((e) => console.error('tiempos', e)), 30e3)
+        setInterval(() => consultarPagos(3).catch((e) => console.error('pagos', e)), 5e3)
+      }
     }
     if (connection === 'close') {
       conectado = new Promise((r) => (marcarConectado = r))

@@ -12,7 +12,7 @@ Guía para agentes de IA y personas que trabajan en este repo. Léela antes de t
 
 | Ruta | Qué hay | Se despliega en |
 |---|---|---|
-| `bot/` | Bot de WhatsApp (Node 22, Baileys, OpenAI): `index.js`, `config.js` (modelos y llaves), `diagnostico.js`, `vincular.js` | Una laptop o VPS con el proceso corriendo |
+| `bot/` | Bot de WhatsApp (Node 22, Baileys, OpenAI): `index.js`, `config.js` (modelos y llaves), `diagnostico.js`, `vincular.js`, `whatsapp.js` | Una laptop o VPS con el proceso corriendo |
 | `supabase/migrations/` | Esquema, RLS, función de búsqueda | `supabase db push` |
 | `supabase/functions/pey-webhook/` | Recibe el pago de pey y marca la orden `pagada` | `supabase functions deploy pey-webhook` |
 | `supabase/seed.sql` | Negocio de demo | SQL Editor |
@@ -70,18 +70,18 @@ Sin API key de pey: `PEY_MOCK=1` en `.env`. Para simular un pago, en Supabase:
 ## Estado de conexión
 
 **Hecho y verificado** (proyecto Supabase *RazFernandez's Project*, ref `bjbfcxodapjaudawlsvg`):
-- Migración aplicada: 3 tablas, RLS, `vector` en `extensions`, Realtime en `ordenes`, GRANT/REVOKE.
+- Migraciones aplicadas (`init` y `pey_via`): 3 tablas, RLS, `vector` en `extensions`, Realtime en `ordenes`, GRANT/REVOKE.
 - API pública probada con la llave publicable: el alta de negocio funciona; no se puede auto-verificar un negocio; precios inválidos y teléfonos repetidos se rechazan; no se puede leer tablas ni llamar funciones.
-- Función `pey-webhook` desplegada. `web/config.js` apunta a este proyecto.
+- Función `pey-webhook` desplegada. `web/config.js` apunta a este proyecto. Pages no se despliega (workflow manual).
 
-**Pendiente** (en este orden):
-- [ ] Panel de Supabase > Edge Functions > `pey-webhook` > Settings: **apagar "Verify JWT with legacy secret"** y Save. pey no manda JWT; el endpoint se protege con la firma Standard Webhooks. Mientras esté activo responde 401 y los pagos no llegan.
-- [ ] `bot/.env`: pegar `SUPABASE_SECRET_KEY` (Settings > API Keys > Secret keys > "default" > Copy) y `OPENAI_API_KEY`. Luego `npm run diagnostico` hasta que diga "Todo listo".
-- [ ] `seed.sql` con el teléfono del negocio de prueba (SQL Editor).
-- [ ] `BOT_PHONE` en `bot/.env` (con 52, sin +) y `npm start`: sale un código de 8 caracteres; en el celular del bot: WhatsApp > Dispositivos vinculados > Vincular con el número de teléfono.
-- [ ] `BOT` en `web/config.js` con ese número. Settings > Pages > Source: GitHub Actions.
-- [ ] pey: API key y webhook (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/pey-webhook`) en portal.mipey.mx; el `whsec_…` va en Supabase > Edge Functions > Secrets como `PEY_WEBHOOK_SECRET`. Luego `PEY_API_KEY` en `.env` y borrar `PEY_MOCK`. Verificar los encabezados de firma con el primer pago.
-- [ ] Probar con $0.01 (un centavo, como piden los organizadores): pedido por voz, 👍 del negocio, cobro CoDi, `¡Pagado!`, `listo`, `hoy`. Probar también un número **sin** CoDi activo.
+**Pendiente, en este orden** (los pasos 1-4 bastan para el MVP):
+- [ ] `bot/.env`: `OPENAI_API_KEY` y `SUPABASE_SECRET_KEY` (Settings > API Keys > Secret keys > "default" > Copy).
+- [ ] `BOT_PHONE` (con 52, sin +) y `npm run vincular`: código de 8 caracteres para el celular del bot.
+- [ ] `seed.sql` con el teléfono del negocio de prueba (SQL Editor). Incluye un producto de $0.01.
+- [ ] `npm run diagnostico` hasta "Todo listo", y `npm start`.
+- [ ] pey: `PEY_API_KEY` (portal.mipey.mx > Desarrollador) y borrar `PEY_MOCK`. El diagnóstico la valida con una consulta de solo lectura.
+- [ ] Probar con **$0.01**: pedido por voz, 👍 del negocio, cobro CoDi, `¡Pagado!`, `listo`, `hoy`. Probar también un número **sin** CoDi activo (debe llegar el link de pago).
+- [ ] Opcional, webhook de pey: Edge Functions > `pey-webhook` > Settings > apagar "Verify JWT"; registrar su URL en portal.mipey.mx y guardar el `whsec_…` como `PEY_WEBHOOK_SECRET`. No es necesario: el bot ya consulta a pey cada 5 s.
 - [ ] Confirmar en un Android real que la reacción 👍 y la nota de voz de respuesta se ven bien.
 
 ## Riesgos conocidos
