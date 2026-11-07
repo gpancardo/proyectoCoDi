@@ -5,7 +5,16 @@ Resumen de las instrucciones que dieron los organizadores (7 nov 2026). Document
 ## Cuentas de prueba
 
 - Dar de alta una cuenta bancaria ante Banxico tarda ~5 días. Para probar hoy, los organizadores habilitaron **CLABEs pre-autorizadas** a nombre de cinco personas (Ramón Orraca, Santiago Tena, Adrian Soto, Miriam Nava, David Perez).
-- **Las CLABEs no se guardan en Git** (el repo es público y son datos de personas). Están en el mensaje de los organizadores; pídelas al equipo por el canal privado.
+
+| Titular | CLABE |
+|---|---|
+| Ramón Orraca | 012180015826225713 |
+| Santiago Tena | 012180015913466252 |
+| Adrian Soto | 014180606004536217 |
+| Miriam Nava | 012180015355682429 |
+| David Perez | 127180016558860385 |
+
+Son cuentas de prueba publicadas por los organizadores del hackathon; el equipo decidió documentarlas aquí.
 - Hay que **registrar la CLABE en el portal de pey** y usar la API desde ese momento. El identificador que devuelve pey es el `bankAccountId` que va en `negocios.pey_bank_account_id`; sin él, el cobro cae en la cuenta de la API key.
 - Recomendación de pey: registrar CLABEs propias para publicar el proyecto cuando estén activas (~5 días hábiles). Está en "Después del hackathon" de [`PRODUCTO.md`](PRODUCTO.md).
 
