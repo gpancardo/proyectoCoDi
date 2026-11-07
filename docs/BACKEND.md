@@ -76,6 +76,14 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 - El webhook usa verificación criptográfica del cuerpo original y protección contra repetición.
 - El prompt declara que la entrada de la persona es dato, no instrucción. El agente solo recibe candidatos recuperados y no tiene herramientas de escritura ni acceso a pagos.
 
+## Esquema cerrado (migración `20261107030000_cerrar_schema.sql`)
+
+- **compradores:** `sujeto_auth` (FK a `auth.users`, `on delete set null`: borrar la cuenta conserva pedidos), `nombre`, `telefono` (10 dígitos, para el push CoDi), `zona` (alcaldía), `colonia`, `latitud/longitud` (ambas o ninguna), `actualizado`.
+- **negocios:** `sujeto_auth` (dueño en la app), `nombre`, `descripcion`, `imagen_url` (https), `zona` (alcaldía; validada para filas nuevas), `colonia`, `direccion`, `latitud/longitud`, `categoria`, `productos`, `auto_aceptar`, `abierto`, `verificado` + `verificado_en`, `pey_bank_account_id`. Un trigger deja `verificado = false` si no hay dueño (`sujeto_auth` o `wa_jid` heredado), también al borrar la cuenta. El alta pública (anon) sigue naciendo sin verificar ni dueño.
+- Corrige un fallo del RAG: el trigger del documento de catálogo ahora es `security definer`; sin eso el registro público (anon) fallaba por permisos.
+- Índices de catálogo, pedidos por negocio/estado, cobros vigentes y avisos sin leer; `limpiar_efimeros()` (webhooks > 30 días, cotizaciones vencidas) corre en el barrido.
+- Pruebas: `supabase/tests/schema_smoke.sql` (invariantes y RLS) se ejecuta en CI con `supabase/tests/run.sh` sobre un Postgres con pgvector.
+
 ## Cupones e insignias
 
 - **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** del negocio y lo resta en el servidor (`descuento_minor`, total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
