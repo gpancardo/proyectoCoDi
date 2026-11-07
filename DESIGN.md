@@ -1,29 +1,22 @@
-# BarrioPass — Identidad visual
+# Barrio — Identidad visual
 
 > Guía de diseño · DevDay Exchange Community Hackathon CDMX (7–8 nov 2026)
-> Producto y alcance: ver `PRODUCTO.md`
+> Producto y alcance: ver `PRODUCTO.md` · Voz de marca: ver `VOZ-DE-MARCA.md`
 > Estado: **propuesta para discusión** (decisiones abiertas marcadas con 🟡)
 
 ---
 
 ## 1. Nombre
 
-**BarrioPass** — cobra en tu barrio, sin comisión.
+**Barrio** — cobra en tu barrio, sin comisión.
 
-Sigue la misma fórmula que **DocPass**: *[a quién sirve] + Pass*.
+La palabra *barrio* nombra exactamente a quien sirve: unidades económicas pequeñas, creadas por y para los habitantes de una misma localidad (tiendas de abarrotes, misceláneas, puestos de comida, talleres caseros, estéticas). Es cercana, mexicana y no suena a banco.
 
-- **DocPass** → el pase del doctor a un consultorio.
-- **BarrioPass** → el pase del comercio de barrio a los pagos digitales.
-
-La palabra *barrio* nombra exactamente al usuario: unidades económicas pequeñas, creadas por y para los habitantes de una misma localidad (tiendas de abarrotes, misceláneas, puestos de comida, talleres caseros, estéticas). Es cercana, mexicana y no suena a banco.
-
-🟡 Alternativas si el equipo quiere otra: **TienditaPass** (más concreto, pero deja fuera talleres y estéticas), **CobroPass** (más funcional, menos cálido).
-
-**Escritura:** siempre `BarrioPass`, una palabra, B y P mayúsculas. Nunca "Barrio Pass", "barriopass" ni "BP".
+**Escritura:** `Barrio` con B mayúscula cuando es el nombre de la marca. En la versión corta del logo puede ir en minúsculas (`barrio`). Nunca "BARRIO" en texto corrido.
 
 ## 2. Personalidad
 
-DocPass es **confiable, clínico y profesional**. BarrioPass toma esa confianza y le quita la bata: es **el vecino que sabe de tecnología**.
+Barrio es **el vecino que sabe de tecnología**: confiable porque el dinero llega, cercano porque habla como la gente del barrio.
 
 | Es | No es |
 |---|---|
@@ -34,22 +27,20 @@ DocPass es **confiable, clínico y profesional**. BarrioPass toma esa confianza 
 
 ## 3. Color
 
-La paleta **comparte la base azul marino de DocPass** para que se lean como familia, y cambia el acento: donde DocPass usa teal como color principal, BarrioPass usa **mango**, un amarillo-naranja cálido que remite a los toldos, las fachadas pintadas y los letreros de las tienditas. El teal se conserva, pero solo para el estado de "pagado".
-
-🟡 **Ajuste pendiente:** los valores de marino y teal son aproximados. Si se tienen los hex oficiales de DocPass, se reemplazan aquí para que la familia sea exacta.
+La base es un **azul marino** que da seriedad y confianza (se trata de dinero). El color de marca es **mango**, un amarillo-naranja cálido que remite a los toldos, las fachadas pintadas y los letreros de las tienditas. El **teal** se reserva para el estado de "pagado".
 
 ### 3.1 Paleta
 
-| Token | Hex | Uso | Relación con DocPass |
-|---|---|---|---|
-| `--marino` | `#0B2545` | Texto principal, encabezados, fondo de la pantalla QR | **Compartido** |
-| `--mango` | `#F5A524` | Color de marca: botón "Cobrar", micrófono, acentos | Nuevo, propio de BarrioPass |
-| `--crema` | `#FFF8EC` | Fondo general de la app | Nuevo (más cálido que el blanco clínico) |
-| `--teal` | `#0F7C75` | Éxito: "✅ Pagado", confirmaciones | **Compartido**, pero en rol secundario |
-| `--tinta` | `#1A1F2B` | Texto de cuerpo largo | — |
-| `--gris` | `#5B6472` | Texto secundario, etiquetas, ayudas | — |
-| `--rojo` | `#C2392B` | Errores, "sin precio", cobro expirado | — |
-| `--blanco` | `#FFFFFF` | Tarjetas sobre el fondo crema, fondo del QR | — |
+| Token | Hex | Uso |
+|---|---|---|
+| `--marino` | `#0B2545` | Texto principal, encabezados, fondo de la pantalla QR |
+| `--mango` | `#F5A524` | Color de marca: botón "Cobrar", micrófono, acentos |
+| `--crema` | `#FFF8EC` | Fondo general de la app (más cálido que el blanco) |
+| `--teal` | `#0F7C75` | Éxito: "✅ Pagado", confirmaciones |
+| `--tinta` | `#1A1F2B` | Texto de cuerpo largo |
+| `--gris` | `#5B6472` | Texto secundario, etiquetas, ayudas |
+| `--rojo` | `#C2392B` | Errores, "sin precio", cobro expirado |
+| `--blanco` | `#FFFFFF` | Tarjetas sobre el fondo crema, fondo del QR |
 
 ### 3.2 Proporción
 
@@ -73,8 +64,11 @@ Verificado. Todos los pares de uso pasan AA para texto normal (≥ 4.5:1).
 | Blanco | Teal | 5.1 : 1 | AA |
 | Blanco | Rojo | 5.4 : 1 | AA |
 | Crema | Marino | 14.6 : 1 | AAA |
+| Mango | Marino | 7.5 : 1 | AAA |
 
-**Regla importante:** sobre el botón mango el texto va en **marino, nunca en blanco** (blanco sobre mango no pasa contraste). Esto también ayuda a leer bajo el sol.
+**Reglas importantes:**
+- Sobre el botón mango el texto va en **marino, nunca en blanco** (blanco sobre mango no pasa contraste). Esto también ayuda a leer bajo el sol.
+- **Texto mango solo sobre fondo marino.** Sobre crema o blanco no se lee.
 
 ### 3.4 Tokens CSS
 
@@ -132,9 +126,7 @@ body {
 .monto { font-variant-numeric: tabular-nums; } /* los números no "bailan" al cambiar */
 ```
 
-**Por qué Plus Jakarta Sans:** es geométrica y moderna (se siente de la misma familia que una marca tech como DocPass) pero con terminaciones redondas que la hacen amable. Sus números son muy legibles, que es lo que más importa aquí.
-
-🟡 Si DocPass ya usa una fuente definida, se puede usar esa misma para los títulos y dejar Plus Jakarta Sans para los números.
+**Por qué Plus Jakarta Sans:** es geométrica y moderna, pero con terminaciones redondas que la hacen amable. Sus números son muy legibles, que es lo que más importa aquí.
 
 **Reglas:**
 - Tamaño mínimo de texto: **14 px**. El usuario lee con prisa y a un brazo de distancia.
@@ -143,20 +135,23 @@ body {
 
 ## 5. Logotipo
 
-**Concepto:** un toldo de tiendita visto de frente, con sus franjas, que en la franja central forma un pequeño código QR de 3×3. Junto al símbolo, el nombre en Plus Jakarta Sans 800.
+**Concepto:** un toldo de tiendita visto de frente, con sus franjas, sobre una fachada que lleva un pequeño código QR. Junto al símbolo, la palabra **Barrio** en Plus Jakarta Sans 800 con tracking de −2 px.
 
 ```
    ▄▀▄▀▄▀▄▀▄        ← toldo (franjas mango / crema)
    █ ▪ ▫ ▪ █        ← fachada con QR estilizado (marino)
-   BarrioPass
+     Barrio
 ```
 
-- **Símbolo:** franjas en mango y crema; el QR en marino.
-- **Palabra:** `Barrio` en marino, `Pass` en mango (eco de cómo DocPass separa visualmente sus dos partes).
-- **Versión app icon:** solo el toldo con QR sobre fondo marino.
-- **Área de respeto:** la altura de la "B" alrededor de todo el logo.
+**Variantes:**
+- **Principal (fondo claro):** símbolo en mango, crema y marino; `Barrio` en marino.
+- **Invertida (fondo marino):** símbolo con contorno crema; `Barrio` en crema o en mango.
+- **Corta (stickers, playeras, sellos):** `barrio` en minúsculas, marino sobre mango.
+- **Ícono de app:** solo el toldo con QR sobre fondo marino.
 
-🟡 Para el hackathon basta con la versión tipográfica (`Barrio` marino + `Pass` mango). El símbolo se dibuja si queda tiempo el domingo.
+**Área de respeto:** la altura de la "B" alrededor de todo el logo.
+
+🟡 Para el hackathon basta con la versión tipográfica. El símbolo se integra si queda tiempo el domingo.
 
 ## 6. Iconos e ilustración
 
@@ -186,14 +181,14 @@ body {
 ### Tarjeta de cuenta
 - Fondo blanco sobre crema, sombra suave.
 - Cada item: nombre a la izquierda, `cantidad × precio` en gris, subtotal a la derecha en marino.
-- Item "sin precio": borde izquierdo rojo de 4 px y campo para escribir el monto.
+- Item "sin precio": fondo rojo muy claro, icono de alerta y campo para escribir el monto.
 - Total al pie en 56 px, 800.
 
 ### Pantalla QR (la que ve el cliente)
 - Es la **única pantalla oscura**: fondo `--marino`, para que el QR blanco resalte y el cliente sepa que esa pantalla es para él.
 - QR sobre cuadro blanco con margen amplio, lo más grande posible.
 - Arriba: nombre del negocio en crema. Abajo: monto en mango, 56 px.
-- Estado "Esperando pago…" en crema con animación suave.
+- Estado "Esperando que te paguen…" en crema con animación suave.
 
 ### Pagado
 - Toda la pantalla cambia a `--teal` con ✅ grande, monto y "¡Pagado!" en blanco.
@@ -205,11 +200,11 @@ body {
 - Escala de espaciado: **4, 8, 12, 16, 24, 32, 48 px**.
 - Margen lateral de pantalla: **16 px**.
 - Esquinas: 12 px (campos), 16 px (botones y tarjetas), círculo (micrófono).
-- Áreas táctiles mínimas de **48 × 48 px** (se usa con una mano y a veces con los dedos sucios o con prisa).
+- Áreas táctiles mínimas de **48 × 48 px** (se usa con una mano y a veces con prisa).
 
 ## 9. Voz y tono
 
-Habla como el vecino que te explica algo en la tienda: de tú, corto y concreto.
+Resumen; la guía completa está en `VOZ-DE-MARCA.md`.
 
 | Situación | ✅ Sí | ❌ No |
 |---|---|---|
@@ -220,28 +215,13 @@ Habla como el vecino que te explica algo en la tienda: de tú, corto y concreto.
 | Resumen | "Hoy vendiste $1,240 en 38 cobros" | "Volumen transaccional diario" |
 | Sin comisión | "Te llega completo, sin comisión" | "0% de tasa de descuento" |
 
-**Palabras prohibidas en la interfaz:** transacción, liquidación, solicitud, procesar, usuario, error (se dice qué pasó y qué hacer).
-
-## 10. Familia con DocPass
-
-| Elemento | DocPass | BarrioPass |
-|---|---|---|
-| Fórmula del nombre | Doc + Pass | Barrio + Pass |
-| Color base | Azul marino | **El mismo** azul marino |
-| Color principal | Teal | Mango (teal pasa a "pagado") |
-| Fondo | Blanco clínico | Crema cálido |
-| Personalidad | Profesional, confiable | Cercano, confiable |
-| Usuario | Profesional de la salud | Dueño de comercio de barrio |
-
-Juntas se leen como dos productos de la misma casa: la misma seriedad de fondo, distinto público.
-
-## 11. Checklist rápido para el equipo
+## 10. Checklist rápido para el equipo
 
 - [ ] Tokens CSS de §3.4 copiados al proyecto.
 - [ ] Plus Jakarta Sans cargada (400, 500, 700, 800).
-- [ ] Texto sobre mango siempre en marino.
+- [ ] Texto sobre mango siempre en marino; texto mango solo sobre marino.
 - [ ] Un solo botón mango por pantalla.
 - [ ] Micrófono y caja de texto visibles al mismo tiempo.
 - [ ] Pantalla QR en marino; pantalla "Pagado" en teal.
-- [ ] Ninguna palabra de la lista prohibida en la interfaz.
+- [ ] Ninguna palabra de la lista prohibida en la interfaz (ver `VOZ-DE-MARCA.md`).
 - [ ] Probar en un Android real, a pleno sol.
