@@ -7,13 +7,10 @@ import OpenAI, { toFile } from 'openai'
 import { createClient } from '@supabase/supabase-js'
 import assert from 'node:assert/strict'
 import { setTimeout as espera } from 'node:timers/promises'
+import { MODELO, TRANSCRIPCION, VOZ, EMBEDDINGS, SUPABASE_KEY } from './config.js'
 
 process.env.TZ ??= 'America/Mexico_City' // "hoy" es el día del negocio, no el del servidor
 
-const MODELO = 'gpt-5-mini'                    // agente: rápido, barato, buen function calling
-const TRANSCRIPCION = 'gpt-4o-mini-transcribe' // notas de voz → texto
-const VOZ = 'gpt-4o-mini-tts'                  // texto → nota de voz
-const EMBEDDINGS = 'text-embedding-3-small'    // 1536 dims, coincide con supabase/migrations
 
 // Minutos. El push de pey dura 15; se da por vencido con margen para webhooks tardíos.
 const MIN = { reenviarPedido: 1, recordarNegocio: 3, expirarPedido: 8, recordarPago: 5, vencerCobro: 20 }
@@ -72,6 +69,15 @@ function cotizar(catalogo, pedido) {
   return { items, total }
 }
 
+// ¿pey confirma que el cobro se pagó completo? push: GET /transaction/{id}; qr: lista de transacciones; link: GET /payment-link/{id}.
+// Cuenta el monto base (sin propina ni comisión) y exige que alcance. Regresa { rastreo } o null.
+function pagoConfirmado(via, r, monto) {
+  const pagadas = via === 'link' ? (r?.status === 'paid' ? r.transactions ?? [] : [])
+    : (via === 'qr' ? r?.items ?? [] : [r]).filter((t) => t?.status === 'PAID')
+  const cobrado = pagadas.reduce((suma, t) => suma + Number(t.amountBreakdown?.base ?? t.amount ?? 0), 0)
+  return pagadas.length && Math.round(cobrado * 100) >= Math.round(monto * 100) ? { rastreo: pagadas[0].metadata?.trackingKey ?? null } : null
+}
+
 const pesos = (n) => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 })
 const listar = (items) => items.map((i) => `• ${i.cantidad} × ${i.nombre} — ${pesos(i.precio * i.cantidad)}`).join('\n')
 
@@ -94,9 +100,22 @@ if (process.argv[2] === 'test') {
   assert.ok(cotizar(menu, []).error)
   assert.ok(cotizar(menu, null).error)
   assert.equal(concepto('Tacos Doña Lupe 🌮 pedido 12'), 'Tacos Dona Lupe pedido 12')
+  assert.equal(pesos(0.01), '$0.01')
   assert.equal(pesos(55), '$55')
   assert.equal(pesos(1240), '$1,240')
   assert.equal(pesos(1250.5), '$1,250.50')
+  const paga = (base) => ({ status: 'PAID', amount: base, amountBreakdown: { base, tip: 0, fee: 0 }, metadata: { trackingKey: 'K1' } })
+  assert.deepEqual(pagoConfirmado('push', paga(0.01), 0.01), { rastreo: 'K1' })
+  assert.equal(pagoConfirmado('push', { status: 'PENDING', amount: 0.01 }, 0.01), null)
+  assert.equal(pagoConfirmado('push', paga(0.01), 120), null) // pagó menos de lo debido
+  assert.equal(pagoConfirmado('push', { status: 'PAID', amount: 150 }, 150)?.rastreo, null) // sin desglose ni rastreo
+  assert.ok(pagoConfirmado('qr', { items: [{ status: 'PENDING', amount: 5 }, paga(5)] }, 5))
+  assert.equal(pagoConfirmado('qr', { items: [] }, 5), null)
+  assert.ok(pagoConfirmado('push', paga(0.1 + 0.2), 0.3)) // el redondeo de flotantes no rompe pagos exactos
+  assert.ok(pagoConfirmado('link', { status: 'paid', transactions: [{ amount: 100 }, { amount: 20 }] }, 120))
+  assert.equal(pagoConfirmado('link', { status: 'partial', transactions: [{ amount: 100 }] }, 120), null)
+  assert.equal(pagoConfirmado('link', { status: 'pending', transactions: [] }, 120), null)
+  assert.equal(pagoConfirmado('push', undefined, 5), null)
   console.log('ok')
   process.exit(0)
 }
@@ -104,13 +123,14 @@ if (process.argv[2] === 'test') {
 // ---------- servicios ----------
 
 const MOCK = process.env.PEY_MOCK === '1' // sin API key de pey: cobros falsos; para simular el pago, marca la orden 'pagada' en Supabase
-for (const v of ['OPENAI_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', ...(MOCK ? [] : ['PEY_API_KEY'])]) {
-  if (!process.env[v]) { console.error(`Falta ${v} en .env`); process.exit(1) }
+const requeridas = { OPENAI_API_KEY: process.env.OPENAI_API_KEY, SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: SUPABASE_KEY, ...(MOCK ? {} : { PEY_API_KEY: process.env.PEY_API_KEY }) }
+for (const [nombre, valor] of Object.entries(requeridas)) {
+  if (!valor) { console.error(`Falta ${nombre} en bot/.env. Corre npm run diagnostico para ver qué hace falta.`); process.exit(1) }
 }
 process.on('unhandledRejection', (e) => console.error('unhandledRejection', e))
 
 const openai = new OpenAI({ timeout: 45e3, maxRetries: 2 })
-const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+const db = createClient(process.env.SUPABASE_URL, SUPABASE_KEY)
 const logger = pino({ level: 'warn' })
 let sock
 
@@ -164,16 +184,16 @@ async function indexarNegocios() {
 }
 
 const PNG_1X1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-async function pey(ruta, body) {
+async function pey(ruta, body) { // con body: POST; sin body: GET
   if (MOCK) {
-    console.warn('PEY_MOCK', ruta, body.amount, body.concept)
+    console.warn('PEY_MOCK', ruta, body?.amount, body?.concept)
     const id = `mock-${Date.now()}`
-    return ruta === '/codi/qr' ? { id, qrString: id, qrImage: PNG_1X1 } : { transactionId: id, codiId: id }
+    return ruta === '/codi/qr' ? { id, qrString: id, qrImage: PNG_1X1 } : ruta === '/payment-link/create' ? { id, url: 'https://pey.mx' } : { transactionId: id, codiId: id }
   }
   const r = await fetch(`https://api.pey.mx${ruta}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.PEY_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    method: body ? 'POST' : 'GET',
+    headers: { Authorization: `Bearer ${process.env.PEY_API_KEY}`, ...(body && { 'Content-Type': 'application/json' }) },
+    body: body && JSON.stringify(body),
     signal: AbortSignal.timeout(20e3),
   })
   const j = await r.json().catch(() => ({}))
@@ -359,7 +379,11 @@ async function compradorDe(jid, tel, pushName) {
 
 // ---------- cobro ----------
 
-// Cobro sin fricción: push CoDi directo al banco del comprador; si falla, QR como respaldo.
+// A donde regresa la persona después de pagar en el link: el chat con el bot.
+const URL_RETORNO = process.env.BOT_PHONE ? `https://wa.me/${process.env.BOT_PHONE.replace(/\D/g, '')}` : 'https://wa.me/'
+
+// Cobro sin fricción: push CoDi directo al banco; si falla (p. ej. no tiene CoDi activo), link de pago de pey
+// (CoDi o tarjeta, se abre en el mismo celular); si también falla, QR de CoDi.
 async function cobrar(o, comprador, negocio) {
   const base = {
     amount: Number(o.monto),
@@ -369,25 +393,34 @@ async function cobrar(o, comprador, negocio) {
     metadata: { orden_id: o.id },
     ...(negocio.pey_bank_account_id && { bankAccountId: negocio.pey_bank_account_id }),
   }
-  let ref, qrImage
-  try {
-    ref = (await pey('/codi/pn', { ...base, phoneNumber: comprador.telefono })).transactionId
-  } catch (e) {
-    console.error(e.message)
-    try {
+  const vias = [
+    async () => ({ via: 'push', ref: (await pey('/codi/pn', { ...base, phoneNumber: comprador.telefono })).transactionId }),
+    async () => {
+      const l = await pey('/payment-link/create', { amount: base.amount, successUrl: URL_RETORNO, backUrl: URL_RETORNO, clientReferenceId: String(o.id), metadata: base.metadata })
+      return { via: 'link', ref: l.id, url: l.url }
+    },
+    async () => {
       const qr = await pey('/codi/qr', { ...base, generateImage: true })
-      if (qr.qrImage) ({ id: ref, qrImage } = qr) // sin imagen el QR nunca se mostró, así que no se puede pagar: se trata como falla
-    } catch (e2) { console.error(e2.message) }
+      if (!qr.qrImage) throw new Error('pey no devolvió la imagen del QR') // sin imagen no se puede pagar
+      return { via: 'qr', ref: qr.id, qrImage: qr.qrImage }
+    },
+  ]
+  let cobro
+  for (const via of vias) {
+    try { cobro = await via(); break } catch (e) { console.error('cobro', o.id, e.message) }
   }
-  if (!ref) {
+  if (!cobro) {
     await cambiarEstado(o.id, 'aceptada', 'vencida')
     return enviar(comprador.wa_jid, `No pude mandarte el cobro del pedido ${o.id}. ¿Lo intento otra vez? Responde *sí*.`)
   }
   // Primero se guarda el cobro, luego se avisa: si WhatsApp falla, el cobro sigue rastreado.
-  await cambiarEstado(o.id, 'aceptada', 'cobrada', { pey_ref: ref })
-  const aviso = qrImage
-    ? { image: Buffer.from(qrImage, 'base64'), caption: `*${negocio.nombre}* aceptó tu pedido ${o.id}. Total: *${pesos(o.monto)}*\n\nPara pagar, abre la app de tu banco, entra a CoDi y escanea este código.` }
-    : { text: `*${negocio.nombre}* aceptó tu pedido ${o.id}.\n\nTe llegó un cobro de *${pesos(o.monto)}* a la app de tu banco. Ábrela y apruébalo.` }
+  await cambiarEstado(o.id, 'aceptada', 'cobrada', { pey_ref: cobro.ref, pey_via: cobro.via })
+  const resumen = `*${negocio.nombre}* aceptó tu pedido ${o.id}. Total: *${pesos(o.monto)}*`
+  const aviso = cobro.via === 'push'
+    ? { text: `*${negocio.nombre}* aceptó tu pedido ${o.id}.\n\nTe llegó un cobro de *${pesos(o.monto)}* a la app de tu banco. Ábrela y apruébalo.` }
+    : cobro.via === 'link'
+      ? { text: `${resumen}\n\nNo pude mandarte el cobro a tu banco. Paga aquí, con CoDi o con tarjeta:\n${cobro.url}` }
+      : { image: Buffer.from(cobro.qrImage, 'base64'), caption: `${resumen}\n\nPara pagar, abre la app de tu banco, entra a CoDi y escanea este código.` }
   await mandar(comprador.wa_jid, aviso).catch((e) => console.error('aviso cobro', o.id, e.message))
 }
 
@@ -521,6 +554,19 @@ async function revisarTiempos() {
         }
       } catch (e) { console.error('tiempos', o.id, e.message) }
     }
+    // Respaldo del webhook: preguntarle a pey por los cobros sin confirmar. Es la única vía para los links de pago.
+    if (!MOCK) {
+      const desde24h = new Date(Date.now() - 24 * 3600e3).toISOString()
+      const { data: abiertas } = await db.from('ordenes').select('id, monto, pey_ref, pey_via')
+        .in('estado', ['cobrada', 'vencida']).not('pey_ref', 'is', null).gte('creado', desde24h)
+      for (const o of abiertas ?? []) {
+        try {
+          const ruta = { link: `/payment-link/${o.pey_ref}`, qr: `/transaction/codi/qr/${o.pey_ref}` }[o.pey_via] ?? `/transaction/${o.pey_ref}`
+          const pago = pagoConfirmado(o.pey_via, await pey(ruta), o.monto)
+          if (pago) await cambiarEstado(o.id, ['cobrada', 'vencida'], 'pagada', { pagada_en: new Date().toISOString(), rastreo: pago.rastreo })
+        } catch (e) { console.error('consulta a pey', o.id, e.message) }
+      }
+    }
     // Pagos cuyo aviso por Realtime se perdió (bot apagado, canal caído)
     const { data: pagadas } = await db.from('ordenes').select('id').eq('estado', 'pagada').eq('avisado_pago', false)
     for (const { id } of pagadas ?? []) await avisarPago(id).catch((e) => console.error('avisarPago', id, e.message))
@@ -610,12 +656,20 @@ function encolar(jid, fn) {
 
 let relojes = false
 let intentos = 0
+let pidiendoCodigo = false
 async function conectar() {
   const { state, saveCreds } = await useMultiFileAuthState('auth')
   sock = makeWASocket({ auth: state, logger })
   sock.ev.on('creds.update', saveCreds)
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
-    if (qr) qrcode.generate(qr, { small: true })
+    if (qr && process.env.BOT_PHONE && !state.creds.registered) {
+      if (!pidiendoCodigo) { // código de vinculación: más cómodo que escanear un QR
+        pidiendoCodigo = true
+        sock.requestPairingCode(process.env.BOT_PHONE.replace(/\D/g, '')).then((c) => console.log(
+          `\nCódigo de vinculación: ${c.match(/.{1,4}/g).join('-')}\nEn el celular del bot: WhatsApp > Dispositivos vinculados > Vincular con el número de teléfono\n`,
+        )).catch((e) => { pidiendoCodigo = false; console.error('No se pudo pedir el código:', e.message) })
+      }
+    } else if (qr) qrcode.generate(qr, { small: true })
     if (connection === 'open') {
       console.log('✅ WhatsApp conectado')
       intentos = 0
@@ -624,6 +678,7 @@ async function conectar() {
     }
     if (connection === 'close') {
       conectado = new Promise((r) => (marcarConectado = r))
+      pidiendoCodigo = false
       if (lastDisconnect?.error?.output?.statusCode === DisconnectReason.loggedOut) {
         console.error('Sesión cerrada. Borra ./auth y vuelve a escanear.')
         process.exit(1)

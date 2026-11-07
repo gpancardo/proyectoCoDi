@@ -18,10 +18,10 @@ pey ──webhook──► Supabase (Edge Function) ──Realtime──► bot:
 
 ## Arrancar
 
-1. **Supabase:** `supabase link --project-ref <ref>` → `supabase db push` → ejecutar `supabase/seed.sql` con tu teléfono de negocio de prueba.
-2. **Webhook de pey:** `supabase functions deploy pey-webhook`, registrar su URL en portal.mipey.mx y `supabase secrets set PEY_WEBHOOK_SECRET=whsec_...`.
-3. **Bot:** `cd bot && cp .env.example .env` (llenar) → `npm ci && npm test && npm start` → escanear el QR con el WhatsApp del bot. Sin API key de pey, usa `PEY_MOCK=1`.
-4. **Web:** editar `web/config.js` y activar Settings → Pages → Source: *GitHub Actions*.
+1. **Supabase:** la migración `supabase/migrations/…_init.sql` ya está aplicada en el proyecto del equipo. Para otro proyecto: pegarla en el SQL Editor (o `supabase link` + `supabase db push`). Después, `supabase/seed.sql` con tu teléfono de prueba.
+2. **Webhook de pey:** la función `pey-webhook` ya está desplegada; falta apagar *Verify JWT* en su Settings, registrar su URL en portal.mipey.mx y guardar el `whsec_…` como secret `PEY_WEBHOOK_SECRET`.
+3. **Bot:** `cd bot && cp .env.example .env`, llenar las llaves, y `npm ci && npm run diagnostico`. Cuando diga "Todo listo": `npm start`. Con `BOT_PHONE` en `.env` se vincula con un código de 8 caracteres; si no, con un QR. Sin API key de pey, deja `PEY_MOCK=1`.
+4. **Web:** poner el número del bot en `web/config.js` y activar Settings → Pages → Source: *GitHub Actions*.
 
 Para simular un pago con `PEY_MOCK=1`: `update ordenes set estado='pagada', pagada_en=now() where id=<N>;`
 
@@ -30,4 +30,4 @@ Para simular un pago con `PEY_MOCK=1`: `update ordenes set estado='pagada', paga
 - **Quien pide:** escribe o manda nota de voz. Ve la cuenta con el total, dice "sí", aprueba el cobro en su banco y recibe un código para recoger.
 - **El negocio:** se registra una vez en la web y después usa 6 palabras (`sí`/👍, `no`, `listo`, `hoy`, `cerrar`, `abrir`), escritas o por voz.
 
-> WhatsApp Web no es la API oficial: usa un número secundario. pey no tiene entorno de pruebas: prueba con $1.
+> WhatsApp Web no es la API oficial: usa un número secundario. pey no tiene entorno de pruebas: prueba con $0.01 (un centavo).

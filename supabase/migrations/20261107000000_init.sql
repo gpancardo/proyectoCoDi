@@ -1,5 +1,5 @@
--- Pegar en Supabase > SQL Editor y ejecutar una vez.
-create extension if not exists vector;
+-- Pegar en Supabase > SQL Editor y ejecutar una vez (o: supabase db push).
+create extension if not exists vector with schema extensions;
 
 create table compradores (
   id bigint generated always as identity primary key,
@@ -77,9 +77,23 @@ alter table negocios enable row level security;
 alter table ordenes enable row level security;
 create policy alta_publica on negocios for insert to anon
   with check (not verificado and wa_jid is null and embedding is null and pey_bank_account_id is null and abierto);
+
+-- Supabase da permisos amplios por defecto a anon y authenticated: aquí se quitan y solo se deja lo necesario.
+revoke all on compradores, negocios, ordenes from anon, authenticated;
 grant insert on negocios to anon;
 
 -- Agrega un id de mensaje a la orden sin carreras (lectura-modificación-escritura en una sola sentencia).
 create function agregar_msg(p_id bigint, p_msg text) returns void language sql as $$
   update ordenes set wa_msgs = array_append(wa_msgs, p_msg) where id = p_id
 $$;
+
+-- Las funciones solo las usa el bot (service_role); la API pública no debe poder llamarlas.
+revoke all on function match_negocios(vector, text, int) from public, anon, authenticated;
+revoke all on function agregar_msg(bigint, text) from public, anon, authenticated;
+
+-- Proyectos nuevos de Supabase ya no dan permisos por defecto, y BYPASSRLS no salta los GRANT:
+-- el bot (service_role) necesita permisos explícitos.
+grant usage on schema public to anon, service_role;
+grant all on compradores, negocios, ordenes to service_role;
+grant usage, select on all sequences in schema public to service_role;
+grant execute on function match_negocios(vector, text, int), agregar_msg(bigint, text) to service_role;
