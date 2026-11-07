@@ -5,7 +5,7 @@
 ## Responsabilidades
 
 - La app habla únicamente con la API HTTPS de Barrio. No consulta tablas de negocio directamente ni contiene llaves de servidor.
-- El backend autentica sesiones, valida entradas y permisos, ejecuta reglas de pedidos, integra OpenAI como ayuda opcional, consulta Supabase y crea/consulta cobros con pey.
+- El backend autentica sesiones, valida entradas y permisos, ejecuta reglas de pedidos, entrega Descubrir y Buscar con Barrio (RAG), consulta Supabase y crea/consulta cobros con pey.
 - Postgres es la fuente de verdad de catálogo, disponibilidad, pedidos y pagos. El backend impone autorización por comprador o negocio.
 - El webhook de pey valida firma, idempotencia y monto; puede actualizar el pedido una sola vez. La app observa el estado por consulta o canal en tiempo real autenticado.
 
@@ -17,15 +17,19 @@ App ──HTTPS + sesión──► API Barrio ──service credential──► 
 
 No se debe exponer `SUPABASE_SECRET_KEY`, `PEY_API_KEY` ni `OPENAI_API_KEY` al cliente. No se debe autorizar al cliente a cambiar estados de orden directamente.
 
-## Búsqueda del catálogo
+## Descubrir, perfil y búsqueda con Barrio
 
-La búsqueda devuelve comercios y productos publicables cercanos, combinando métodos deterministas con la búsqueda asistida. Las rutas deterministas son la ruta normal y funcionan sin OpenAI.
+La API ofrece dos experiencias que comparten catálogo y reglas. **Descubrir** funciona sin modelo y organiza categorías/carruseles. **Buscar con Barrio** recupera candidatos reales antes de invocar al modelo; no es un chat que consulte ni altere la base libremente.
 
 1. **Filtros exactos en SQL:** texto/categoría, zona o coordenadas, abierto ahora, disponibilidad, rango de precio y restricciones del usuario. Estos filtros siempre se aplican antes de ordenar resultados.
 2. **Orden estable inspirado en marketplaces:** disponibilidad, distancia, coincidencia de texto/categoría, calidad/completitud del catálogo y señales operativas. Definir pesos con producto; desempate estable por `negocio_id` y producto. No usar pagos ni datos sensibles para ranking.
 3. **Búsqueda textual determinista:** normalización de acentos/caso, alias explícitos y `tsvector`/trigramas en nombre, categoría y producto. Retornar por qué coincide.
-4. **Agente como complemento:** interpreta frases libres y puede proponer términos, categorías o filtros estructurados. Su salida es solo una consulta tipada; el backend valida, limita y ejecuta. El agente no inventa artículos, disponibilidad ni precios y no calcula totales.
-5. **Fallback:** ante timeout o indisponibilidad del modelo, mostrar resultados deterministas, categorías y filtros navegables.
+4. **RAG acotado:** cada negocio tiene un documento de catálogo regenerado cuando cambia su información. La consulta obtiene sus vecinos vectoriales; solo esos candidatos se muestran al agente junto con filtros y datos públicos.
+5. **Agente:** interpreta frases libres y devuelve filtros tipados y una explicación breve bajo JSON Schema estricto. Su salida se valida y los filtros explícitos de la app tienen prioridad. El agente no inventa artículos, disponibilidad ni precios y no calcula totales.
+6. **Perfil:** el backend registra `search`, `view`, `save` y `order`, y agrega afinidad por categoría. Se usa como señal leve, reproducible y visible; nunca para precio, elegibilidad, pago o datos sensibles.
+7. **Fallback:** ante timeout o indisponibilidad de embeddings/modelo, buscar sobre el catálogo completo con texto, categorías y filtros navegables.
+
+El trigger invalida el vector al cambiar un catálogo; el proceso seguro `npm run index:catalog` lo vuelve a generar con credenciales de servidor. Debe ejecutarse al publicar cambios o desde un cron del backend, nunca desde la app.
 
 Cada resultado incluye `match_reasons`, distancia si existe, estado de apertura/disponibilidad y datos necesarios para decidir. Evitar personalización opaca en el MVP; hacer el orden explicable y reproducible.
 
@@ -35,7 +39,10 @@ Prefijo `/api/v1`; JSON UTF-8; errores con `{ "error": { "code": "...", "message
 
 | Método y ruta | Uso |
 |---|---|
+| `GET /discovery` | Inicio tipo marketplace: categorías y carruseles deterministas, con afinidad ligera si hay sesión |
 | `GET /catalog/search?q=&zone=&open_now=&category=&cursor=` | Buscar comercios/productos; filtros, orden, motivos de coincidencia |
+| `POST /search/agent` | Buscar con Barrio: consulta libre + filtros opcionales; devuelve candidatos recuperados, matches y explicación |
+| `POST /discovery/events` | Registrar señal explícita `search`, `view`, `save` u `order` de la sesión; nunca acepta precio/estado |
 | `GET /businesses/{business_id}` | Perfil público y catálogo disponible |
 | `POST /orders/quotes` | Validar artículos/cantidades contra precios vigentes y devolver cotización con caducidad |
 | `POST /orders` | Crear pedido desde `quote_id` e idempotency key; exige confirmación explícita del resumen |
@@ -52,6 +59,8 @@ El endpoint de cotización calcula precios y total desde catálogo del servidor.
 
 Conservar y formalizar la máquina de estados existente en migraciones/código. Toda transición usa compare-and-set (estado anterior esperado); solo se crea otro intento de cobro cuando el anterior vence. Un webhook firmado es idempotente y solo confirma si la referencia corresponde y el monto pagado cubre el pedido. Un proceso de reconciliación consulta a pey como respaldo. La respuesta al cliente no revela datos bancarios ni secretos.
 
+El siguiente corte crea `intentos_cobro` y `eventos_webhook`; no reutiliza `ordenes.pey_ref` como historial. Un intento guarda vía, referencia de pey, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide dos intentos vigentes por pedido. El webhook persiste primero su identificador para deduplicar, localiza el intento por referencia, valida monto y actualiza con condición de estado. Un pago tardío de un intento vencido requiere revisión; nunca confirma automáticamente un intento nuevo.
+
 ### Seguridad mínima
 
 - Elegir proveedor de identidad antes de implementar login; almacenar sujetos externos como ID de aplicación, no como teléfono implícitamente confiable.
@@ -59,12 +68,13 @@ Conservar y formalizar la máquina de estados existente en migraciones/código. 
 - Límites de tamaño, validación de esquema, rate limits y logs sin credenciales ni datos de pago sensibles.
 - CORS limitado a los orígenes de la app/web publicados; TLS obligatorio; secretos solo en el entorno del servidor.
 - El webhook usa verificación criptográfica del cuerpo original y protección contra repetición.
+- El prompt declara que la entrada de la persona es dato, no instrucción. El agente solo recibe candidatos recuperados y no tiene herramientas de escritura ni acceso a pagos.
 
 ## Entrega por etapas
 
 1. Acordar proveedor de sesión, forma de ubicación, estados visibles y payloads con el responsable de la app.
 2. Crear `backend/` como servicio separado y mover/adaptar la lógica de dominio reutilizable fuera del adaptador WhatsApp.
-3. Implementar primero búsqueda determinista, perfil y catálogo; después cotización/pedido; luego aceptación del negocio y pagos.
+3. Implementar primero Descubrir, búsqueda determinista, perfil y catálogo; después RAG/agente, cotización/pedido; luego aceptación del negocio y pagos.
 4. Migrar registro web a llamadas al backend, sin insertar directamente desde navegador con la llave pública.
 5. Agregar OpenAI como modo asistido y fallback probado; nunca bloquear búsqueda por el modelo.
 6. Desplegar `dev`, validar integración en `stg` y promover a `main` mediante PR.

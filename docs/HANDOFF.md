@@ -13,13 +13,13 @@ El producto cambia de WhatsApp a una app standalone desarrollada por otro integr
 - `develop` y `staging` son aliases retirados; si un workspace viejo los vuelve a publicar, verifica que no tengan commits propios antes de borrarlos. `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
 - Hay cambios locales sin commit en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. Consérvalos; el ajuste de vinculación QR de WhatsApp quedó obsoleto.
 - Se actualizaron README, AGENTS, PRODUCTO, DESIGN, VOZ-DE-MARCA y este handoff; se agregó `docs/BACKEND.md`.
-- Aún no existe servicio HTTP en `backend/`; no hay contrato implementado ni integración con la app. El backend anterior vive dentro de `bot/index.js` y acopla negocio/pagos a WhatsApp.
+- `backend/` contiene el primer corte HTTP de Descubrir y Buscar con Barrio: catálogo determinista, perfil por señales explícitas, RAG acotado y fallback sin OpenAI. Aún faltan los casos de pedidos, negocio y pagos, además de despliegue e integración de la app.
 
 ## Bloqueos que debe cerrar el equipo
 
 1. Backend y app acuerdan autenticación/sesión y roles comprador/negocio.
 2. Acordar forma de ubicación (zona, coordenadas o ambas), datos visibles del negocio y criterios/pesos del ranking.
-3. El responsable de backend crea `backend/` y separa reglas de dominio de adaptadores de canal heredados.
+3. Mantener el índice de catálogo al día: ejecutar `backend` `index:catalog` tras cambios de menú desde un entorno con secretos.
 4. Implementar API por etapas: búsqueda/catálogo → cotización/creación de pedido → aceptación/estado del negocio → cobros y reconciliación.
 5. Adaptar `web/` para que altas y consultas pasen por backend; no dejar llave de servidor en cliente.
 6. Definir actualización de estado para app (polling autenticado inicialmente o canal en tiempo real autorizado).
