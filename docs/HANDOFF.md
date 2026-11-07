@@ -8,10 +8,11 @@ El producto cambia de WhatsApp a una app standalone desarrollada por otro integr
 
 ## Estado de este checkout
 
-- HEAD local y `origin/main` conocidos: `92798e2`; no pude actualizar referencias remotas.
-- `git pull --rebase` no corrió porque hay cambios locales preexistentes. `git fetch` y `git switch -c` tampoco pudieron escribir `.git/FETCH_HEAD`/refs porque `.git` está montado de solo lectura en este entorno.
-- Hay modificaciones locales preexistentes en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. Consérvalas, pero no les dediques trabajo de producto: la guía de vinculación QR de WhatsApp quedó obsoleta.
-- En esta sesión se actualizaron README, AGENTS, PRODUCTO, DESIGN, VOZ-DE-MARCA y este handoff; se agregó `docs/BACKEND.md`.
+- GitHub está operativo. `main` ya contiene la guía de producto y Git; las ramas oficiales son `main`, `dev` y `stg`.
+- Los PRs #4, #5 y #6 promovieron el contrato de backend por `feature → dev → stg → main`; el PR #7 actualizó el handoff en `dev`. Un intento de promoverlo con #8 chocó porque ambos branches agregaron el archivo por separado; se cerró y la resolución va en un PR propio a `stg`.
+- Las ramas remotas `develop` y `staging` se eliminaron. `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
+- El checkout conserva cambios locales sin commit en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. No descartarlos; el ajuste de vinculación QR de WhatsApp quedó obsoleto.
+- Se actualizaron README, AGENTS, PRODUCTO, DESIGN, VOZ-DE-MARCA y este handoff; se agregó `docs/BACKEND.md`.
 - Aún no existe servicio HTTP en `backend/`; no hay contrato implementado ni integración con la app. El backend anterior vive dentro de `bot/index.js` y acopla negocio/pagos a WhatsApp.
 
 ## Bloqueos que debe cerrar el equipo
@@ -36,10 +37,10 @@ Contrato propuesto y rutas: [`BACKEND.md`](BACKEND.md). Ninguna ruta se debe pre
 
 ## Git y ramas
 
-Usar `feature/<área>-<cambio>` atómicas desde `dev`; abrir PR `feature/* → dev → stg → main`. No trabajar directo en ramas compartidas ni promover sin revisión. Antes de empezar y de subir, revisar `git status`, actualizar con `git pull --rebase` y resolver cualquier trabajo local sin borrarlo. En este checkout, primero se necesita un entorno con `.git` escribible y resolver los cambios locales listados arriba; no intentar commits o ramas aquí.
+Usar `feature/<área>-<cambio>` atómicas desde `dev`; abrir PR `feature/* → dev → stg → main`. No trabajar directo en ramas compartidas ni promover sin revisión. Antes de empezar y de subir, revisar `git status`, actualizar con `git pull --rebase` y resolver cualquier trabajo local sin borrarlo. Conserva primero los cuatro cambios locales en `bot/` o pide a su responsable que los guarde en una rama propia.
 
 ## Próximo corte recomendado
 
 El siguiente cambio técnico debe ser una feature branch acordada para **API de catálogo y búsqueda determinista**, con filtros validados y ranking explicable. Incluir contrato concreto, esquema/índices si hacen falta, endpoint y datos de ejemplo. Después conectar agente opcional sin hacerlo requisito de búsqueda. El pago se integra cuando autenticación y ciclo de pedido estén definidos.
 
-No se ejecutaron pruebas: este cambio fue documentación y el repo aún no tiene la API nueva.
+Las promociones previas pasaron el check `bot` de CI. No se ejecutaron pruebas locales adicionales para el refresh documental. El repo aún no tiene la API nueva.
