@@ -84,6 +84,13 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 - Índices de catálogo, pedidos por negocio/estado, cobros vigentes y avisos sin leer; `limpiar_efimeros()` (webhooks > 30 días, cotizaciones vencidas) corre en el barrido.
 - Pruebas: `supabase/tests/schema_smoke.sql` (invariantes y RLS) se ejecuta en CI con `supabase/tests/run.sh` sobre un Postgres con pgvector.
 
+## Automatización en Supabase (`20261107040000_automatizacion_supabase.sql`)
+
+- Trigger en `auth.users`: cada cuenta nueva crea su `comprador` (nombre desde `raw_user_meta_data.nombre`). El negocio se liga después con `negocios.sujeto_auth`.
+- `barrido_sql()` + `pg_cron` cada minuto: vence cobros, marca pedidos vencidos, expira pedidos sin respuesta a 8 min y devuelve sus cupones. La reconciliación con pey sigue en el backend.
+- `notificaciones` con RLS por persona y Realtime (avisos de cupones). Pedidos y cobros siguen solo por API.
+- Bucket público `negocios` (2 MB, jpeg/png/webp); escribe solo el dueño en la carpeta con el id de su negocio.
+
 ## Cupones e insignias
 
 - **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** del negocio y lo resta en el servidor (`descuento_minor`, total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
