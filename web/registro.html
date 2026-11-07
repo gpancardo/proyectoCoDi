@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registra tu negocio · Barrio</title>
+  <meta name="description" content="Recibe pedidos por WhatsApp con la cuenta hecha y cobra con CoDi, sin comisión.">
+  <meta name="theme-color" content="#0B2545">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B2545'/%3E%3Cpath d='M5 7h22v7H5z' fill='%23F5A524'/%3E%3Cpath d='M9 7h4v7H9zM19 7h4v7h-4z' fill='%23FFF8EC'/%3E%3Crect x='8' y='17' width='16' height='9' fill='%23FFF8EC'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<a class="salto" href="#f">Saltar al formulario</a>
+
+<header class="contenedor barra">
+  <a class="logo" href="./" aria-label="Barrio, inicio">
+    <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0B2545"/><path d="M5 7h22v7H5z" fill="#F5A524"/><path d="M9 7h4v7H9zM19 7h4v7h-4z" fill="#FFF8EC"/><rect x="8" y="17" width="16" height="9" fill="#FFF8EC"/><path d="M11 20h3v3h-3zM18 20h3v3h-3z" fill="#0B2545"/></svg>
+    Barrio
+  </a>
+</header>
+
+<main class="contenedor">
+  <h1>Registra tu negocio</h1>
+  <p class="lead">Toma 2 minutos. Después los pedidos te llegan por WhatsApp y los aceptas con un <strong>sí</strong>.</p>
+  <p class="ayuda">¿Quieres pedir? No necesitas registrarte: <a id="wa-comprar" href="#">escríbele a Barrio</a>.</p>
+
+  <form id="f" class="formulario" novalidate>
+    <label>Nombre de tu negocio
+      <input name="nombre" required minlength="2" maxlength="60" autocomplete="organization"></label>
+
+    <label>Tu WhatsApp, 10 números
+      <input name="telefono" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="5512345678" autocomplete="tel-national" aria-describedby="ayuda-tel">
+      <span class="ayuda" id="ayuda-tel">Aquí te llegan los pedidos. Sin +52.</span></label>
+
+    <label>Alcaldía <select name="zona" required></select></label>
+
+    <label>Dirección donde te recogen
+      <input name="direccion" required minlength="5" maxlength="200" placeholder="Calle, número y colonia" autocomplete="street-address"></label>
+
+    <label>Tipo de negocio
+      <input name="categoria" required minlength="2" maxlength="60" list="giros" placeholder="Taquería, tortillería, papelería"></label>
+    <datalist id="giros"><option>Taquería</option><option>Fonda</option><option>Tortillería</option><option>Panadería</option>
+      <option>Tienda de abarrotes</option><option>Papelería</option><option>Frutería</option><option>Cafetería</option></datalist>
+
+    <fieldset aria-describedby="ayuda-prod">
+      <legend>Tus precios</legend>
+      <span class="ayuda" id="ayuda-prod">Con esto tu cliente ve el total antes de pedir y tú no escribes precios.</span>
+      <div id="productos" style="display:grid;gap:10px"></div>
+      <button type="button" class="btn btn-sec" id="agregar">Agregar producto</button>
+    </fieldset>
+
+    <label class="check"><input type="checkbox" name="auto_aceptar">
+      <span><strong>Aceptar pedidos en automático</strong><br><span class="ayuda">Tu cliente paga en cuanto pide y tú solo lo preparas. Escribe <em>cerrar</em> a Barrio cuando ya no atiendas.</span></span></label>
+
+    <button class="btn" id="enviar">Registrar mi negocio</button>
+    <div id="msg" class="mensaje" role="status" aria-live="polite" tabindex="-1" hidden></div>
+  </form>
+</main>
+
+<footer class="contenedor">Barrio · Cobros con <a href="https://pey.mx">pey</a> y CoDi.</footer>
+
+<script src="config.js"></script>
+<script>
+  const { SUPABASE_URL, SUPABASE_ANON_KEY, BOT } = window.BARRIO
+  const ZONAS = ['Álvaro Obregón', 'Azcapotzalco', 'Benito Juárez', 'Coyoacán', 'Cuajimalpa', 'Cuauhtémoc',
+    'Gustavo A. Madero', 'Iztacalco', 'Iztapalapa', 'Magdalena Contreras', 'Miguel Hidalgo', 'Milpa Alta',
+    'Tláhuac', 'Tlalpan', 'Venustiano Carranza', 'Xochimilco'] // igual que en bot/index.js
+
+  const wa = (texto) => `https://wa.me/${BOT}?text=${encodeURIComponent(texto)}`
+  document.getElementById('wa-comprar').href = wa('Hola Barrio')
+  const f = document.getElementById('f'), msg = document.getElementById('msg'), lista = document.getElementById('productos')
+  const boton = document.getElementById('enviar')
+  f.zona.innerHTML = '<option value="">Elige tu alcaldía</option>' + ZONAS.map(z => `<option>${z}</option>`).join('')
+
+  function fila() {
+    const d = document.createElement('div')
+    d.className = 'fila'
+    d.innerHTML = `<label>Producto <input class="p-nombre" maxlength="60" placeholder="Taco de canasta"></label>
+      <label>Precio <input class="p-precio" inputmode="decimal" placeholder="12" aria-label="Precio en pesos"></label>
+      <button type="button" class="quitar" aria-label="Quitar este producto">✕</button>`
+    d.querySelector('.quitar').onclick = () => { d.remove(); (lista.querySelector('input') ?? document.getElementById('agregar')).focus() }
+    lista.append(d)
+    return d
+  }
+  document.getElementById('agregar').onclick = () => fila().querySelector('input').focus()
+  fila(); fila(); fila()
+
+  function mostrar(texto, malo) {
+    msg.hidden = false
+    msg.className = malo ? 'mensaje malo' : 'mensaje'
+    msg.textContent = texto
+    msg.focus()
+  }
+
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const d = Object.fromEntries(new FormData(f))
+    const productos = [...lista.children].map(r => ({
+      nombre: r.querySelector('.p-nombre').value.trim(),
+      precio: Number(r.querySelector('.p-precio').value.replace(/[$\s,]/g, '')),
+    })).filter(p => p.nombre)
+
+    // Un problema a la vez: qué pasó y qué hacer
+    const tel = d.telefono.replace(/\D/g, '')
+    const falta =
+      d.nombre.trim().length < 2 ? ['nombre', 'Escribe el nombre de tu negocio.'] :
+      tel.length !== 10 ? ['telefono', 'Tu WhatsApp debe tener 10 números, sin +52.'] :
+      !d.zona ? ['zona', 'Elige tu alcaldía.'] :
+      d.direccion.trim().length < 5 ? ['direccion', 'Escribe la dirección donde te recogen.'] :
+      d.categoria.trim().length < 2 ? ['categoria', 'Dinos qué tipo de negocio es.'] :
+      !productos.length ? [null, 'Agrega al menos un producto con su precio.'] :
+      productos.some(p => !(p.precio > 0 && p.precio < 100000)) ? [null, 'Revisa los precios: deben ser mayores a 0.'] : null
+    f.querySelectorAll('[aria-invalid]').forEach(i => i.removeAttribute('aria-invalid'))
+    if (falta) {
+      mostrar(falta[1], true)
+      if (falta[0]) { f[falta[0]].setAttribute('aria-invalid', 'true'); f[falta[0]].focus() }
+      return
+    }
+
+    boton.disabled = true
+    boton.textContent = 'Registrando…'
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/negocios`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        nombre: d.nombre.trim(), telefono: tel, zona: d.zona, direccion: d.direccion.trim(),
+        categoria: d.categoria.trim(), productos, auto_aceptar: !!d.auto_aceptar,
+      }),
+    }).catch(() => null)
+    boton.disabled = false
+    boton.textContent = 'Registrar mi negocio'
+
+    if (!r) return mostrar('Sin señal. Revisa tu conexión e inténtalo de nuevo.', true)
+    if (r.status === 409) return mostrar('Ese WhatsApp ya tiene un negocio registrado. Escríbele a Barrio para empezar.', true)
+    if (!r.ok) return mostrar('No pudimos registrar tu negocio. Inténtalo de nuevo en un momento.', true)
+
+    const nombre = d.nombre.trim()
+    const link = wa(`Quiero pedir en ${nombre}`)
+    msg.className = 'mensaje'
+    msg.textContent = `Listo, ${nombre}. Último paso: salúdanos por WhatsApp para empezar a recibir pedidos.`
+    const saludo = Object.assign(document.createElement('a'), { className: 'btn', textContent: 'Saludar a Barrio', href: wa(`Hola, soy ${nombre}`) })
+    const compartir = document.createElement('p')
+    compartir.style.marginTop = '20px'
+    compartir.append('Comparte este link con tus clientes, en WhatsApp o en un letrero:')
+    compartir.append(document.createElement('br'))
+    compartir.append(Object.assign(document.createElement('a'), { className: 'enlace', href: link, textContent: link }))
+    const copiar = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn-sec', textContent: 'Copiar link' })
+    copiar.onclick = async () => {
+      try { await navigator.clipboard.writeText(link); copiar.textContent = 'Copiado' }
+      catch { copiar.textContent = 'Mantén presionado el link para copiarlo' }
+    }
+    msg.append(saludo, compartir, copiar)
+    msg.focus()
+    f.querySelectorAll('input:not([type=checkbox]), select').forEach(i => { i.value = '' })
+  })
+</script>
+</body>
+</html>

@@ -12,6 +12,7 @@
 | Le habla a | Tono | Trato |
 |---|---|---|
 | Dueños de comercios de barrio | Cercano, confiable, directo | De tú, siempre |
+| Quienes piden en el barrio | Amable, claro, sin tecnicismos | De tú, siempre |
 
 ## 2. Principios
 
@@ -126,6 +127,26 @@ cobrar · te llegó · completo · al instante · tu negocio · vendiste · esca
 | Sin internet | Sin señal. Revisa tu conexión e inténtalo de nuevo. |
 | No se pudo generar el QR | No pudimos generar el cobro. Inténtalo de nuevo en un momento. |
 
+### WhatsApp (el bot)
+
+Mismas reglas de voz. Si la persona escribe con dificultad, el bot le recuerda que también puede mandar nota de voz.
+
+| Momento | Texto |
+|---|---|
+| La cuenta | **{Negocio}** · lista de productos · **Total: $120** · Recoges en: {dirección} |
+| Pregunta de confirmación | ¿Lo pido? |
+| El negocio aceptó | {Negocio} aceptó tu pedido 12. Te llegó un cobro de $120 a la app de tu banco. Ábrela y apruébalo. |
+| Recordatorio de cobro | Tu cobro de $120 sigue esperando en la app de tu banco. |
+| Pagado (a quien pidió) | ✅ ¡Pagado! Ya le llegaron $120 a {Negocio}. Tu código para recoger: 4821 |
+| Pagado (al negocio) | ✅ ¡Pagado! Ya te llegaron $120 (pedido 12). |
+| Pedido listo | Tu pedido 12 ya está listo. Pasa a: {dirección}. Tu código: 4821 |
+| El negocio no contestó | {Negocio} no contestó a tiempo. ¿Te busco otra opción? |
+| Cobro vencido | El cobro del pedido 12 ya venció. ¿Te lo mando otra vez? Responde *sí*. |
+| Algo falló | Algo falló de mi lado. ¿Me lo repites? |
+| Resumen al negocio | Hoy vendiste $1,240 en 38 cobros. Lo que más salió: {producto}. |
+
+El negocio solo necesita estas palabras, escritas o por nota de voz: *sí* (o 👍), *no*, *listo*, *hoy*, *cerrar* y *abrir*.
+
 ## 6. Mensajes de marca
 
 ### Tagline principal
@@ -135,6 +156,7 @@ cobrar · te llegó · completo · al instante · tu negocio · vendiste · esca
 - *Dímelo y te lo cobro.*
 - *Tú dices, ellos escanean, te llega completo.*
 - *Lo de tu barrio, cobrado al instante.*
+- *Pide en tu barrio. Paga con un toque.* (para quien compra)
 
 ### En una frase, según a quién
 

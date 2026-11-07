@@ -3,6 +3,8 @@
 > Guía de diseño · DevDay Exchange Community Hackathon CDMX (7–8 nov 2026)
 > Producto y alcance: ver `PRODUCTO.md` · Voz de marca: ver `VOZ-DE-MARCA.md`
 > Estado: **propuesta para discusión** (decisiones abiertas marcadas con 🟡)
+>
+> **Alcance:** Barrio se muestra hoy en tres superficies: la landing y el registro (`web/`), los mensajes de WhatsApp del bot y, en una fase 2, la app de mostrador. Los componentes de pantalla de §7 (Cobrar, QR, Pagado) son de esa fase 2; la landing usa los mismos tokens, tipografía y reglas.
 
 ---
 
@@ -94,6 +96,7 @@ Verificado. Todos los pares de uso pasan AA para texto normal (≥ 4.5:1).
   /* Superficies */
   --borde:  #E8DFCF;
   --sombra: 0 2px 8px rgba(11, 37, 69, 0.08);
+  --niebla: #E8EDF4;   /* burbuja de la persona en el chat de ejemplo */
 }
 ```
 
@@ -194,6 +197,12 @@ body {
 - Toda la pantalla cambia a `--teal` con ✅ grande, monto y "¡Pagado!" en blanco.
 - Sonido corto de caja registradora y vibración.
 - Regresa sola a la pantalla de cobro a los 3 s.
+
+### Mensajes de WhatsApp (el bot)
+- Mismas reglas que la interfaz: de tú, corto, sin emoji. La única excepción es el ✅ de "¡Pagado!". El 👍 no es adorno: es la forma en que el negocio acepta un pedido.
+- Negritas con *asteriscos* para el negocio, el total y el código. Montos como `$55` y `$1,240`.
+- En charla, máximo 2 líneas. La cuenta va como tarjeta de texto: negocio, productos, total, dónde recoger.
+- Siempre texto; si la persona mandó voz, también va una nota de voz.
 
 ## 8. Espaciado y forma
 
