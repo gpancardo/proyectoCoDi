@@ -27,6 +27,14 @@ async function cobrarPedido(db, o) {
   return iniciarCobro(db, o, comprador, negocio, `orden-${o.id}-${Date.now()}`);
 }
 
+// Ubicación opcional: ambas coordenadas o ninguna.
+function coords(b) {
+  if (b.latitude == null && b.longitude == null) return {};
+  const [lat, lng] = [Number(b.latitude), Number(b.longitude)];
+  exigir(Math.abs(lat) <= 90 && Math.abs(lng) <= 180, 422, 'INVALID_LOCATION', 'La ubicación no es válida.', 'latitude');
+  return { latitud: lat, longitud: lng };
+}
+
 // Devuelve true si atendió la ruta. `auth` = { comprador?, negocio? } o null.
 export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   const m = req.method; const ruta = url.pathname.replace('/api/v1', '');
@@ -39,8 +47,8 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
     const b = await cuerpo();
     exigir(!b.telefono || /^[0-9]{10}$/.test(b.telefono), 422, 'INVALID_PHONE', 'Escribe 10 dígitos.', 'telefono');
-    const [c] = await db.crearComprador({ sujeto_auth: auth.session.id, telefono: b.telefono ?? null, nombre: b.nombre ? String(b.nombre).slice(0, 80) : null, zona: b.zona ?? null });
-    return ok(200, { id: c.id, nombre: c.nombre, zona: c.zona });
+    const [c] = await db.crearComprador({ sujeto_auth: auth.session.id, telefono: b.telefono ?? null, nombre: b.nombre ? String(b.nombre).slice(0, 80) : null, zona: b.zona ?? null, colonia: b.colonia ? String(b.colonia).slice(0, 80) : null, ...coords(b) });
+    return ok(200, { id: c.id, nombre: c.nombre, zona: c.zona, colonia: c.colonia });
   }
   if (m === 'GET' && ruta === '/me/profile') { // insignias: avance y premios obtenidos
     const c = comp();
