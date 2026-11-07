@@ -1,270 +1,247 @@
-# La Cuenta — Cobro por voz o texto con CoDi para el comercio de barrio
+# BarrioPass — Identidad visual
 
-> Documento de diseño · DevDay Exchange Community Hackathon CDMX (7–8 nov 2026)
-> Equipo: 4 personas · Stack: OpenAI + CoDi vía API de pey
-> Estado: **borrador para discusión** (las decisiones abiertas están marcadas con 🟡)
+> Guía de diseño · DevDay Exchange Community Hackathon CDMX (7–8 nov 2026)
+> Producto y alcance: ver `PRODUCTO.md`
+> Estado: **propuesta para discusión** (decisiones abiertas marcadas con 🟡)
 
 ---
 
-## 1. Resumen
+## 1. Nombre
 
-**La Cuenta** es una app web móvil para que el dueño de una tiendita, un puesto de comida, un taller casero o una estética cobre con CoDi **hablando o escribiendo como habla**, sin calcular totales ni tener terminal.
+**BarrioPass** — cobra en tu barrio, sin comisión.
 
-El dueño dice o escribe *"dos cocas de seiscientos y unas sabritas"*. La IA arma la cuenta con los precios de su negocio, muestra el total y genera un **QR CoDi**. El cliente lo escanea con la app de su banco, paga, y el dinero llega **al instante, sin comisión**, directo a la cuenta del negocio. La venta queda registrada sola.
+Sigue la misma fórmula que **DocPass**: *[a quién sirve] + Pass*.
 
-## 2. Problema
+- **DocPass** → el pase del doctor a un consultorio.
+- **BarrioPass** → el pase del comercio de barrio a los pagos digitales.
 
-La economía de barrio está formada por unidades económicas pequeñas, creadas por y para los habitantes de una misma localidad: tiendas de abarrotes, misceláneas, puestos de comida callejera, talleres mecánicos caseros, estéticas.
+La palabra *barrio* nombra exactamente al usuario: unidades económicas pequeñas, creadas por y para los habitantes de una misma localidad (tiendas de abarrotes, misceláneas, puestos de comida, talleres caseros, estéticas). Es cercana, mexicana y no suena a banco.
 
-Comparten varios problemas:
+🟡 Alternativas si el equipo quiere otra: **TienditaPass** (más concreto, pero deja fuera talleres y estéticas), **CobroPass** (más funcional, menos cálido).
 
-- **Viven del efectivo.** Las terminales cobran comisión (≈3–4% más IVA), piden renta o equipo, y el depósito tarda días.
-- **No llevan registro.** No saben cuánto vendieron en el día ni qué les deja más.
-- **Tienen poco tiempo y poca paciencia para apps.** Atienden con las manos ocupadas y no van a capturar productos ni montos en un formulario.
+**Escritura:** siempre `BarrioPass`, una palabra, B y P mayúsculas. Nunca "Barrio Pass", "barriopass" ni "BP".
 
-CoDi ya resuelve el pago (gratis, instantáneo, cualquier banco), pero **nunca despegó en el comercio pequeño** porque generar un cobro sigue dando más trabajo que recibir un billete. Ese es el hueco.
+## 2. Personalidad
 
-## 3. Por qué ahora
+DocPass es **confiable, clínico y profesional**. BarrioPass toma esa confianza y le quita la bata: es **el vecino que sabe de tecnología**.
 
-- La **Ley de Economía Digital para Pagos Digitales y Electrónicos** entró en vigor el 5 de nov de 2026.
-- La **Circular 9/2026 de Banxico** obliga a los bancos a homologar las transferencias móviles antes del **14 de dic de 2026**.
-- **pey** abrió una API de CoDi gratuita, agnóstica al banco, que deposita directo en la cuenta del comercio.
+| Es | No es |
+|---|---|
+| Cercano, de barrio | Corporativo, bancario |
+| Claro y directo | Técnico o financiero |
+| Confiable (el dinero llega) | Juguetón al grado de no tomarse en serio |
+| Orgulloso de lo local | Folclórico de souvenir (nada de papel picado ni sombreros) |
 
-Del lado del cliente pagar con el celular ya está resuelto. Falta que **cobrar** sea igual de fácil para quien vende.
+## 3. Color
 
-## 4. Usuarios
+La paleta **comparte la base azul marino de DocPass** para que se lean como familia, y cambia el acento: donde DocPass usa teal como color principal, BarrioPass usa **mango**, un amarillo-naranja cálido que remite a los toldos, las fachadas pintadas y los letreros de las tienditas. El teal se conserva, pero solo para el estado de "pagado".
 
-| Persona | Contexto | Qué necesita |
-|---|---|---|
-| **Don Beto**, tiendita de abarrotes | Atiende solo, manos ocupadas, celular Android de gama media | Cobrar rápido sin calcular, saber cuánto vendió |
-| **Mari**, puesto de quesadillas | Fila en la hora pico, mucho ruido, cambio siempre escaso | QR al momento, sin dar cambio; escribir cuando no se oye |
-| **Chuy**, taller mecánico en su cochera | Cobros grandes (refacciones + mano de obra), ruido de herramientas | Cobro desglosado y claro para el cliente |
-| **Cliente del barrio** | Tiene app de banco, no quiere bajar otra app | Escanear y pagar, nada más |
+🟡 **Ajuste pendiente:** los valores de marino y teal son aproximados. Si se tienen los hex oficiales de DocPass, se reemplazan aquí para que la familia sea exacta.
 
-El cliente final **no instala nada**: paga desde la app de su banco.
+### 3.1 Paleta
 
-## 5. Alcance
+| Token | Hex | Uso | Relación con DocPass |
+|---|---|---|---|
+| `--marino` | `#0B2545` | Texto principal, encabezados, fondo de la pantalla QR | **Compartido** |
+| `--mango` | `#F5A524` | Color de marca: botón "Cobrar", micrófono, acentos | Nuevo, propio de BarrioPass |
+| `--crema` | `#FFF8EC` | Fondo general de la app | Nuevo (más cálido que el blanco clínico) |
+| `--teal` | `#0F7C75` | Éxito: "✅ Pagado", confirmaciones | **Compartido**, pero en rol secundario |
+| `--tinta` | `#1A1F2B` | Texto de cuerpo largo | — |
+| `--gris` | `#5B6472` | Texto secundario, etiquetas, ayudas | — |
+| `--rojo` | `#C2392B` | Errores, "sin precio", cobro expirado | — |
+| `--blanco` | `#FFFFFF` | Tarjetas sobre el fondo crema, fondo del QR | — |
 
-### MVP para el hackathon (lo que se muestra en la demo)
+### 3.2 Proporción
 
-1. **Cobro por voz o por texto → QR CoDi.** El dueño elige cómo capturar: dicta o escribe en lenguaje natural. Ambos caminos llegan al mismo intérprete, a la misma cuenta desglosada y al mismo QR.
-2. **Confirmación de pago en vivo** vía webhook de pey ("✅ Pagado $47").
-3. **Catálogo mínimo** del negocio (10–20 productos con precio) que la IA usa para armar la cuenta.
-4. **Resumen del día**: total cobrado, número de ventas, producto más vendido.
+- **60%** crema (fondo)
+- **25%** marino (texto, encabezados)
+- **10%** mango (acción principal)
+- **5%** teal y rojo (solo estados)
 
-### Si alcanza el tiempo
+El mango se reserva para **lo que se toca**. Si todo es mango, nada destaca.
 
-5. **Alta de catálogo por foto**: el dueño toma foto de su lista de precios o de su anaquel y la IA crea el catálogo.
+### 3.3 Contraste (WCAG)
 
-### Fuera de alcance
+Verificado. Todos los pares de uso pasan AA para texto normal (≥ 4.5:1).
 
-- Fiado o cuentas por cobrar a clientes.
-- Inventario, facturación (CFDI), devoluciones, multiusuario, app nativa.
-- Pagos con tarjeta o efectivo.
-- Producción real con dinero de terceros (la demo usa el entorno de desarrollo de pey).
+| Texto | Fondo | Contraste | Resultado |
+|---|---|---|---|
+| Marino | Crema | 14.6 : 1 | AAA |
+| Marino | Mango | 7.5 : 1 | AAA |
+| Tinta | Crema | 15.6 : 1 | AAA |
+| Gris | Crema | 5.7 : 1 | AA |
+| Blanco | Teal | 5.1 : 1 | AA |
+| Blanco | Rojo | 5.4 : 1 | AA |
+| Crema | Marino | 14.6 : 1 | AAA |
 
-## 6. Flujos
+**Regla importante:** sobre el botón mango el texto va en **marino, nunca en blanco** (blanco sobre mango no pasa contraste). Esto también ayuda a leer bajo el sol.
 
-### 6.1 Cobro (flujo principal de la demo)
+### 3.4 Tokens CSS
 
-```
-Dueño elige cómo capturar el pedido
-        │
-        ├── 🎙️ Voz: toca el micrófono y dicta
-        │         │
-        │         ▼
-        │   [Transcripción] OpenAI speech-to-text
-        │         │
-        └── ⌨️ Texto: escribe como habla ("2 cocas 600 y sabritas")
-                  │
-                  ▼
-        "dos cocas de seiscientos y unas sabritas"
-                  │
-                  ▼
-[Interpretación] OpenAI con structured output + catálogo del negocio
-        │  [{Coca 600ml ×2 = $36}, {Sabritas ×1 = $19}]  total $55
-        ▼
-Pantalla de confirmación (el dueño puede corregir con un toque, volver a dictar o reescribir)
-        │  "Cobrar $55"
-        ▼
-[Backend] → API pey: crear cobro CoDi (monto, concepto, referencia)
-        │
-        ▼
-QR en pantalla grande  ──►  Cliente escanea con su app bancaria y autoriza
-                                     │
-[Webhook pey] ◄──────────────────────┘
-        │  valida firma, marca venta como pagada
-        ▼
-Pantalla "✅ Pagado $55" + sonido
-```
+```css
+:root {
+  /* Marca */
+  --marino: #0B2545;
+  --mango:  #F5A524;
+  --mango-presionado: #DB8E12;
 
-**Reglas:**
-- **Voz y texto son entradas de primer nivel.** Los dos están siempre visibles en la pantalla principal; ninguno está escondido en un menú. En lugares con ruido (puesto en hora pico, taller) el dueño escribe; con las manos ocupadas, dicta.
-- El texto acepta la misma forma de hablar que la voz: abreviaturas, números en dígitos o en letra, sin acentos ni ortografía cuidada ("2 cocas 600", "una sabrita", "cobrame 120").
-- Si la transcripción sale con baja confianza o vacía (por ruido), la app lo dice y pone el texto transcrito en la caja editable para que el dueño lo corrija escribiendo, en lugar de interpretar algo equivocado.
-- Si la IA no reconoce un producto, lo marca como *"sin precio"* y pide el monto en vez de inventarlo.
-- El dueño **siempre confirma** el total antes de generar el QR. La IA propone, el humano decide.
-- Si la entrada es solo un monto ("cóbrame 120"), se salta el catálogo y genera el QR directo.
+  /* Fondos */
+  --crema:  #FFF8EC;
+  --blanco: #FFFFFF;
 
-### 6.2 Resumen del día
+  /* Texto */
+  --tinta:  #1A1F2B;
+  --gris:   #5B6472;
 
-Tarjeta fija con total cobrado, número de ventas y top 3 productos. Si alcanza el tiempo, preguntas en lenguaje natural (por voz o texto): *"¿cuánto vendí hoy?"*, *"¿qué se vendió más?"*.
+  /* Estados */
+  --teal:   #0F7C75;   /* pagado */
+  --rojo:   #C2392B;   /* error / sin precio */
 
-## 7. Arquitectura
-
-```
-┌──────────────────────┐        ┌──────────────────────────┐        ┌───────────┐
-│  Web app móvil (PWA) │ HTTPS  │  Backend (Node/Express)  │  REST  │  API pey  │
-│  - grabar audio      │──────► │  - /transcribe           │──────► │  CoDi     │
-│  - caja de texto     │        │  - /parse-order          │        └─────┬─────┘
-│  - confirmar cuenta  │        │  - /charges              │              │
-│  - mostrar QR        │ ◄──────│  - /webhooks/pey  ◄──────┼──────────────┘
-│  - estado del pago   │  SSE / │  - /summary              │   webhook firmado
-└──────────────────────┘ polling└──────────┬───────────────┘
-                                           │
-                              ┌────────────┴────────────┐
-                              │  OpenAI API             │   DB: SQLite o Supabase
-                              │  - speech-to-text       │
-                              │  - structured outputs   │
-                              └─────────────────────────┘
-```
-
-`/transcribe` solo se usa en el camino de voz. El texto escrito va directo a `/parse-order`. Así el intérprete es uno solo y se prueba una vez.
-
-🟡 **Decisiones abiertas de stack** (definir con el equipo según quién programa qué):
-- Frontend: Next.js vs. HTML + JS simple. *Propuesta: Next.js si alguien lo domina; si no, Vite + React.*
-- Backend: rutas API de Next.js vs. Express separado. *Propuesta: rutas de Next.js, un solo repo y un solo deploy.*
-- DB: SQLite local vs. Supabase. *Propuesta: Supabase si necesitamos deploy público para la demo.*
-- Deploy: Vercel / Railway. El webhook necesita URL pública (para desarrollo local, usar un túnel tipo ngrok).
-- Estado del pago en el front: polling cada 2 s (simple) vs. SSE. *Propuesta: polling.*
-
-### 7.1 Integración con pey
-
-Referencia: **docs.pey.mx**. Pasos según pey:
-1. Crear una API key del entorno de desarrollo en el portal.
-2. Implementar la solicitud de cobro (genera QR con monto y concepto).
-3. Registrar la URL del webhook y validar la firma con el secreto del webhook.
-
-🟡 **Por confirmar con los mentores de pey hoy mismo:**
-- Nombres exactos de endpoints, payload y formato del QR (¿imagen, string EMV o liga?).
-- Límites del entorno de desarrollo y si se puede simular un pago para la demo.
-- Formato y eventos del webhook.
-
-> **Riesgo #1 del proyecto.** Si a las 14:00 no hay credenciales, se implementa un **mock de pey** con la misma interfaz y se conecta el real el domingo en la mañana.
-
-### 7.2 Uso de OpenAI
-
-| Tarea | Entrada | Salida |
-|---|---|---|
-| Transcripción (solo voz) | Audio (webm/m4a), español MX | Texto |
-| Interpretar pedido (voz y texto) | Texto + catálogo JSON | JSON con esquema estricto (structured outputs) |
-| Catálogo por foto *(opcional)* | Imagen | Lista de `{nombre, precio}` |
-
-Esquema de salida de "interpretar pedido":
-
-```json
-{
-  "tipo": "venta | monto_directo",
-  "items": [
-    { "producto_id": "coca-600", "nombre": "Coca-Cola 600 ml", "cantidad": 2, "precio_unitario": 18, "subtotal": 36, "confianza": "alta" }
-  ],
-  "sin_precio": ["chicles de menta"],
-  "total": 55
+  /* Superficies */
+  --borde:  #E8DFCF;
+  --sombra: 0 2px 8px rgba(11, 37, 69, 0.08);
 }
 ```
 
-**Principios del prompt:**
-- Usar solo precios del catálogo. Nunca inventar un precio.
-- Entender modismos ("una de seis", "un cuarto de queso", "la de vidrio", "dos de a diez").
-- Tolerar texto escrito con prisa: abreviaturas, faltas de ortografía, números en dígitos.
-- El total se calcula en el **backend** a partir de los items, no se confía en el número que dé el modelo.
+No hay modo oscuro en el MVP: la app se usa en la calle y a pleno sol, donde el fondo claro se lee mejor. La única pantalla oscura es la del QR (ver §7).
 
-## 8. Modelo de datos
+## 4. Tipografía
+
+Una sola familia para todo, para cargar rápido en celulares de gama media y con señal débil.
+
+| Rol | Fuente | Peso | Tamaño (móvil) |
+|---|---|---|---|
+| Total a cobrar | Plus Jakarta Sans | 800 | 56 px |
+| Títulos de pantalla | Plus Jakarta Sans | 700 | 24 px |
+| Botones | Plus Jakarta Sans | 700 | 20 px |
+| Items de la cuenta | Plus Jakarta Sans | 500 | 18 px |
+| Texto normal | Plus Jakarta Sans | 400 | 17 px |
+| Ayudas y etiquetas | Plus Jakarta Sans | 500 | 14 px |
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--tinta);
+  background: var(--crema);
+}
+
+.monto { font-variant-numeric: tabular-nums; } /* los números no "bailan" al cambiar */
+```
+
+**Por qué Plus Jakarta Sans:** es geométrica y moderna (se siente de la misma familia que una marca tech como DocPass) pero con terminaciones redondas que la hacen amable. Sus números son muy legibles, que es lo que más importa aquí.
+
+🟡 Si DocPass ya usa una fuente definida, se puede usar esa misma para los títulos y dejar Plus Jakarta Sans para los números.
+
+**Reglas:**
+- Tamaño mínimo de texto: **14 px**. El usuario lee con prisa y a un brazo de distancia.
+- Montos siempre con signo y sin decimales cuando son cerrados: `$55`, no `$55.00 MXN`.
+- Nada en MAYÚSCULAS SOSTENIDAS salvo etiquetas muy cortas.
+
+## 5. Logotipo
+
+**Concepto:** un toldo de tiendita visto de frente, con sus franjas, que en la franja central forma un pequeño código QR de 3×3. Junto al símbolo, el nombre en Plus Jakarta Sans 800.
 
 ```
-negocio      (id, nombre, giro, cuenta_pey, creado)
-producto     (id, negocio_id, nombre, alias[], precio, unidad)
-venta        (id, negocio_id, items_json, total, estado[pendiente|pagada|expirada],
-              pey_charge_id, entrada[voz|texto], texto_original, creada, pagada_en)
+   ▄▀▄▀▄▀▄▀▄        ← toldo (franjas mango / crema)
+   █ ▪ ▫ ▪ █        ← fachada con QR estilizado (marino)
+   BarrioPass
 ```
 
-`entrada` y `texto_original` sirven para medir qué tanto se usa cada camino y para depurar errores de interpretación.
+- **Símbolo:** franjas en mango y crema; el QR en marino.
+- **Palabra:** `Barrio` en marino, `Pass` en mango (eco de cómo DocPass separa visualmente sus dos partes).
+- **Versión app icon:** solo el toldo con QR sobre fondo marino.
+- **Área de respeto:** la altura de la "B" alrededor de todo el logo.
 
-Para la demo: un solo negocio precargado con su catálogo (seed).
+🟡 Para el hackathon basta con la versión tipográfica (`Barrio` marino + `Pass` mango). El símbolo se dibuja si queda tiempo el domingo.
 
-## 9. Pantallas
+## 6. Iconos e ilustración
 
-1. **Cobrar** (pantalla principal): botón grande de micrófono **y** caja de texto con botón "Armar cuenta", los dos visibles al mismo tiempo. Total del día arriba.
-2. **Confirmar cuenta**: lista de items editable, total grande, botón "Cobrar $X".
-3. **QR**: QR a pantalla completa (para voltear el celular hacia el cliente), monto, estado "Esperando pago…" → "✅ Pagado".
-4. **Hoy**: resumen del día.
+- **Iconos:** Lucide (gratis, línea de 2 px, redondeados). Tamaño mínimo 24 px; en botones principales, 32 px.
+- **Iconos clave:** `mic` (dictar), `keyboard` (escribir), `qr-code` (cobrar), `check-circle` (pagado), `store` (negocio), `bar-chart-3` (hoy).
+- **Ilustración:** no se usa en el MVP. Si se agrega después: formas planas, paleta propia, personas reales del barrio; nada de clip art ni estereotipos.
+- **Fotos:** no se usan en la app. En el pitch, solo fotos propias de comercios reales (con permiso del dueño).
 
-**Criterios de diseño:**
-- Botones grandes, se usa con una mano.
-- Teclado numérico/texto que no tape el botón de cobrar.
-- Alto contraste, legible bajo el sol.
-- Cero jerga financiera: "Cobrar", "Pagado", "Vendiste hoy", nunca "transacción" ni "liquidación".
-- Funciona bien en Android de gama media y con señal débil.
+## 7. Componentes
 
-## 10. Plan de trabajo
+### Botón principal ("Cobrar $55")
+- Fondo `--mango`, texto `--marino` 700, 20 px.
+- Alto mínimo **64 px**, ancho completo, esquinas de 16 px.
+- Al presionar: `--mango-presionado` + vibración corta.
+- Uno solo por pantalla.
 
-🟡 Asignar nombres cuando se reparta el equipo.
+### Botón de micrófono
+- Círculo de **96 px**, fondo `--mango`, icono `mic` en marino.
+- Grabando: anillo pulsante mango y texto "Te escucho…" debajo.
 
-| Rol | Responsable | Entregables |
+### Caja de texto
+- Fondo blanco, borde `--borde` 2 px, esquinas de 12 px, 18 px de texto.
+- Placeholder: *"Escribe el pedido, ej. 2 cocas 600 y unas sabritas"*.
+- Al enfocarla, el borde cambia a marino.
+- **Siempre visible junto al micrófono**, nunca escondida.
+
+### Tarjeta de cuenta
+- Fondo blanco sobre crema, sombra suave.
+- Cada item: nombre a la izquierda, `cantidad × precio` en gris, subtotal a la derecha en marino.
+- Item "sin precio": borde izquierdo rojo de 4 px y campo para escribir el monto.
+- Total al pie en 56 px, 800.
+
+### Pantalla QR (la que ve el cliente)
+- Es la **única pantalla oscura**: fondo `--marino`, para que el QR blanco resalte y el cliente sepa que esa pantalla es para él.
+- QR sobre cuadro blanco con margen amplio, lo más grande posible.
+- Arriba: nombre del negocio en crema. Abajo: monto en mango, 56 px.
+- Estado "Esperando pago…" en crema con animación suave.
+
+### Pagado
+- Toda la pantalla cambia a `--teal` con ✅ grande, monto y "¡Pagado!" en blanco.
+- Sonido corto de caja registradora y vibración.
+- Regresa sola a la pantalla de cobro a los 3 s.
+
+## 8. Espaciado y forma
+
+- Escala de espaciado: **4, 8, 12, 16, 24, 32, 48 px**.
+- Margen lateral de pantalla: **16 px**.
+- Esquinas: 12 px (campos), 16 px (botones y tarjetas), círculo (micrófono).
+- Áreas táctiles mínimas de **48 × 48 px** (se usa con una mano y a veces con los dedos sucios o con prisa).
+
+## 9. Voz y tono
+
+Habla como el vecino que te explica algo en la tienda: de tú, corto y concreto.
+
+| Situación | ✅ Sí | ❌ No |
 |---|---|---|
-| **Pagos / backend** | _ | Integración pey (cobro + webhook), mock de respaldo, endpoints |
-| **IA** | _ | Transcripción, parser con structured outputs, prompt, catálogo seed, set de 20 pedidos de prueba (voz y texto) |
-| **Frontend** | _ | 4 pantallas, grabación de audio, caja de texto, QR, polling de estado |
-| **Producto / pitch** (Alejandro) | Alejandro | Este documento, guion de demo, video, datos del problema, README |
+| Botón principal | "Cobrar $55" | "Generar solicitud de pago" |
+| Pago recibido | "¡Pagado! Ya te llegaron $55" | "Transacción liquidada exitosamente" |
+| Ruido | "No te escuché bien, ¿me lo escribes?" | "Error de reconocimiento de voz" |
+| Producto desconocido | "No tengo precio para *chicles*, ¿cuánto es?" | "Producto no encontrado en catálogo" |
+| Resumen | "Hoy vendiste $1,240 en 38 cobros" | "Volumen transaccional diario" |
+| Sin comisión | "Te llega completo, sin comisión" | "0% de tasa de descuento" |
 
-**Calendario:**
+**Palabras prohibidas en la interfaz:** transacción, liquidación, solicitud, procesar, usuario, error (se dice qué pasó y qué hacer).
 
-| Hora | Hito |
-|---|---|
-| Sáb 12:30 | Repo creado, stack acordado, credenciales pey solicitadas |
-| Sáb 14:00 | Texto → JSON funcionando; cobro pey (real o mock) devuelve QR |
-| Sáb 15:00 | Voz → texto conectado al mismo intérprete |
-| Sáb 15:30 | **Flujo completo de punta a punta**, aunque sea feo: voz o texto → QR → pagado |
-| Sáb 16:00 | Fin del día presencial; lista de pendientes priorizada |
-| Dom 10:00 | Pulido de UI, catálogo por foto si alcanza, deploy público |
-| Dom 11:30 | Grabación del video demo |
-| Dom 13:00 | **Entrega en el portal** |
+## 10. Familia con DocPass
 
-Se empieza por el camino de **texto** porque no depende del audio y desbloquea al resto del equipo; la voz se conecta encima.
+| Elemento | DocPass | BarrioPass |
+|---|---|---|
+| Fórmula del nombre | Doc + Pass | Barrio + Pass |
+| Color base | Azul marino | **El mismo** azul marino |
+| Color principal | Teal | Mango (teal pasa a "pagado") |
+| Fondo | Blanco clínico | Crema cálido |
+| Personalidad | Profesional, confiable | Cercano, confiable |
+| Usuario | Profesional de la salud | Dueño de comercio de barrio |
 
-## 11. Demo (≈2 min)
+Juntas se leen como dos productos de la misma casa: la misma seriedad de fondo, distinto público.
 
-1. **Problema (20 s):** "Don Beto pierde 4% con terminal o vive del efectivo. CoDi es gratis, pero cobrar con CoDi le cuesta más trabajo que recibir un billete."
-2. **Cobro por voz (50 s):** se dicta un pedido real → la cuenta aparece → QR → un juez o compañero paga $1 desde su app bancaria → "✅ Pagado".
-3. **Cobro por texto (20 s):** "¿Y si hay ruido?" → se escribe "2 quesadillas y un agua" → misma cuenta, mismo QR.
-4. **Cierre (30 s):** resumen del día, impacto y modelo de negocio.
+## 11. Checklist rápido para el equipo
 
-## 12. Impacto y modelo
-
-- **Bien público:** el comercio de barrio cobra digital sin comisión, recibe su dinero al instante y empieza a tener un registro de ventas (primer paso para acceder a crédito formal).
-- **Para pey:** cada negocio que usa La Cuenta es un comercio nuevo generando volumen en su API. El comercio de barrio es una vertical replicable, igual que ya hacen con restaurantes.
-- **Sostenibilidad:** la cobranza es gratis siempre. A futuro, un plan de pago bajo para funciones extra (reportes, varios empleados, catálogo avanzado), o distribución a través de proveedores y distribuidoras que ya visitan las tienditas.
-
-## 13. Métricas de éxito (de la demo)
-
-- Tiempo de la entrada al QR: **< 5 s** por voz, **< 3 s** por texto.
-- Pedidos de prueba interpretados correctamente: **≥ 9 de 10**, tanto dictados como escritos.
-- Un pago real (o simulado por pey) confirmado en pantalla durante la demo.
-
-## 14. Riesgos
-
-| Riesgo | Mitigación |
-|---|---|
-| No hay credenciales de pey a tiempo | Mock con la misma interfaz; conectar real el domingo |
-| Ruido de fondo afecta la transcripción | Entrada por texto siempre visible; transcripción dudosa cae en la caja editable |
-| La IA inventa precios | Esquema estricto, solo IDs del catálogo, total calculado en backend |
-| Texto escrito con faltas o abreviado | Prompt tolerante + set de pruebas con ejemplos reales de cómo escribe la gente |
-| Webhook no llega en la demo | Polling al estado del cobro en pey como respaldo |
-| Mala señal en el recinto | Video grabado de respaldo |
-
-## 15. Preguntas para platicar con el equipo
-
-1. ¿Nombre final? (*La Cuenta*, *Cobra Ya*, *Tu Cuenta*…)
-2. ¿Giro estrella para la demo: tiendita, quesadillas o taller? *Propuesta: tiendita, es el que todo el jurado reconoce; quesadillas para mostrar el caso de ruido.*
-3. Stack final y quién toma cada rol.
-4. ¿Quién habla con los mentores de pey para las credenciales, y a qué hora?
+- [ ] Tokens CSS de §3.4 copiados al proyecto.
+- [ ] Plus Jakarta Sans cargada (400, 500, 700, 800).
+- [ ] Texto sobre mango siempre en marino.
+- [ ] Un solo botón mango por pantalla.
+- [ ] Micrófono y caja de texto visibles al mismo tiempo.
+- [ ] Pantalla QR en marino; pantalla "Pagado" en teal.
+- [ ] Ninguna palabra de la lista prohibida en la interfaz.
+- [ ] Probar en un Android real, a pleno sol.
