@@ -51,7 +51,7 @@ Quien compra **no instala nada y no se registra**: su nombre sale de su perfil d
 2. **Descubrimiento:** datos fijos (alcaldía, abierto/cerrado) filtran en SQL; la búsqueda semántica (RAG con pgvector) ordena. Una sola recomendación a la vez.
 3. **Cuenta con total calculado por el sistema** a partir del menú del negocio. Un solo "¿Lo pido?".
 4. **Negocio responde con 5 palabras** (`sí`, `no`, `listo`, `hoy`, `cerrar`/`abrir`), escritas o por voz, o con un 👍 al mensaje del pedido. Opcional: aceptación automática.
-5. **Cobro CoDi por push** al número del comprador (respaldo: QR por WhatsApp), confirmación de pago en vivo vía webhook de pey, código de recogida.
+5. **Cobro CoDi por push** al número del comprador (respaldos: link de pago de pey y después QR), confirmación de pago por webhook de pey y, si falla, consultando a pey cada 30 s, y código de recogida.
 6. **Recordatorios y cancelación automática** (el negocio no contesta, la persona no aprueba el cobro).
 7. **Landing y registro de negocios** (GitHub Pages) con menú y precios.
 8. **Resumen del día** para el negocio: escribe `hoy` y recibe total, número de cobros y lo que más salió.
@@ -80,7 +80,7 @@ Resumen (el total lo calcula el código, no el modelo)
    ▼
 Negocio recibe el pedido por WhatsApp ── "sí" / 👍 / (automático)
    ▼
-pey: cobro CoDi por push al teléfono de Lupita  (respaldo: QR por WhatsApp)
+pey: cobro CoDi por push al teléfono de Lupita  (respaldos: link de pago, QR)
    ▼
 Lupita aprueba en la app de su banco
    ▼
@@ -107,7 +107,7 @@ Negocio escribe "listo" → Lupita recibe "Tu pedido ya está listo"
 | Negocio sin responder, 8 min | Se cancela el pedido y se le ofrece otra opción a la persona |
 | Cobro sin aprobar, 5 min | Recordatorio a la persona |
 | Cobro sin aprobar, 20 min | Cobro vencido; "¿Te lo mando otra vez?" |
-| Falla el push | Se manda el QR; si también falla, se avisa y se ofrece reintentar |
+| Falla el push (p. ej. sin CoDi activo) | Se manda un link de pago (CoDi o tarjeta); si también falla, un QR; si todo falla, se avisa y se ofrece reintentar |
 
 ### 6.4 Texto y voz son de primer nivel
 
@@ -120,7 +120,7 @@ Comprador / Negocio ──WhatsApp──► Bot (Node + Baileys, WhatsApp Web)  
                                     ├─ voz → OpenAI transcripción
                                     ├─ agente OpenAI (Responses API + herramientas)
                                     │    perfil y pedidos: SQL  ·  búsqueda: pgvector
-                                    └─ cobro ──► pey  POST /codi/pn  (respaldo /codi/qr)
+                                    └─ cobro ──► pey  POST /codi/pn  (respaldos: /payment-link/create, /codi/qr)
                                                           │
                        banco del comprador: aprobar ◄─────┘
                                 │
@@ -143,10 +143,12 @@ Referencia: **docs.pey.mx** (OpenAPI en `docs.pey.mx/openapi.json`, versión 202
 |---|---|---|
 | Cobro por push | `POST /codi/pn` | `amount` (pesos), `phoneNumber` (10 dígitos), `concept`, `expiration` (s, mín. 360), `numRef` (1–7 dígitos), `metadata` → `{transactionId, codiId}` |
 | Cobro por QR | `POST /codi/qr` | `amount`, `generateImage: true` → `{id, qrString, qrImage (PNG base64)}` |
+| Link de pago | `POST /payment-link/create` | `amount`, `successUrl`, `backUrl`, `clientReferenceId`, `metadata` → `{id, url}`; acepta CoDi y tarjeta |
+| Estado del cobro | `GET /transaction/{id}`, `GET /transaction/codi/qr/{id}`, `GET /payment-link/{id}` | `status` `PENDING`/`PAID` (link: `pending`/`processing`/`paid`/`partial`) |
 | Webhook | `codi.pn.payment_received`, `codi.qr.payment_received` | `amount`, `transactionId`, `codiQrId` (solo QR), `datePaid`, `metadata.trackingKey` |
 
 - Los webhooks usan **Standard Webhooks** (`webhook-id`, `webhook-timestamp`, `webhook-signature`). El secreto `whsec_…` se ve al crear el webhook en portal.mipey.mx → Desarrollador. Un webhook por API key.
-- **pey no tiene entorno de pruebas** ("próximamente"). Se prueba en producción con montos de $0.01 a $1. Pey publica una CLABE de prueba en sus docs.
+- **pey no tiene entorno de pruebas** ("próximamente"). Los organizadores piden probar con **un centavo ($0.01)**; se hace en producción. Pey publica una CLABE de prueba en sus docs.
 - Dar de alta una cuenta CoDi propia por negocio tarda ~5 días hábiles. Para la demo, todos los cobros caen en la cuenta ligada a la API key.
 - 🟡 **Confirmar con los mentores de pey:** si existe un entorno de desarrollo para el hackathon, cómo simular un pago, y si el push falla de forma explícita cuando el número no tiene CoDi activo.
 
@@ -156,7 +158,7 @@ Referencia: **docs.pey.mx** (OpenAPI en `docs.pey.mx/openapi.json`, versión 202
 
 | Tarea | Modelo | Entrada → salida |
 |---|---|---|
-| Agente (conversación y herramientas) | `gpt-5-mini`, razonamiento bajo | texto + perfil + pedidos recientes → respuesta o llamada a herramienta |
+| Agente (conversación y herramientas) | `gpt-5.4-mini`, razonamiento bajo (`OPENAI_MODEL=gpt-5-mini` si la cuenta no lo tiene) | texto + perfil + pedidos recientes → respuesta o llamada a herramienta |
 | Transcripción | `gpt-4o-mini-transcribe` | audio OGG de WhatsApp → texto |
 | Voz de respuesta | `gpt-4o-mini-tts` (Opus) | texto → nota de voz |
 | Embeddings | `text-embedding-3-small` | descripción del negocio y consulta → vector de 1536 |
@@ -202,15 +204,15 @@ La base garantiza lo importante: precios válidos, montos entre 0 y 1,000,000, t
 | Sáb 14:00 | Proyecto Supabase creado y migración aplicada; bot conectado a WhatsApp y a OpenAI con `PEY_MOCK=1` |
 | Sáb 15:30 | **Flujo completo de punta a punta**, aunque sea feo: voz o texto → cuenta → negocio acepta → cobro → pagado |
 | Sáb 16:00 | Fin del día presencial; lista de pendientes priorizada |
-| Dom 10:00 | pey real conectado y probado con $1; landing publicada; pulido |
+| Dom 10:00 | pey real conectado y probado con $0.01; landing publicada; pulido |
 | Dom 11:30 | Grabación del video demo |
 | Dom 13:00 | **Entrega en el portal** |
 
 ## 11. Demo (≈2 min)
 
 1. **Problema (20 s):** "Don Beto pierde 4% con terminal o vive del efectivo. CoDi es gratis, pero pedir y cobrar con CoDi cuesta más trabajo que un billete."
-2. **Pedido por voz (50 s):** nota de voz → cuenta con total → "sí" → el negocio responde 👍 → cobro en el celular → se aprueba con $1 reales → "¡Pagado!" y código.
-3. **El negocio (20 s):** escribe `listo`, luego `hoy`: "Hoy vendiste $1 en 1 cobro".
+2. **Pedido por voz (50 s):** nota de voz → cuenta con total → "sí" → el negocio responde 👍 → cobro en el celular → se aprueba con $0.01 reales → "¡Pagado!" y código.
+3. **El negocio (20 s):** escribe `listo`, luego `hoy`: "Hoy vendiste $0.01 en 1 cobro".
 4. **Cierre (30 s):** sin comisión, sin instalar nada, replicable a cada barrio.
 
 ## 12. Impacto y modelo
@@ -230,13 +232,13 @@ La base garantiza lo importante: precios válidos, montos entre 0 y 1,000,000, t
 
 | Riesgo | Mitigación |
 |---|---|
-| No hay API key de pey a tiempo, y pey no tiene sandbox | `PEY_MOCK=1`; conectar el real el domingo con montos de $1 |
+| No hay API key de pey a tiempo, y pey no tiene sandbox | `PEY_MOCK=1`; conectar el real el domingo y probar con $0.01 |
 | WhatsApp Web no es la API oficial; Meta puede bloquear el número | Número secundario, solo responder a quien escribe, sin mensajes masivos; video de respaldo |
-| El comprador no tiene CoDi activo en su banco | Respaldo con QR; la persona lo sabrá en el aviso |
+| El comprador no tiene CoDi activo en su banco | Link de pago de pey (CoDi o tarjeta) en el mismo celular. Ojo: la comisión de tarjeta no está documentada; no se promete "sin comisión" en ese caso |
 | El modelo inventa precios | Total calculado por código y solo productos del menú |
 | La nota de voz de respuesta no suena en algún celular | La respuesta siempre llega también en texto |
 | Ruido de fondo afecta la transcripción | El texto siempre funciona igual; transcripción dudosa se pide de nuevo |
-| Webhook de pey no llega | Barrido cada 30 s; la orden se puede marcar pagada a mano en la demo |
+| Webhook de pey no llega | El bot consulta a pey cada 30 s (`GET /transaction/{id}`) y marca la orden pagada; también se puede marcar a mano en la demo |
 
 ## 15. Decisiones
 

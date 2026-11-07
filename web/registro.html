@@ -61,7 +61,7 @@
 
 <script src="config.js"></script>
 <script>
-  const { SUPABASE_URL, SUPABASE_ANON_KEY, BOT } = window.BARRIO
+  const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, BOT } = window.BARRIO
   const ZONAS = ['Álvaro Obregón', 'Azcapotzalco', 'Benito Juárez', 'Coyoacán', 'Cuajimalpa', 'Cuauhtémoc',
     'Gustavo A. Madero', 'Iztacalco', 'Iztapalapa', 'Magdalena Contreras', 'Miguel Hidalgo', 'Milpa Alta',
     'Tláhuac', 'Tlalpan', 'Venustiano Carranza', 'Xochimilco'] // igual que en bot/index.js
@@ -121,7 +121,8 @@
     boton.textContent = 'Registrando…'
     const r = await fetch(`${SUPABASE_URL}/rest/v1/negocios`, {
       method: 'POST',
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      // Las llaves sb_publishable_ no son JWT: van solo en apikey. (Las legacy eyJ... también en Authorization.)
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY, ...(SUPABASE_PUBLISHABLE_KEY.startsWith('sb_') ? {} : { Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` }), 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({
         nombre: d.nombre.trim(), telefono: tel, zona: d.zona, direccion: d.direccion.trim(),
         categoria: d.categoria.trim(), productos, auto_aceptar: !!d.auto_aceptar,

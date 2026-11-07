@@ -1,15 +1,32 @@
 // Recibe codi.pn.payment_received / codi.qr.payment_received de pey y marca la orden como pagada.
 // Deploy: supabase functions deploy pey-webhook   (verify_jwt = false está en supabase/config.toml)
-// Secrets: supabase secrets set PEY_WEBHOOK_SECRET=whsec_...
+// Secrets: PEY_WEBHOOK_SECRET=whsec_...  (Supabase inyecta SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY)
 import { Webhook } from "npm:standardwebhooks@1.1.1";
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 
-const wh = new Webhook(Deno.env.get("PEY_WEBHOOK_SECRET")!.replace(/^whsec_/, ""));
-const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const responder = (status: number, texto: string) => new Response(texto, { status });
+
+// Se crean al primer pago, no al arrancar: si falta el secreto, la función sigue arriba y avisa claro en el log.
+let cliente: { wh: Webhook; db: ReturnType<typeof createClient> } | null = null;
+function conectar() {
+  if (cliente) return cliente;
+  const secreto = Deno.env.get("PEY_WEBHOOK_SECRET");
+  const url = Deno.env.get("SUPABASE_URL");
+  const llave = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!secreto || !url || !llave) {
+    console.error("Falta configuración:", { PEY_WEBHOOK_SECRET: !!secreto, SUPABASE_URL: !!url, SUPABASE_SERVICE_ROLE_KEY: !!llave });
+    return null;
+  }
+  cliente = { wh: new Webhook(secreto), db: createClient(url, llave) };
+  return cliente;
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return responder(405, "solo POST");
+  const c = conectar();
+  if (!c) return responder(500, "webhook sin configurar"); // pey reintenta cuando ya esté el secreto
+  const { wh, db } = c;
+
   const body = await req.text(); // la firma se calcula sobre el body crudo
   let ev: any;
   try {

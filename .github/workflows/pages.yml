@@ -1,9 +1,8 @@
 name: Web
-# Publica web/ en GitHub Pages. Activar una vez: Settings > Pages > Source: GitHub Actions.
+# Publica web/ en GitHub Pages. DESACTIVADO por ahora: solo corre a mano (Actions > Web > Run workflow).
+# Para publicar de forma automática: Settings > Pages > Source: GitHub Actions y agregar de nuevo
+#   push: { branches: [main], paths: ['web/**'] }   bajo `on:`.
 on:
-  push:
-    branches: [main]
-    paths: ['web/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:

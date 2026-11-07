@@ -51,7 +51,7 @@ La voz es siempre la misma; el tono se ajusta a lo que está pasando.
 | El cobro expiró | Sin culpa, con salida | "Este cobro ya venció. ¿Lo generamos otra vez?" |
 | Sin internet | Claro y práctico | "Sin señal. Revisa tu conexión e inténtalo de nuevo." |
 | Fin del día | Reconocimiento | "Hoy vendiste $1,240 en 38 cobros" |
-| Primera vez | Paciente, sin tecnicismos | "Dime qué te pidieron y yo armo la cuenta" |
+| Primera vez | Con calma, sin tecnicismos | "Dime qué te pidieron y yo armo la cuenta" |
 
 ## 4. Vocabulario
 

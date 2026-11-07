@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node --env-file=.env index.js",
     "test": "node index.js test",
-    "check": "node --check index.js"
+    "check": "node --check index.js && node --check diagnostico.js && node --check vincular.js && node --check config.js",
+    "diagnostico": "node --env-file=.env diagnostico.js",
+    "vincular": "node --env-file=.env vincular.js"
   },
   "keywords": [],
   "author": "",
