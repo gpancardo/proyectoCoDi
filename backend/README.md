@@ -1,17 +1,17 @@
 # Backend Barrio
 
-API HTTP para la aplicación standalone. Este corte entrega **Descubrir** y **Buscar con Barrio**; la app nunca accede directamente a Supabase ni a secretos.
+API HTTP de Barrio para la web y la app. Corre como **Supabase Edge Function** `api` (`edge/api.js` adapta `src/server.js`) o como servidor Node local. Ni la web ni la app tocan Supabase directamente ni conocen secretos. Sin dependencias de npm.
 
 ## Estado
 
-Implementado: catálogo público, filtros y ranking determinista, perfil por señales explícitas, recuperación vectorial opcional, agente con JSON Schema y fallback sin OpenAI.
+Implementado y probado contra la base real (`npm run e2e:live`, 23 pasos, pey en mock; cobro real de $0.01 por push CoDi probado aparte): Descubrir, búsqueda determinista, perfil, agente con fallback, cotización, pedidos idempotentes, gestión del negocio, intentos de cobro, webhook de pey, reconciliación al consultar el cobro, cupones e insignias. Contrato completo: [`docs/BACKEND.md`](../docs/BACKEND.md). Pendientes: [`docs/BACKEND.md#estado-desplegado-y-pendientes`](../docs/BACKEND.md#estado-desplegado-y-pendientes).
 
-También: cotización, pedidos, gestión del negocio, intentos de cobro, webhook de pey (`/webhooks/pey`), barrido/reconciliación, cupones e insignias (ver `docs/BACKEND.md`). Pendiente: prueba end-to-end contra Supabase y pey reales. Variables nuevas en `.env.example` (`PEY_API_KEY`, `PEY_MOCK`, `PEY_WEBHOOK_SECRET`, `CRON_SECRET`).
+Variables (`.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY` (en Edge Functions las inyecta Supabase), `PEY_API_KEY`, `PEY_MOCK`, `PEY_WEBHOOK_SECRET`, `CRON_SECRET`, `APP_RETURN_URL`, `ALLOWED_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_EMBEDDING_MODEL`.
 
 ## Operación local
 
 1. Copia `.env.example` a `.env`; los secretos viven solo en el servidor.
-2. Aplica las migraciones de `supabase/migrations/`.
+2. Aplica las migraciones de `supabase/migrations/` (SQL Editor o `supabase db push`).
 3. Ejecuta `npm run index:catalog` después de publicar un menú o desde un cron seguro.
 4. Ejecuta `npm start`. `GET /health` responde `{ "ok": true }`.
 
