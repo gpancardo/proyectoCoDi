@@ -2,17 +2,13 @@
 
 <br />
 
-# <span style="color:#0B2545">Barrio</span>
+# <span style="color:#0B2545">barrio</span>
 
-### <span style="color:#0F7C75">Lo bueno del barrio, a un toque.</span>
-
-<img alt="Barrio" src="https://img.shields.io/badge/Barrio-CDMX-0B2545?style=for-the-badge&labelColor=F5A524" />
-<img alt="CoDi por pey" src="https://img.shields.io/badge/CoDi-push%20con%20pey-0F7C75?style=for-the-badge" />
-<img alt="API propia" src="https://img.shields.io/badge/API-propia-0B2545?style=for-the-badge" />
+### <span style="color:#0F7C75">lo bueno del barrio, a un toque.</span>
 
 **Descubre negocios cercanos, pide con una cuenta clara y paga con CoDi desde tu banco.**
 
-[Producto](docs/PRODUCTO.md) · [Demo técnica](docs/BACKEND.md) · [Diseño](docs/DESIGN.md) · [Guía de contribución](AGENTS.md)
+[Producto](docs/PRODUCTO.md) · [Demo técnica](docs/BACKEND.md) · [Diseño](docs/DESIGN.md) · [Reglas para agentes](AGENTS.md)
 
 </div>
 
