@@ -29,7 +29,7 @@ Cada cobro debe vivir en `intentos_cobro`, no en un campo de la orden: referenci
 
 ## Despliegue y prueba real
 
-- `render.yaml` + `backend/Dockerfile`: crea el servicio en Render desde el repo y captura las variables de `.env.example` en el panel. Con Docker en cualquier otro host basta `docker build backend` y las mismas variables. Tras desplegar, registra `https://<host>/webhooks/pey` en el portal de pey y copia su secreto a `PEY_WEBHOOK_SECRET`.
+- **Desplegar:** `npm run build:edge` genera `supabase/functions/api/index.ts` (no versionado). Pégalo en Supabase → Edge Functions → `api` → Code y pulsa *Deploy updates* (o `npx supabase functions deploy api --no-verify-jwt` con la CLI enlazada). La función debe tener *Verify JWT* apagado. Secretos en Edge Functions → Secrets; `SUPABASE_*` los inyecta Supabase. Webhook de pey: `https://<proyecto>.supabase.co/functions/v1/api/webhooks/pey`.
 - `npm run e2e:live` (con `E2E_CONFIRM=1`): recorre cotización → pedido → aceptación → cobro → webhook firmado → pagado → cupón → insignias contra la base real, con pey en mock, y borra sus datos. Última corrida: 23 pasos correctos (7 nov 2026).
 - Un negocio queda activo al registrarse con su cuenta (`POST /businesses`); no hay verificación manual. Para ligar uno existente: `update negocios set sujeto_auth = '<uuid de Auth>', verificado = true where id = <id>;`.
 - **Modelo de IA (OpenAI u OpenRouter):** el mismo código sirve a ambos. OpenRouter: `OPENAI_BASE_URL=https://openrouter.ai/api/v1`, `OPENAI_MODEL=openai/gpt-4o-mini`, `OPENAI_EMBEDDING_MODEL=openai/text-embedding-3-small` y la llave de OpenRouter en `OPENAI_API_KEY`. OpenAI: quita `OPENAI_BASE_URL` y usa `gpt-4o-mini` / `text-embedding-3-small`. Los embeddings son los mismos (1536), no hay que reindexar.

@@ -59,7 +59,7 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `POST /orders/{id}/payments` | comprador | Nuevo intento de cobro; si hay uno vigente devuelve ese |
 | `GET /orders/{id}/payments/current` | sesión | Estado del cobro; al comprador le devuelve `link`/`qr_image` y reconcilia con pey si sigue vigente |
 | `POST /webhooks/pey` | firma | Webhook de pey (Standard Webhooks, dedupe por `webhook-id`) |
-| `POST /internal/sweep` | `CRON_SECRET` | Barrido manual; sirve el barrido local (`npm start`) |
+| `POST /internal/sweep` | `CRON_SECRET` | Barrido manual (reconciliación con pey, vencimientos); en producción lo cubren `pg_cron` y la reconciliación al consultar el cobro |
 
 **No implementado todavía:** paginación por cursor, rate limits propios, `tsvector`/trigramas (la búsqueda normaliza acentos y compara texto en memoria), ubicación por distancia en el ranking (las coordenadas se guardan, aún no ordenan).
 
@@ -111,8 +111,8 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 ## Estado desplegado y pendientes
 
-- **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio. `render.yaml`/`Dockerfile` quedan como alternativa.
-- **Base:** migraciones hasta `20261107050000` aplicadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
+- **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
+- **Base:** migraciones hasta `20261107060000` aplicadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
 - **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
