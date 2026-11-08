@@ -19,27 +19,56 @@ Documento interno. Lo que leen los jueces está en `docs/PITCH.md`, `docs/ENTREG
 - [ ] Hacer un pedido del Taco de prueba y ver ¡Pagado!.
 - [ ] Abrir sitio, descarga, videos y repositorio en una ventana privada.
 - [ ] Revisar que videos y capturas no muestren celular completo, saldo ni datos del banco.
-- [ ] Decidir si se corrige el texto del sitio sobre el depósito directo al negocio (ver preguntas).
+
+## Cómo se envía
+
+1. Sube el APK nuevo a Drive como `barrio-demo.apk`.
+2. Sube los dos videos a YouTube como «sin listar».
+3. Copia el correo de abajo y llena lo que está entre corchetes.
+4. Abre cada enlace en una ventana privada.
+5. Envíalo a hola@aibuilders.lat antes de la 1:00 PM, después de confirmar esa dirección con los organizadores.
 
 ## Correo listo para pegar
 
 ```text
 Asunto: Entrega Barrio · DevDay Exchange Community Hackathon
 
+Hola:
+
+Les compartimos la entrega de Barrio, una app Android para encontrar negocios
+de tu colonia con tus palabras, ver el total antes de pedir y pagar con CoDi
+desde la app de tu banco.
+
 Equipo: [nombre del equipo]
 Integrantes: [nombres]
 
-Barrio es una app Android para encontrar negocios de tu colonia con tus palabras,
-ver el total antes de pedir y pagar con CoDi desde la app de tu banco.
+VIDEOS
+Demo: [enlace]
+Pitch: [enlace]
 
-Video de demo: [enlace]
-Video de pitch: [enlace]
+PRODUCTO
 Sitio: https://jade-paprenjak-a98b06.netlify.app
-APK: https://jade-paprenjak-a98b06.netlify.app/descargar/
-Repositorio: https://github.com/gpancardo/proyectoCoDi
+App Android (APK): https://jade-paprenjak-a98b06.netlify.app/descargar/
 
-Para probarlo en 5 minutos, el README trae los pasos.
-El producto de prueba cuesta $0.01 reales y requiere CoDi activo en el banco.
+DOCUMENTOS EN ESPAÑOL
+Repositorio: https://github.com/gpancardo/proyectoCoDi/blob/main/README.md
+Pitch: https://github.com/gpancardo/proyectoCoDi/blob/main/docs/PITCH.md
+Expediente de entrega: https://github.com/gpancardo/proyectoCoDi/blob/main/docs/ENTREGA.md
+Por qué ahora (Ley de Economía Digital): https://github.com/gpancardo/proyectoCoDi/blob/main/docs/LEY-ECONOMIA-DIGITAL.md
+
+DOCUMENTS IN ENGLISH
+Repository: https://github.com/gpancardo/proyectoCoDi/blob/main/README.en.md
+Pitch: https://github.com/gpancardo/proyectoCoDi/blob/main/docs/PITCH.en.md
+Submission dossier: https://github.com/gpancardo/proyectoCoDi/blob/main/docs/ENTREGA.en.md
+Why now (Digital Economy Law): https://github.com/gpancardo/proyectoCoDi/blob/main/docs/LEY-ECONOMIA-DIGITAL.en.md
+
+Todas las pantallas: https://github.com/gpancardo/proyectoCoDi/blob/main/docs/capturas/README.md
+
+Para probarla en 5 minutos, los pasos están en el README. El producto de prueba
+cuesta $0.01 reales y requiere CoDi activo en el banco.
+
+Gracias,
+[nombre]
 ```
 
 ## Guion de 3 minutos
@@ -72,13 +101,14 @@ Don Beto es un personaje de ejemplo y el 3.5% es una comisión de ejemplo. Si ti
 - Que hay negocios reales usando Barrio: los 14 son de demo.
 - Que el dinero ya llega a la cuenta de cada negocio: en la demo cae en una cuenta de prueba.
 - Que funciona en navegador: es solo Android.
-- La ley de pagos digitales o la Circular 9/2026, ni otra cifra marcada con 🟡 en `docs/PRODUCTO.md`, hasta verificarlas.
+- Que la ley obliga a los comercios o prohíbe el efectivo: no lo hace. Ver `docs/LEY-ECONOMIA-DIGITAL.md`.
+- Otra cifra marcada con 🟡 en `docs/PRODUCTO.md`, hasta verificarla.
 - «Sin comisión» para algo distinto al cobro con CoDi.
 
 ## Preguntas difíciles
 
 **¿A dónde va el dinero?**
-En la demo, a una cuenta de prueba preautorizada para el hackathon. Para operar, cada negocio registra su propia cuenta ante Banxico, unos 5 días hábiles. El backend ya envía `bankAccountId` cuando el negocio lo tiene; falta pedir esa cuenta en el alta.
+En la demo, a una cuenta de prueba preautorizada que dieron los organizadores. Para operar, cada negocio registra su propia cuenta ante Banxico, unos 5 días hábiles. El backend ya envía `bankAccountId` cuando el negocio lo tiene; falta pedir esa cuenta en el alta.
 
 **¿La IA puede inventar precios o negocios?**
 No. Devuelve filtros con un esquema fijo y solo puede elegir negocios ya recuperados del catálogo. Los precios y totales salen del servidor.
