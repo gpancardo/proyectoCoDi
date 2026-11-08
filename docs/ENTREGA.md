@@ -1,89 +1,188 @@
-# Guía de entrega
+<div align="center">
 
-Todo lo necesario para mandar Barrio y responder a los jueces. Límite: **domingo 8 de noviembre, 1:00 PM**.
+**Español** · [English](ENTREGA.en.md)
 
-> **Confirmen el canal.** `PEY.md` dice que se entrega por correo a hola@aibuilders.lat y `PRODUCTO.md` habla de un portal. Revisen las instrucciones de los organizadores.
+# Barrio · Expediente de entrega
 
-## Paquete
+**DevDay Exchange Community Hackathon · CDMX · 7–8 de noviembre de 2026**
 
-| Pieza | Estado | Enlace o acción |
+Búsqueda con IA sobre un catálogo real, totales calculados por el servidor y cobros CoDi reales con pey.
+
+![Android](https://img.shields.io/badge/Android-app-0B2545?style=flat-square) ![CoDi](https://img.shields.io/badge/CoDi-cobro_real-0F7C75?style=flat-square) ![pey](https://img.shields.io/badge/pey-webhook_firmado-F5A524?style=flat-square) ![IA](https://img.shields.io/badge/IA-RAG_h%C3%ADbrido-0B2545?style=flat-square)
+
+</div>
+
+---
+
+## Enlaces
+
+| | |
+|---|---|
+| **Sitio** | https://jade-paprenjak-a98b06.netlify.app |
+| **App Android** | [Página de descarga](https://jade-paprenjak-a98b06.netlify.app/descargar/) |
+| **Repositorio** | https://github.com/gpancardo/proyectoCoDi |
+| **Pitch** | [`PITCH.md`](PITCH.md) |
+| **Pantallas** | [Las 23 pantallas de la app](capturas/README.md) |
+<!-- | **Video de demo** | ENLACE | -->
+<!-- | **Video de pitch** | ENLACE | -->
+
+## Pruébalo en 5 minutos
+
+Necesitas un teléfono Android y un celular con CoDi activo en tu banco.
+
+| Paso | Qué hacer |
+|:---:|---|
+| 1 | Instala el APK y permite instalar desde esa fuente |
+| 2 | Crea una cuenta con tu correo y acepta las notificaciones |
+| 3 | Escribe tu celular de 10 dígitos y tu alcaldía |
+| 4 | En **Buscar con Barrio**, escribe `algo para una fiesta` y contesta la pregunta |
+| 5 | Abre **Tacos Doña Lupe**, agrega el **Taco de prueba** y confirma $0.01 |
+| 6 | En unos 5 segundos llega el cobro: apruébalo en tu banco |
+| 7 | Mira **¡Pagado!** y tu código para recoger |
+
+> El centavo es dinero real y no se devuelve. Para probar con otra cuenta en el mismo teléfono, borra antes los datos de la app.
+
+## Evidencia del cobro real
+
+| Hora (UTC, 8 nov 2026) | Evento |
+|---|---|
+| 17:20:08 | Se crea el pedido 21 por un Taco de prueba de $0.01 |
+| 17:20:13 | La demo acepta el pedido y pey envía el cobro CoDi por push |
+| 17:20:40 | El banco confirma, llega el webhook firmado y el pedido queda `pagada` |
+
+**32 segundos** del pedido al pago, sin intervención manual en el servidor.
+
+<!-- Capturas reales: agrega aquí las imágenes de docs/capturas/reales/
+<p align="center">
+  <img src="capturas/reales/01-cobro-banco.png" width="220" alt="Cobro en el banco">
+  <img src="capturas/reales/02-pagado.png" width="220" alt="Pagado">
+  <img src="capturas/reales/04-sello-primera-compra.png" width="220" alt="Sello ganado">
+</p>
+-->
+
+## Qué mirar, según quien evalúa
+
+| Jurado | Qué demostramos | Dónde verlo |
 |---|---|---|
-| Sitio | Publicado | https://jade-paprenjak-a98b06.netlify.app |
-| Repositorio | En `main` | https://github.com/gpancardo/proyectoCoDi |
-| APK | Falta subirlo a Drive | `barrio_app_pey/build/app/outputs/flutter-apk/app-release.apk`, como `barrio-demo.apk` en la [carpeta](https://drive.google.com/drive/folders/1RAgBuqzbd0g0TX7koZZ1upO7kzWBrnji) |
-| Video de demo (2 min) | Falta | Guion en [`VIDEOS.md`](VIDEOS.md), sin listar en YouTube |
-| Video de pitch (3 min) | Falta | Guion en [`PITCH.md`](PITCH.md), sin listar en YouTube |
-| Capturas reales | Falta | [`capturas/reales/`](capturas/reales/README.md) |
+| **pey** | CoDi por push de punta a punta, webhook con firma, idempotencia, comprobación de monto y consulta de respaldo | [`pagos.js`](../backend/src/pagos.js) |
+| **OpenAI** | Salidas con esquema JSON estricto, embeddings y selección limitada al catálogo recuperado | [`agent.js`](../backend/src/agent.js) |
+| **AI Builders** | Búsqueda híbrida, conversación con memoria acotada y respaldo sin modelo | [`search.js`](../backend/src/search.js), [`chat_screen.dart`](../barrio_app_pey/lib/components/sections/chat_screen.dart) |
+| **SEDECO** | Una herramienta en español de México para que el comercio local venda en digital | [Pantallas](capturas/README.md), [Sellos](LOGROS.md) |
 
-## Antes de enviar
+## Cómo funciona
 
-- [ ] Instalar el APK nuevo desde el enlace público en un teléfono limpio.
-- [ ] Hacer un pedido del Taco de prueba y ver ¡Pagado!.
-- [ ] Abrir sitio, descarga, videos y repositorio en una ventana privada.
-- [ ] Revisar que videos y capturas no muestren celular completo, saldo ni datos del banco.
-- [ ] Decidir si se corrige el texto del sitio sobre el depósito directo al negocio (ver preguntas).
+### Arquitectura
 
-## Correo listo para pegar
-
-```text
-Asunto: Entrega Barrio · DevDay Exchange Community Hackathon
-
-Equipo: [nombre del equipo]
-Integrantes: [nombres]
-
-Barrio es una app Android para encontrar negocios de tu colonia con tus palabras,
-ver el total antes de pedir y pagar con CoDi desde la app de tu banco.
-
-Video de demo: [enlace]
-Video de pitch: [enlace]
-Sitio: https://jade-paprenjak-a98b06.netlify.app
-APK: https://jade-paprenjak-a98b06.netlify.app/descargar/
-Repositorio: https://github.com/gpancardo/proyectoCoDi
-
-Para probarlo en 5 minutos, el README trae los pasos.
-El producto de prueba cuesta $0.01 reales y requiere CoDi activo en el banco.
+```mermaid
+flowchart TB
+    APP["App Flutter · Android"]:::app -->|"HTTPS + sesión"| API["API Barrio<br/>Supabase Edge Function"]:::api
+    API --> DB[("Postgres + pgvector")]:::dato
+    API -->|"filtros tipados<br/>y embeddings"| IA["Modelo de IA<br/>(opcional)"]:::ext
+    API -->|"cobro CoDi"| PEY["pey"]:::ext
+    PEY -->|"push"| BANCO["App del banco"]:::ext
+    PEY -->|"webhook firmado"| API
+    classDef app fill:#F5A524,stroke:#0B2545,stroke-width:2px,color:#0B2545
+    classDef api fill:#0B2545,stroke:#0B2545,color:#FFF8EC
+    classDef dato fill:#0F7C75,stroke:#0B2545,color:#FFF8EC
+    classDef ext fill:#FFF8EC,stroke:#0B2545,stroke-width:2px,color:#0B2545
 ```
 
-## Qué busca cada jurado
+La app no toca tablas ni contiene llaves de servidor.
 
-| Jurado | Tiene que ver |
+### Búsqueda: la IA ayuda, el servidor decide
+
+```mermaid
+flowchart LR
+    Q["Frase de la persona<br/>+ últimos 6 turnos"]:::in --> F["Modelo:<br/>filtros tipados"]:::ia
+    Q --> E["Embeddings:<br/>vecinos del catálogo"]:::ia
+    F --> V{"El servidor<br/>valida filtros"}:::srv
+    E --> R["Fusión con<br/>reglas exactas"]:::srv
+    V --> R
+    R --> S["Negocios reales<br/>del catálogo"]:::out
+    R --> P["Pregunta de seguimiento<br/>máx. 3, sin repetir"]:::out
+    classDef in fill:#FFF8EC,stroke:#0B2545,stroke-width:2px,color:#0B2545
+    classDef ia fill:#F5A524,stroke:#0B2545,stroke-width:2px,color:#0B2545
+    classDef srv fill:#0B2545,stroke:#0B2545,color:#FFF8EC
+    classDef out fill:#0F7C75,stroke:#0B2545,color:#FFF8EC
+```
+
+Si no hay modelo disponible, la búsqueda sigue con las reglas exactas. Lo que escribe la persona entra como dato, nunca como instrucción.
+
+### Del pedido al pago
+
+```mermaid
+sequenceDiagram
+    actor C as Comprador
+    participant B as API Barrio
+    participant N as Negocio
+    participant P as pey
+    participant F as Banco
+    C->>B: Pide la cuenta
+    B-->>C: Total calculado desde el menú
+    C->>B: Confirma ese total
+    B->>N: Pedido nuevo
+    N->>B: Acepta
+    B->>P: Crea el cobro CoDi
+    P->>F: Cobro por push
+    C->>F: Aprueba
+    P->>B: Webhook firmado
+    B-->>C: ¡Pagado! y código para recoger
+```
+
+### Estados del pedido
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> pendiente
+    pendiente --> aceptada
+    pendiente --> rechazada
+    pendiente --> expirada
+    aceptada --> cobrada
+    cobrada --> pagada
+    pagada --> lista
+    lista --> entregada
+    entregada --> [*]
+```
+
+Cada cambio exige el estado anterior, así que un reintento no puede avanzar un pedido dos veces. Las rutas de cancelación y vencimiento del cobro están en [`pedidos.js`](../backend/src/pedidos.js).
+
+## Protecciones
+
+| Riesgo | Protección |
 |---|---|
-| pey | El cobro CoDi real, de punta a punta, y el webhook firmado |
-| OpenAI / AI Builders | La IA pregunta y encuentra, pero no toca precios ni pagos |
-| SEDECO | Un negocio de barrio que vende mejor sin aprender nada difícil |
+| Precio alterado por la app o por la IA | El total se calcula en el servidor desde el menú vigente |
+| Confirmar un total distinto | El pedido exige una cotización vigente y el total que vio la persona |
+| Pedido duplicado | Llave de idempotencia y una cotización por pedido |
+| Doble cobro | Una restricción en la base permite un solo cobro vigente |
+| Webhook falso o repetido | Firma, ventana de tiempo, deduplicación y monto mínimo |
+| Webhook perdido | Consulta de respaldo a pey al revisar el cobro |
+| Instrucciones escondidas en un mensaje | Las entradas de las personas son datos; el historial va acotado |
+| Secretos expuestos | Las llaves viven solo en el servidor; la app no las contiene |
 
-## Preguntas difíciles
+## Calidad
 
-**¿A dónde va el dinero?**
-En la demo, a una cuenta de prueba preautorizada para el hackathon. Para operar, cada negocio registra su propia cuenta ante Banxico, unos 5 días hábiles. El backend ya envía `bankAccountId` cuando el negocio lo tiene; falta pedir esa cuenta en el alta.
-
-**¿La IA puede inventar precios o negocios?**
-No. Devuelve filtros con un esquema fijo y solo puede elegir negocios ya recuperados del catálogo. Los precios y totales salen del servidor.
-
-**¿Y si se cae el modelo?**
-La búsqueda sigue con reglas exactas por texto, zona, categoría y precio.
-
-**¿Se puede cobrar dos veces?**
-La base solo permite un cobro vigente por pedido y cada cambio de estado exige el estado anterior.
-
-**¿Y si se pierde el webhook?**
-La app consulta a pey mientras el pedido está abierto. El webhook está firmado y no se procesa dos veces.
-
-**¿Quién acepta los pedidos en la demo?**
-Doña Lupe acepta sola el Taco de prueba a los 5 segundos, para probar sin un segundo teléfono. Los demás negocios aceptan desde su panel, o en automático si lo activan.
-
-**¿Cómo gana dinero?**
-El cobro con CoDi no tiene comisión. A futuro, un plan bajo para funciones extra.
-
-**¿Qué falta para salir?**
-Cuenta por negocio, aviso de privacidad y términos, recuperar contraseña, push con la app cerrada, límite de uso y publicar en Google Play. Está en [`pendientes/`](../pendientes/README.md).
-
-## Si algo falla en vivo
-
-| Pasa | Haz |
+| Comprobación | Resultado |
 |---|---|
-| La app del banco se traba | Ciérrala y ábrela desde su ícono. El cobro dura 15 minutos; no hagas otro pedido |
-| No llega el cobro | Revisa que CoDi esté activo y el celular del perfil. Si sigue, muestra el video |
-| Se pagó y sigue sin cambiar | Abre ese pedido en la app: consulta a pey |
-| Falla el internet | Pasa al video de demo y a las [capturas reales](capturas/reales/README.md) |
-| Quieren probar con otra cuenta | Borra los datos de la app antes de entrar |
+| Pruebas de backend | 24 en verde: dinero, estados, firma, búsqueda y conversación |
+| Pruebas de la app | 8 en verde y análisis estático limpio |
+| Esquema | Migraciones y permisos probados en Postgres con pgvector |
+| CI | `backend`, `supabase` y `web` en cada PR |
+| Recorrido real | Cobro real de $0.01 en producción |
+
+## Real y demo
+
+| Real, en producción | De demo o pendiente |
+|---|---|
+| API, base de datos y autenticación | Los 14 negocios del catálogo son de demostración |
+| Modelo y búsqueda semántica | Los cobros llegan a una cuenta de prueba preautorizada; registrar la cuenta de cada negocio ante Banxico tarda unos 5 días hábiles |
+| Cobro CoDi por push y webhook firmado | Doña Lupe acepta sola el Taco de prueba a los 5 s, para probar sin un segundo teléfono |
+| Alta de negocios, menú y promociones | Avisos solo mientras Android mantenga viva la app |
+| | APK con firma de depuración, fuera de Google Play |
+| | Faltan aviso de privacidad, términos, recuperar contraseña, borrar cuenta y límite de uso |
+
+<div align="center">
+
+[Pitch](PITCH.md) · [Repositorio](../README.md) · [Producto](PRODUCTO.md) · [API](BACKEND.md)
+
+</div>
