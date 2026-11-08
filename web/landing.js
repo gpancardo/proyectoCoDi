@@ -1,4 +1,4 @@
-import { armarCuenta } from './cuenta.js'
+import { armarCuenta } from './cuenta.mjs'
 
 const $ = (s) => document.querySelector(s)
 const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches
