@@ -10,7 +10,10 @@ const port = Number(env.PORT ?? 3000);
 const db = env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY && env.SUPABASE_ANON_KEY
   ? new Supabase({ url: env.SUPABASE_URL, serviceKey: env.SUPABASE_SERVICE_ROLE_KEY, anonKey: env.SUPABASE_ANON_KEY }) : null;
 
-const enviar = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); };
+// Auth por cabecera Bearer (sin cookies): '*' es seguro; ALLOWED_ORIGINS=https://a.com,https://b.com lo restringe.
+const origenes = (env.ALLOWED_ORIGINS ?? '*').split(',').map((o) => o.trim());
+const cors = (req) => ({ 'Access-Control-Allow-Origin': origenes.includes('*') ? '*' : (origenes.includes(req?.headers?.origin) ? req.headers.origin : origenes[0]), 'Vary': 'Origin', 'Access-Control-Allow-Headers': 'authorization, content-type, idempotency-key, apikey', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS', 'Access-Control-Max-Age': '86400' });
+const enviar = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...(res.cors ?? {}) }); res.end(JSON.stringify(body)); };
 const fallo = (res, status, code, message, field) => enviar(res, status, { error: { code, message, ...(field ? { field } : {}) } });
 async function cuerpo(req) { let raw = ''; for await (const parte of req) { raw += parte; if (raw.length > 30_000) throw new Error('Cuerpo demasiado grande'); } return raw ? JSON.parse(raw) : {}; }
 function filtros(url) { return Object.fromEntries(url.searchParams.entries()); }
@@ -19,7 +22,7 @@ async function persona(req) {
   if (!db || !header?.startsWith('Bearer ')) return null;
   const session = await db.sesion(header.slice(7));
   if (!session?.id) return null;
-  const [comprador, negocio] = await Promise.all([db.get('compradores', `sujeto_auth=eq.${session.id}&select=id,nombre,telefono&limit=1`), db.get('negocios', `sujeto_auth=eq.${session.id}&select=id,nombre&limit=1`)]);
+  const [comprador, negocio] = await Promise.all([db.get('compradores', `sujeto_auth=eq.${session.id}&select=id,nombre,telefono,zona,colonia&limit=1`), db.get('negocios', `sujeto_auth=eq.${session.id}&select=id,nombre,descripcion,zona,colonia,direccion,categoria,productos,auto_aceptar,abierto,verificado&limit=1`)]);
   return { session, comprador: comprador[0] ?? null, negocio: negocio[0] ?? null };
 }
 async function contexto(req) {
@@ -28,8 +31,11 @@ async function contexto(req) {
   return { negocios: await db.negocios(), auth, perfil: auth?.comprador ? await db.perfil(auth.comprador.id) : null };
 }
 
-const app = createServer(async (req, res) => {
+const manejarPeticion = async (req, res) => {
+  let m;
   try {
+    res.cors = cors(req);
+    if (req.method === 'OPTIONS') { res.writeHead(204, res.cors); return res.end(); }
     const url = new URL(req.url, `http://${req.headers.host}`);
     if (req.method === 'GET' && url.pathname === '/health') return enviar(res, 200, { ok: true });
     if (req.method === 'GET' && url.pathname === '/api/v1/discovery') {
@@ -81,6 +87,11 @@ const app = createServer(async (req, res) => {
       if (!env.CRON_SECRET || req.headers.authorization !== `Bearer ${env.CRON_SECRET}`) return fallo(res, 401, 'UNAUTHENTICATED', 'No autorizado.');
       await barrido(db); return enviar(res, 200, { data: { ok: true } });
     }
+    if (req.method === 'POST' && (m = url.pathname.match(/^\/internal\/businesses\/(\d+)\/verify$/))) { // verificación manual por el equipo
+      if (!env.CRON_SECRET || req.headers.authorization !== `Bearer ${env.CRON_SECRET}`) return fallo(res, 401, 'UNAUTHENTICATED', 'No autorizado.');
+      const [n] = await db.actualizar('negocios', `id=eq.${m[1]}`, { verificado: true });
+      return n ? enviar(res, 200, { data: { id: n.id, verificado: n.verificado } }) : fallo(res, 404, 'NOT_FOUND', 'No encontramos ese negocio.');
+    }
     if (url.pathname.startsWith('/api/v1/') && db && await manejar({ db, req, res, url, auth: await persona(req), cuerpo: () => cuerpo(req), enviar })) return;
     return fallo(res, 404, 'NOT_FOUND', 'No encontramos esa ruta.');
   } catch (error) {
@@ -91,11 +102,12 @@ const app = createServer(async (req, res) => {
     console.error(error.message);
     return fallo(res, 503, 'SERVICE_UNAVAILABLE', 'No pudimos buscar en este momento.');
   }
-});
+};
+const app = createServer(manejarPeticion);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => console.log(`Barrio API lista en :${port}`));
   // ponytail: barrido en el mismo proceso cada minuto; con varias instancias moverlo a un cron único (/internal/sweep)
   if (db) setInterval(() => barrido(db).catch((e) => console.error('barrido', e.message)), 60_000).unref();
 }
-export { app };
+export { app, manejarPeticion };

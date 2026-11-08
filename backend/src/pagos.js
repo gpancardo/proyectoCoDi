@@ -64,7 +64,7 @@ export async function iniciarCobro(db, orden, comprador, negocio, clave = random
   for (const via of vias) {
     try {
       const { via: v, ref, ...extra } = await via();
-      const [guardado] = await db.actualizar('intentos_cobro', `id=eq.${intento.id}&estado=eq.vigente`, { via: v, pey_ref: ref });
+      const [guardado] = await db.actualizar('intentos_cobro', `id=eq.${intento.id}&estado=eq.vigente`, { via: v, pey_ref: ref, instrucciones: { link: extra.url ?? null, qr_image: extra.qr_image ?? null } });
       // aceptada o vencida → cobrada; si otra petición ya lo movió, no se toca
       await db.actualizar('ordenes', `id=eq.${orden.id}&estado=in.(aceptada,vencida)`, { estado: 'cobrada', actualizado: new Date().toISOString() });
       return { intento: guardado, ...extra };
@@ -89,6 +89,15 @@ export async function recibirWebhook(db, secreto, cuerpo, headers) {
   if (intento.estado === 'vencido') { await db.actualizar('intentos_cobro', `id=eq.${intento.id}&estado=eq.vencido`, { estado: 'revision', rastreo: ev.metadata?.trackingKey ?? null }); return [200, 'revisión']; }
   await confirmarPago(db, intento, ev.metadata?.trackingKey ?? null);
   return [200, 'ok'];
+}
+
+// Reconciliación puntual: pregunta a pey por UN intento vigente (la app la dispara al consultar el cobro; no depende de cron).
+export async function reconciliar(db, intento) {
+  if (intento?.estado !== 'vigente' || !intento.pey_ref) return false;
+  try {
+    const pago = pagoConfirmado(intento.via, await pey(rutaConsulta(intento.via, intento.pey_ref)), intento.monto_minor);
+    return pago ? await confirmarPago(db, intento, pago.rastreo) : false;
+  } catch (e) { console.error('consulta a pey', intento.id, e.message); return false; }
 }
 
 // Barrido periódico: reconcilia con pey, vence cobros, cancela pedidos sin respuesta y libera cupones.
