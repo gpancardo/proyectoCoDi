@@ -35,7 +35,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
   void _updateParallax(ScrollNotification notification) {
     if (notification is! ScrollUpdateNotification ||
-        MediaQuery.of(context).disableAnimations) return;
+        MediaQuery.of(context).disableAnimations) {
+      return;
+    }
     final nextOffset =
         (notification.metrics.pixels * .07).clamp(0, 18).toDouble();
     if ((nextOffset - _scrollOffset).abs() >= 1.5) {

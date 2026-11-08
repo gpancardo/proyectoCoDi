@@ -11,6 +11,7 @@ export const TRANSICIONES = {
   cobrada: ['pagada', 'vencida'],
   vencida: ['cobrada', 'cancelada'],
   pagada: ['lista'],
+  lista: ['entregada'],
 };
 export const puede = (de, a) => TRANSICIONES[de]?.includes(a) ?? false;
 
@@ -32,16 +33,19 @@ export function cotizar(productos, pedido) {
 }
 
 // Descuento de un cupón; nunca deja el total en cero (mínimo un peso).
-export function descuentoCupon(cupon, subtotal_minor, ahora = new Date()) {
+export function descuentoCupon(cupon, subtotal_minor, items = [], ahora = new Date()) {
+  if (!Array.isArray(items)) { ahora = items; items = []; } // compatibilidad de llamada: (cupón, subtotal, ahora)
   if (!cupon?.activo || new Date(cupon.vence) <= ahora || subtotal_minor < cupon.min_compra_minor) return 0;
-  const bruto = cupon.tipo === 'porcentaje' ? Math.floor(subtotal_minor * cupon.valor / 100) : cupon.valor;
+  const regalo = (items ?? []).find((item) => normalizar(item.nombre) === normalizar(cupon.producto_regalo ?? ''));
+  const bruto = cupon.tipo === 'porcentaje' ? Math.floor(subtotal_minor * cupon.valor / 100)
+    : cupon.tipo === 'producto_gratis' ? (regalo?.precio_minor ?? 0) : cupon.valor;
   return Math.max(0, Math.min(bruto, subtotal_minor - 100));
 }
 
-export function mejorCupon(cupones, subtotal_minor, ahora) {
+export function mejorCupon(cupones, subtotal_minor, items = [], ahora) {
   let mejor = null;
   for (const c of cupones) {
-    const d = descuentoCupon(c, subtotal_minor, ahora);
+    const d = descuentoCupon(c, subtotal_minor, items, ahora);
     if (d > (mejor?.descuento_minor ?? 0)) mejor = { cupon: c, descuento_minor: d };
   }
   return mejor;

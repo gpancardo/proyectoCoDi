@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:barrio_app_pey/app.dart';
+import 'package:barrio_app_pey/services/barrio_api.dart';
 import 'package:barrio_app_pey/state/app_state.dart';
 
+Widget _app(AppState state) => MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: state),
+        Provider(
+            create: (_) => BarrioApi(
+                client: MockClient(
+                    (_) async => http.Response('{"data":{}}', 200)))),
+      ],
+      child: const BarrioApp(),
+    );
+
 void main() {
+  setUpAll(() =>
+      dotenv.loadFromString(envString: 'API_BASE_URL=https://api.prueba'));
+
   testWidgets('muestra el alta en la primera visita', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'session_access_token': 'prueba'});
     final preferences = await SharedPreferences.getInstance();
 
-    await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => AppState(preferences),
-        child: const BarrioApp(),
-      ),
-    );
+    await tester.pumpWidget(_app(AppState(preferences)));
 
     expect(find.text('Lo bueno empieza cerca'), findsOneWidget);
   });
@@ -26,6 +39,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     SharedPreferences.setMockInitialValues({
+      'session_access_token': 'prueba',
       'has_completed_onboarding': true,
       'profile_name': 'Lupita',
       'profile_phone': '5512345678',
@@ -35,12 +49,8 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     final profile = AppState(preferences);
 
-    await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: profile,
-        child: const BarrioApp(),
-      ),
-    );
+    await tester.pumpWidget(_app(profile));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('profileAction')));
     await tester.pumpAndSettle();
 

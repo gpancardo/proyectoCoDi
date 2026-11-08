@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'components/sections/home_shell.dart';
+import 'components/sections/access_screen.dart';
 import 'components/sections/onboarding_screen.dart';
 import 'state/app_state.dart';
 import 'theme.dart';
@@ -16,8 +17,11 @@ class BarrioApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: BarrioTheme.light,
       home: Consumer<AppState>(
-        builder: (context, state, _) =>
-            state.isFirstVisit ? const OnboardingScreen() : const HomeShell(),
+        builder: (context, state, _) => !state.hasSession
+            ? const AccessScreen()
+            : state.isFirstVisit
+                ? const OnboardingScreen()
+                : const HomeShell(),
       ),
     );
   }

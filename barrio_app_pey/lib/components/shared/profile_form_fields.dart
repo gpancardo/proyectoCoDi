@@ -53,7 +53,7 @@ class ProfileFormFields {
     required List<String> options,
   }) =>
       DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: const InputDecoration(labelText: 'Alcaldía'),
         items: options
             .map((zone) => DropdownMenuItem(value: zone, child: Text(zone)))

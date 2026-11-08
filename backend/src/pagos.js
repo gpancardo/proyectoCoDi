@@ -55,12 +55,7 @@ export async function iniciarCobro(db, orden, comprador, negocio, clave = random
     expiration: MINUTOS.cobro * 60, metadata: { orden_id: orden.id, intento_id: intento.id },
     ...(negocio.pey_bank_account_id && { bankAccountId: negocio.pey_bank_account_id }),
   };
-  const retorno = process.env.APP_RETURN_URL ?? 'https://barrio.app';
-  const vias = [
-    ...(comprador.telefono ? [async () => ({ via: 'push', ref: (await pey('/codi/pn', { ...base, phoneNumber: comprador.telefono })).transactionId })] : []),
-    async () => { const l = await pey('/payment-link/create', { amount: base.amount, successUrl: retorno, backUrl: retorno, clientReferenceId: String(orden.id), metadata: base.metadata }); return { via: 'link', ref: l.id, url: l.url }; },
-    async () => { const q = await pey('/codi/qr', { ...base, generateImage: true }); if (!q.qrImage) throw new Error('sin imagen de QR'); return { via: 'qr', ref: q.id, qr_image: q.qrImage }; },
-  ];
+  const vias = comprador.telefono ? [async () => ({ via: 'push', ref: (await pey('/codi/pn', { ...base, phoneNumber: comprador.telefono })).transactionId })] : [];
   for (const via of vias) {
     try {
       const { via: v, ref, ...extra } = await via();

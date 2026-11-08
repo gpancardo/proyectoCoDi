@@ -121,11 +121,11 @@ En la app, el negocio usa acciones visibles para aceptar, rechazar, marcar listo
 - Volver a capturar: **Dictar otra vez** · **Escribir otra vez**
 - Botón principal: **Cobrar ${total}**
 
-#### Pantalla QR
-- Encabezado: **{Nombre del negocio}**
-- Instrucción para el cliente: **Escanea con la app de tu banco**
-- Estado: **Esperando que te paguen…**
-- Cancelar: **Cancelar cobro**
+#### Cobro CoDi por push
+- Encabezado: **Aprueba el cobro en tu banco**
+- Instrucción: **Te mandamos un cobro por ${total}.**
+- Estado: **Esperando la confirmación…**
+- Al vencer: **Este cobro ya venció. Manda otro cuando estés listo.**
 
 #### Pagado
 - **¡Pagado!**
@@ -147,7 +147,7 @@ En la app, el negocio usa acciones visibles para aceptar, rechazar, marcar listo
 | No se entendió el pedido | No entendí el pedido. ¿Me lo dices de otra forma? |
 | Cobro expirado | Este cobro ya venció. ¿Lo generamos otra vez? |
 | Sin internet | Sin señal. Revisa tu conexión e inténtalo de nuevo. |
-| No se pudo generar el QR | No pudimos generar el cobro. Inténtalo de nuevo en un momento. |
+| No se pudo iniciar el cobro | No pudimos mandar el cobro. Inténtalo de nuevo en un momento. |
 
 ## 6. Mensajes de marca
 

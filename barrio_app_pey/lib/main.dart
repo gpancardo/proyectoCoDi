@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
-import 'services/openai_service.dart';
+import 'services/barrio_api.dart';
 import 'state/app_state.dart';
 
 Future<void> main() async {
@@ -15,7 +15,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppState(preferences)),
-        Provider(create: (_) => OpenAIService()),
+        Provider(create: (_) => BarrioApi()),
       ],
       child: const BarrioApp(),
     ),

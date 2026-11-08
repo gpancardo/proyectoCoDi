@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://jade-paprenjak-a98b06.netlify.app/sitemap.xml

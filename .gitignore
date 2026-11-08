@@ -5,3 +5,4 @@ supabase/.branches/
 .DS_Store
 supabase/functions/api/
 .taste-skill/
+.tools/

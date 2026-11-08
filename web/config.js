@@ -5,5 +5,4 @@ window.BARRIO = {
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_NgLPAn_eJDSyvkXrNVAhrA_VvAAoSYz',
   API_URL: 'https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api', // API de Barrio (Edge Function); nunca llaves secretas aquí
   APP_URL: 'app.html', // la landing muestra "Abrir la app" cuando existe
-  BOT: '5200000000000', // WhatsApp del bot, con 52 y sin +. Se llena al vincular el número.
 }
