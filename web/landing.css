@@ -193,7 +193,7 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
 .fichero details:nth-child(3n) { --bg: var(--marino); --fg: var(--crema); }
 .fichero summary { display: block; min-height: 96px; padding: 22px 28px; cursor: pointer; list-style: none; }
 .fichero summary::-webkit-details-marker { display: none; }
-.pestana { position: absolute; top: -40px; left: calc(var(--i) * min(150px, (100% - 200px) / 5)); width: 200px; height: 41px; display: grid; place-items: center;
+.pestana { position: absolute; top: -40px; left: calc(var(--i) * min(150px, (100% - 200px) / 6)); width: 200px; height: 41px; display: grid; place-items: center;
   background: var(--bg); color: var(--fg); font-size: 16px; font-weight: 700; clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 100%, 0 100%); }
 .pregunta { font-size: 20px; font-weight: 500; }
 .fichero summary:hover .pregunta { text-decoration: underline; text-underline-offset: 4px; }
@@ -291,7 +291,7 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
   .l-lista ul { font-size: 17px; }
   .cifra { font-size: 18vw; }
 
-  .pestana { width: 120px; left: calc(var(--i) * min(48px, (100% - 120px) / 5)); font-size: 14px; }
+  .pestana { width: 120px; left: calc(var(--i) * min(48px, (100% - 120px) / 6)); font-size: 14px; }
   .fichero summary { min-height: 88px; padding: 20px; }
   .fichero details p { padding: 0 20px 20px; font-size: 16px; }
   .fichero details[open]:not(:last-child) p { padding-bottom: 60px; }
@@ -336,3 +336,31 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
 .del-blog li a:hover strong { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--mango); }
 .dialogo-app { margin: 14px 0 0; font-weight: 700; }
 .pie-cols nav a { min-height: 44px; }
+
+/* la app por dentro: carrusel nativo, la siguiente captura asoma */
+.por-dentro { background: var(--crema); padding: var(--s-seccion) 0; }
+.por-dentro h2, .por-dentro-pie { padding-inline: var(--m); }
+.por-dentro h2 { font-size: clamp(40px, 5.4vw, 88px); margin-bottom: var(--s-titulo); }
+.galeria { display: flex; gap: 16px; overflow-x: auto; padding: 4px var(--m) 16px; scroll-snap-type: x proximity; }
+.galeria figure { flex: 0 0 clamp(200px, 22vw, 260px); margin: 0; scroll-snap-align: center; }
+.galeria img { display: block; width: 100%; height: auto; border: 2px solid var(--marino); border-radius: 6px; }
+.galeria figcaption { margin-top: 10px; font-weight: 700; color: var(--marino); }
+.por-dentro-pie { margin: var(--s-bloque) 0 0; }
+
+/* sellos: como renglones de un códice, sin tarjetas */
+.sellos-l { background: var(--blanco); padding: var(--s-seccion) var(--m); }
+.sellos-l h2 { font-size: clamp(40px, 5.4vw, 88px); margin-bottom: 16px; }
+.sellos-intro { max-width: 52ch; font-size: 19px; line-height: 1.5; color: var(--tinta); }
+.sellos-l figure { margin: 0; text-align: center; }
+.sellos-l img { display: block; width: 100%; max-width: 110px; height: auto; margin-inline: auto; }
+.sellos-l figcaption { margin-top: 6px; font-size: 14px; font-weight: 700; line-height: 1.2; color: var(--marino); }
+.niveles { display: grid; grid-template-columns: repeat(4, minmax(0, 150px)); gap: 16px; margin: var(--s-titulo) 0; padding-block: 20px; border-block: 2px solid var(--marino); }
+.sellos-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 24px 12px; }
+@media (max-width: 560px) {
+  .niveles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sellos-rejilla { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 8px; }
+  .sellos-l figcaption { font-size: 14px; hyphens: auto; }
+}
+
+/* el puesto del portada no debe ensanchar la página en móvil */
+.portada { overflow-x: clip; }

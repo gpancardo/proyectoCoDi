@@ -15,17 +15,35 @@ abstract final class I18n {
   static const voiceNotReady = 'Pronto podrás dictar tu búsqueda.';
   static const connectionHint = 'Estoy preparando opciones de tu zona.';
 
+  static const giros = [
+    'Abarrotes',
+    'Antojitos',
+    'Belleza',
+    'Café',
+    'Comida',
+    'Farmacia',
+    'Ferretería',
+    'Florería',
+    'Frutería',
+    'Lavandería',
+    'Panadería',
+    'Papelería',
+    'Taller',
+    'Otro',
+  ];
+
+  // Mismos nombres que ZONAS en backend/src/text.js.
   static const alcaldiasCdmx = [
     'Álvaro Obregón',
     'Azcapotzalco',
     'Benito Juárez',
     'Coyoacán',
-    'Cuajimalpa de Morelos',
+    'Cuajimalpa',
     'Cuauhtémoc',
     'Gustavo A. Madero',
     'Iztacalco',
     'Iztapalapa',
-    'La Magdalena Contreras',
+    'Magdalena Contreras',
     'Miguel Hidalgo',
     'Milpa Alta',
     'Tláhuac',

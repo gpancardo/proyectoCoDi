@@ -72,7 +72,8 @@ abstract final class BarrioTheme {
           backgroundColor: BarrioColors.mango,
           foregroundColor: BarrioColors.marino,
           minimumSize: const Size.fromHeight(64),
-          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          textStyle: const TextStyle(
+              fontFamily: 'Archivo', fontSize: 20, fontWeight: FontWeight.w700),
           side: const BorderSide(color: BarrioColors.marino, width: 2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -81,7 +82,8 @@ abstract final class BarrioTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: BarrioColors.marino,
           minimumSize: const Size.fromHeight(64),
-          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          textStyle: const TextStyle(
+              fontFamily: 'Archivo', fontSize: 20, fontWeight: FontWeight.w700),
           side: const BorderSide(color: BarrioColors.marino, width: 2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -91,6 +93,7 @@ abstract final class BarrioTheme {
           foregroundColor: BarrioColors.marino,
           minimumSize: const Size(48, 48),
           textStyle: const TextStyle(
+              fontFamily: 'Archivo',
               fontSize: 17,
               fontWeight: FontWeight.w700,
               decoration: TextDecoration.underline),

@@ -42,15 +42,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final profile = context.read<AppState>();
-    await context.read<BarrioApi>().post(
-        '/me',
-        {
-          'nombre': _name.text.trim(),
-          'telefono': _phone.text.trim(),
-          'zona': _zone,
-          'colonia': _neighborhood.text.trim(),
-        },
-        token: profile.accessToken);
+    try {
+      await context.read<BarrioApi>().post(
+          '/me',
+          {
+            'nombre': _name.text.trim(),
+            'telefono': _phone.text.trim(),
+            'zona': _zone,
+            'colonia': _neighborhood.text.trim(),
+          },
+          token: profile.accessToken);
+    } catch (error) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(mensajeDe(error))));
+      }
+      return;
+    }
     await profile.saveProfile(
       name: _name.text,
       phone: _phone.text,

@@ -1,4 +1,4 @@
-import { calcularInsignias, cotizar, mejorCupon, MINUTOS, puede } from './pedidos.js';
+import { calcularCiudad, calcularInsignias, cotizar, cuponesPorOfrecer, mejorCupon, MINUTOS, puede, resumenNegocio, SELLO_PUBLICO } from './pedidos.js';
 import { iniciarCobro, liberarCupon, reconciliar } from './pagos.js';
 import { ZONAS, normalizar } from './text.js';
 
@@ -21,7 +21,7 @@ async function pedidoDe(db, id, auth) {
   const [o] = await db.get('ordenes', `id=eq.${id}&limit=1`);
   const suyo = o && ((auth.comprador && o.comprador_id === auth.comprador.id) || (auth.negocio && o.negocio_id === auth.negocio.id));
   exigir(suyo, 404, 'NOT_FOUND', 'No encontramos ese pedido.'); // no revela pedidos ajenos
-  return { o, esComprador: auth.comprador?.id === o.comprador_id };
+  return { o, esComprador: auth.comprador?.id === o.comprador_id, esNegocio: auth.negocio?.id === o.negocio_id }; // una misma cuenta puede ser ambos
 }
 async function cobrarPedido(db, o) {
   const [[comprador], [negocio]] = await Promise.all([db.get('compradores', `id=eq.${o.comprador_id}&select=id,telefono`), db.get('negocios', `id=eq.${o.negocio_id}&select=id,nombre,pey_bank_account_id`)]);
@@ -97,12 +97,20 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   }
   if (m === 'GET' && ruta === '/me/profile') { // insignias: avance y premios obtenidos
     const c = comp();
-    const pagados = await db.get('ordenes', `comprador_id=eq.${c.id}&estado=in.(pagada,lista)&select=negocio_id`);
+    const pagados = await db.get('ordenes', `comprador_id=eq.${c.id}&estado=in.(pagada,lista,entregada)&select=negocio_id&order=id.asc`);
     const ids = [...new Set(pagados.map((o) => o.negocio_id))];
-    const negocios = ids.length ? await db.get('negocios', `id=in.(${ids.join(',')})&select=id,nombre,colonia,zona`) : [];
+    const negocios = ids.length ? await db.get('negocios', `id=in.(${ids.join(',')})&select=id,nombre,colonia,categoria,zona`) : [];
     const porId = new Map(negocios.map((n) => [n.id, n]));
-    const insignias = calcularInsignias(pagados.map((o) => { const n = porId.get(o.negocio_id) ?? {}; return { negocio_id: o.negocio_id, negocio_nombre: n.nombre, colonia: n.colonia, zona: n.zona }; }));
-    return ok(200, { nombre: c.nombre, pedidos_pagados: pagados.length, insignias });
+    const insignias = calcularInsignias(pagados.map((o) => { const n = porId.get(o.negocio_id) ?? {}; return { negocio_id: o.negocio_id, negocio_nombre: n.nombre, colonia: n.colonia, categoria: n.categoria }; }));
+    // premio del sello de primera compra: la promoción sin código del negocio donde compró
+    let premio = null;
+    if (pagados.length) {
+      const id = pagados[0].negocio_id;
+      const [cupon] = await db.get('cupones', `negocio_id=eq.${id}&activo=eq.true&codigo=is.null&vence=gt.${q(ahoraIso())}&order=id.asc&limit=1&select=id,titulo,min_compra_minor`);
+      const usado = cupon && (await db.get('cupon_canjes', `cupon_id=eq.${cupon.id}&comprador_id=eq.${c.id}&estado=eq.usado&select=id&limit=1`)).length;
+      if (cupon && !usado) premio = { negocio_id: id, negocio: porId.get(id)?.nombre ?? null, titulo: cupon.titulo, min_compra_minor: cupon.min_compra_minor };
+    }
+    return ok(200, { nombre: c.nombre, pedidos_pagados: pagados.length, insignias, premio, ...calcularCiudad(pagados.map((o) => ({ zona: porId.get(o.negocio_id)?.zona }))) });
   }
   if (m === 'GET' && ruta === '/me/notifications') {
     const c = comp();
@@ -124,6 +132,12 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     exigir(n, 422, 'BUSINESS_UNAVAILABLE', 'Este negocio no recibe pedidos ahora.', 'business_id');
     const r = cotizar(n.productos, b.items);
     exigir(!r.error, 422, 'INVALID_ITEMS', r.error, 'items');
+    const [yaPago] = await db.get('ordenes', `comprador_id=eq.${c.id}&negocio_id=eq.${n.id}&estado=in.(pagada,lista,entregada)&select=id&limit=1`);
+    if (yaPago) {
+      const abiertos = await db.get('cupones', `negocio_id=eq.${n.id}&activo=eq.true&codigo=is.null&vence=gt.${q(ahoraIso())}&select=id`);
+      const nuevos = cuponesPorOfrecer(abiertos, await db.get('cupon_canjes', `comprador_id=eq.${c.id}&select=cupon_id`), c.id);
+      if (nuevos.length) await db.insertar('cupon_canjes', nuevos).catch(() => {}); // otra cuenta simultánea ya lo creó
+    }
     // cupones aceptados por esta persona para este negocio, autoaplicados al total
     const canjes = await db.get('cupon_canjes', `comprador_id=eq.${c.id}&estado=eq.aceptado&select=id,cupones!inner(id,negocio_id,tipo,valor,min_compra_minor,vence,activo,titulo,producto_regalo)&cupones.negocio_id=eq.${n.id}`);
     const codigo = String(b.coupon_code ?? '').trim().toUpperCase();
@@ -171,16 +185,17 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   }
   if (m === 'GET' && ruta === '/orders') { // mis pedidos (comprador) o pedidos del negocio
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
-    const quien = auth.negocio ? `negocio_id=eq.${auth.negocio.id}` : `comprador_id=eq.${comp().id}`;
+    const comoNegocio = auth.negocio && url.searchParams.get('as') !== 'comprador'; // quien tiene negocio también compra
+    const quien = comoNegocio ? `negocio_id=eq.${auth.negocio.id}` : `comprador_id=eq.${comp().id}`;
     const estado = url.searchParams.get('status');
     const filas = await db.get('ordenes', `${quien}${estado ? `&estado=eq.${q(estado)}` : ''}&order=id.desc&limit=50`);
-    if (!auth.negocio) return ok(200, filas.map((o) => publica(o, true)));
+    if (!comoNegocio) return ok(200, filas.map((o) => publica(o, true)));
     const compradores = [...new Set(filas.map((o) => o.comprador_id))];
     const pagados = compradores.length ? await db.get('ordenes', `comprador_id=in.(${compradores.join(',')})&estado=in.(pagada,lista,entregada)&select=comprador_id,negocio_id`) : [];
     const negocioIds = [...new Set(pagados.map((o) => o.negocio_id))];
-    const negocios = negocioIds.length ? await db.get('negocios', `id=in.(${negocioIds.join(',')})&select=id,nombre,colonia,zona`) : [];
+    const negocios = negocioIds.length ? await db.get('negocios', `id=in.(${negocioIds.join(',')})&select=id,nombre,colonia,categoria`) : [];
     const porNegocio = new Map(negocios.map((n) => [n.id, n])); const logros = new Map();
-    for (const compradorId of compradores) logros.set(compradorId, calcularInsignias(pagados.filter((o) => o.comprador_id === compradorId).map((o) => { const n = porNegocio.get(o.negocio_id) ?? {}; return { negocio_id: o.negocio_id, negocio_nombre: n.nombre, colonia: n.colonia, zona: n.zona }; })).filter((b) => b.obtenida));
+    for (const compradorId of compradores) logros.set(compradorId, calcularInsignias(pagados.filter((o) => o.comprador_id === compradorId).map((o) => { const n = porNegocio.get(o.negocio_id) ?? {}; return { negocio_id: o.negocio_id, negocio_nombre: n.nombre, colonia: n.colonia, categoria: n.categoria }; })).filter((b) => b.obtenida).map((b) => ({ id: b.id, nivel: b.nivel, nombre: SELLO_PUBLICO[b.nivel] })));
     return ok(200, filas.map((o) => ({ ...publica(o, false), comprador_logros: logros.get(o.comprador_id) ?? [] })));
   }
   if (m === 'GET' && (p = ruta.match(/^\/orders\/(\d+)$/))) {
@@ -190,7 +205,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   }
   if (m === 'POST' && (p = ruta.match(/^\/orders\/(\d+)\/(cancel|accept|reject|ready|received|payments)$/))) {
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
-    const { o, esComprador } = await pedidoDe(db, Number(p[1]), auth);
+    const { o, esComprador, esNegocio } = await pedidoDe(db, Number(p[1]), auth);
     const accion = p[2];
     if (accion === 'cancel') { // solo el comprador, antes de pagar
       exigir(esComprador, 403, 'FORBIDDEN', 'Solo quien pidió puede cancelar.');
@@ -209,7 +224,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
       exigir(esComprador, 403, 'FORBIDDEN', 'Solo quien pidió puede confirmar la entrega.');
       return ok(200, publica(await mover(db, o, 'entregada'), true));
     }
-    exigir(!esComprador, 403, 'FORBIDDEN', 'Solo el negocio del pedido puede hacer esto.');
+    exigir(esNegocio, 403, 'FORBIDDEN', 'Solo el negocio del pedido puede hacer esto.');
     if (accion === 'accept') { const nueva = await mover(db, o, 'aceptada'); await cobrarPedido(db, nueva); return ok(200, publica((await db.get('ordenes', `id=eq.${o.id}`))[0], false)); }
     if (accion === 'reject') { const nueva = await mover(db, o, 'rechazada'); await liberarCupon(db, nueva); return ok(200, publica(nueva, false)); }
     return ok(200, publica(await mover(db, o, 'lista'), false)); // ready
@@ -223,6 +238,14 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     delete i.pey_ref; delete i.orden_id;
     const { instrucciones, ...resto } = i; // link y QR son para quien paga, no para el negocio
     return ok(200, esComprador ? { ...resto, link: instrucciones?.link ?? null, qr_image: instrucciones?.qr_image ?? null } : resto);
+  }
+
+  if (ruta === '/business/dashboard' && m === 'GET') {
+    const n = neg();
+    // ponytail: últimos 30 días y hasta 1000 pedidos; una vista agregada en SQL si un negocio rebasa eso
+    const desde = new Date(Date.now() - 30 * 864e5).toISOString();
+    const ordenes = await db.get('ordenes', `negocio_id=eq.${n.id}&creado=gte.${q(desde)}&order=id.desc&limit=1000&select=estado,monto,items,comprador_id,creado,pagada_en,descuento_minor`);
+    return ok(200, resumenNegocio(ordenes));
   }
 
   // ----- promociones del negocio -----
