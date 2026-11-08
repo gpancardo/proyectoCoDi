@@ -48,12 +48,13 @@ La app requiere una sesión de comprador. Su perfil de descubrimiento aprende so
 ### MVP para el hackathon (lo que se muestra en la demo)
 
 1. **Descubrir en la app:** inicio navegable tipo Uber Eats con categorías, carruseles y negocios abiertos; zona, disponibilidad, apertura y rango de precio.
-2. **Buscar con Barrio:** un agente interpreta la consulta, recupera candidatos del catálogo (RAG) y devuelve matches explicables. Los filtros deterministas siguen siendo la autoridad y siempre están disponibles.
+2. **Buscar con Barrio:** un agente interpreta la consulta, recupera candidatos del catálogo (RAG) y devuelve matches explicables. Los filtros deterministas siguen siendo la autoridad y siempre están disponibles. Es una conversación: recuerda los últimos turnos y hace hasta 3 preguntas de seguimiento con opciones tocables.
 3. **Cuenta con total calculado por el sistema** a partir del menú del negocio. Un solo "¿Lo pido?".
 4. **El negocio gestiona el pedido** desde una superficie autenticada y actualiza aceptación, preparación y disponibilidad. Opcional: aceptación automática.
 5. **Cobro CoDi por push** al comprador, confirmación por webhook y reconciliación consultando a pey, código de recogida y confirmación de entrega.
+   Avisos locales de Android al comprador cuando cambia su pedido, mientras la app siga viva.
 6. **Recordatorios y cancelación automática** (el negocio no contesta, la persona no aprueba el cobro).
-7. **Landing y registro de negocios** (GitHub Pages) con menú y precios.
+7. **Landing, blog y descarga de la app** (Netlify). El registro de negocios, con menú y precios, se hace en la app.
 8. **Promociones:** el negocio publica cupones con código (porcentaje, monto o producto gratis); los aceptados se descuentan solos y un código válido también se aplica al cotizar. **Sellos** de logros personalizados con el negocio y la colonia de cada persona, uno temático por alcaldía y uno por recorrer las 16, en bronce, plata y oro; ver [`LOGROS.md`](LOGROS.md).
 9. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
 
@@ -119,7 +120,7 @@ Negocio marca "Listo" → Lupita recoge con el código y confirma que lo recibi�
 ## 7. Arquitectura
 
 ```
-Web (web/app.html) y app Flutter ──HTTPS──► API Barrio = Supabase Edge Function `api`   [backend/]
+App Flutter ──HTTPS──► API Barrio = Supabase Edge Function `api`   [backend/]
                                     ├─ Descubrir: categorías/ranking determinista (siempre)
                                     ├─ Buscar con Barrio: modelo opcional → filtros tipados validados (+ RAG si hay llave)
                                     ├─ pedidos, cupones, insignias: reglas de dominio + Postgres
@@ -186,7 +187,7 @@ Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `nego
 
 ## 9. Superficies
 
-1. **Web de la app** (`web/app.html`): comprador (descubrir, buscar, cuenta, pedido, pago, avisos, perfil con insignias) y negocio (pedidos, promociones, menú, abrir/cerrar). Un solo archivo JS sin build.
+1. **Prototipo web sin enlazar** (`web/app.html`; Barrio se ofrece solo como app Android): comprador (descubrir, buscar, cuenta, pedido, pago, avisos, perfil con insignias) y negocio (pedidos, promociones, menú, abrir/cerrar). Un solo archivo JS sin build.
 2. **App Flutter** (`barrio_app_pey/`): consume la API propia para sesión, búsqueda, descubrimiento, cotización, pedidos y gestión del negocio; integra dictado local para la consulta.
 3. **Landing** (`web/index.html`): cartel de calle con changarrito 3D que explica el producto y lleva a la descarga de la app Android (`web/descargar/`). `web/registro.html` solo redirige ahí; la app es donde se registra el negocio con cuenta.
 

@@ -114,10 +114,10 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 ## Estado desplegado y pendientes
 
-- **API:** corre como Supabase Edge Function `api` (última versión desplegada el 8 nov 2026 con tablero del negocio y sellos de ciudad) (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
-- **Base:** migraciones hasta `20261108030000` aplicadas en producción (la última por SQL Editor: celular repetible y `negocios.semilla`); los negocios demo cobran y avisan a 5615156164, las cuentas nuevas usan el número que registran; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
+- **API:** corre como Supabase Edge Function `api` (última versión desplegada el 8 nov 2026: chat con preguntas de seguimiento, demo de Doña Lupe a 5 s y firma del webhook compatible con la Edge Function) (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
+- **Base:** migraciones hasta `20261108030000` aplicadas en producción (la última por SQL Editor: celular repetible y `negocios.semilla`); los negocios demo cobran y avisan a 5615156164, las cuentas nuevas usan el número que registran; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado de punta a punta el 8 nov 2026 (pedido 21: aprobado en el banco y marcado `pagada` por el webhook firmado).
 - **Entrega y códigos:** `20261108010000_entrega_y_codigos.sql` ya habilitó `entregada`, códigos únicos y producto gratis. El bundle de backend correspondiente ya está publicado en la Edge Function `api`; el 8 nov 2026 respondió `200 {"ok":true}` en producción después del despliegue.
-- **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
+- **Web:** landing, blog y descarga publicados en Netlify Drop (`https://jade-paprenjak-a98b06.netlify.app`); cada cambio en `web/` se vuelve a subir. Barrio es solo app Android: `web/app.html` es un prototipo que ya no se enlaza.
 - **Demo de Doña Lupe:** los pedidos al negocio semilla (`semilla` `demo-seed*`, sin dueño) que incluyen el «Taco de prueba» pasan solos a `aceptada` y se cobran 5 s después de crearse (espera en memoria con `EdgeRuntime.waitUntil`; si ya se canceló, no se toca). Sirve para probar el cobro a mano.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
 - **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`). `OPENAI_API_KEY` ya está en los secretos de la función y el catálogo indexado: producción responde `meta.mode: agent_rag`.
@@ -126,16 +126,16 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 La lista vigente por persona está en [`../pendientes/`](../pendientes/README.md); lo siguiente es el contexto original.
 
-1. Registrar el webhook de pey en `https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api/webhooks/pey` y guardar su secreto como `PEY_WEBHOOK_SECRET`. Existe una Edge Function `pey-webhook` anterior con el esquema viejo; retirarla o repuntar pey.
-3. Registrar una CLABE de [`PEY.md`](PEY.md) en el portal de pey y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
-4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
-5. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.
+1. Webhook de pey registrado y funcionando. Retirar la Edge Function anterior `pey-webhook` si sigue activa.
+2. La demo cobra a una cuenta preautorizada ligada a la API key. Para operar en serio: cuenta propia por negocio en `negocios.pey_bank_account_id` (ver [`PEY.md`](PEY.md)).
+3. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.
 
 ## App Flutter: estado de validación (8 nov 2026)
 
 - Cliente: errores de red/API con mensaje y reintento en todas las pantallas; dictado con `speech_to_text` en es_MX (con respaldo a otro español), permiso `RECORD_AUDIO` declarado, errores por código y búsqueda automática al terminar el dictado.
 - El negocio se da de alta y se administra en la app: resumen, pedidos, menú y promociones.
 - Avisos al comprador: la app revisa `GET /orders?as=comprador` cada 10 s y muestra una notificación local de Android cuando el pedido cambia (cobro, pagado, listo, rechazado, vencido). Solo llegan mientras Android mantenga viva la app; con la app cerrada a la fuerza hace falta FCM.
+- Chat: hilo con historial acotado y opciones tocables; `meta.follow_up` hace máximo 3 preguntas por conversación.
 - Vendedor puede crear códigos de descuento: porcentaje en toda la compra o un producto gratis. No hay descuento de monto fijo en la app; porcentaje por artículo requiere soporte nuevo en `POST /business/coupons`.
 - El esquema de entrega/códigos y el backend que expone `/orders/:id/received` ya están publicados; falta validación de punta a punta autenticada en producción.
 - Sin emulador Android en esta máquina: la voz solo se validó por código y análisis; falta probarla en un teléfono. Archivo ya va empaquetada en la app. Lo que falta está en [`../pendientes/`](../pendientes/README.md).

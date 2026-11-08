@@ -23,6 +23,7 @@ Son cuentas de prueba publicadas por los organizadores del hackathon; el equipo 
 - **Solo cobros de $0.01.** Los pagos de prueba **no se devuelven**. El "Taco de prueba" del seed cuesta un centavo por esto.
 - pey no tiene entorno de pruebas: se prueba en producción con la API key real.
 - Sin `PEY_API_KEY` el backend usa `PEY_MOCK=1` y no llama a pey. Para un cobro real: `PEY_API_KEY` y `PEY_MOCK=0` en `backend/.env` (nunca en Git ni en el chat).
+- Estado de la demo (8 nov 2026): la API key activa cobra a una cuenta preautorizada en estado Activa y el webhook confirmó un pago real.
 - Para ver "¡Pagado!" completo, el webhook de pey necesita llegar al backend: `POST /webhooks/pey` con `PEY_WEBHOOK_SECRET`. Sin backend público, el barrido consulta a pey como respaldo (ver [`BACKEND.md`](BACKEND.md)).
 
 ## Por qué pey
