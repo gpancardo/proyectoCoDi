@@ -126,3 +126,10 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
 5. Acordar ubicación (coordenadas) y pesos del ranking; la app Flutter (`barrio_app_pey/`) aún no consume la API.
 6. Entrega: **domingo 8 nov, 1:00 PM**, a hola@aibuilders.lat. Pruebas de pago solo de $0.01 (no se devuelve).
+
+## App Flutter: estado de validación (8 nov 2026)
+
+- Cliente: errores de red/API con mensaje y reintento en todas las pantallas; dictado con `speech_to_text` en es_MX (con respaldo a otro español), permiso `RECORD_AUDIO` declarado, errores por código y búsqueda automática al terminar el dictado.
+- Vendedor puede crear códigos de descuento: porcentaje en toda la compra o un producto gratis. No hay descuento de monto fijo en la app; porcentaje por artículo requiere soporte nuevo en `POST /business/coupons`.
+- Pendiente de despliegue por separado: migración `20261108010000_entrega_y_codigos.sql` y backend (`/orders/:id/received`).
+- Sin emulador Android en esta máquina: la voz solo se validó por código y análisis; falta probarla en un teléfono. La fuente Archivo no está empaquetada en la app (cae a la del sistema).
