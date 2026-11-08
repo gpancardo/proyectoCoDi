@@ -39,3 +39,22 @@ E2E_CONFIRM=1 npm run e2e:live      # recorrido completo contra la base real, pe
 Esquema: `bash supabase/tests/run.sh` aplica migraciones, seed y la prueba de humo en un Postgres con pgvector (el CI hace lo mismo). Las migraciones nuevas van en `supabase/migrations/`, con GRANT/REVOKE explícitos.
 
 No pongas llaves en el repo: el backend usa secretos de entorno (`backend/.env` en local, Edge Function Secrets en Supabase) y los clientes solo reciben datos autorizados para su sesión. Lee [AGENTS.md](AGENTS.md) y sigue el flujo `feature/* → dev → stg → main`.
+
+## Publicar la web gratis
+
+La web es estática (`web/`, sin build). Cualquiera de estos sirve; los dos primeros no piden permisos sobre el repo:
+
+| Servicio | Cómo |
+|---|---|
+| **Cloudflare Pages** (recomendado) | Dashboard → Workers & Pages → Create → Pages → *Upload assets* y arrastra la carpeta `web/`; o `npx wrangler pages deploy web --project-name barrio` |
+| **Netlify** | Arrastra `web/` a <https://app.netlify.com/drop>; o `npx netlify-cli deploy --dir web --prod` |
+| **GitHub Pages** | Workflow manual `.github/workflows/pages.yml` (lo publica quien administra el repo) |
+| Render Static Sites, Firebase Hosting, GitLab Pages, Surge (`npx surge web`) | Planes gratis equivalentes |
+
+Vercel Hobby también funciona, pero su plan gratis es solo para uso no comercial.
+
+**Dónde poner la URL final** (por ejemplo `https://barrio.pages.dev`):
+1. Supabase → Authentication → URL Configuration: **Site URL** `https://<tu-sitio>/app.html` y en **Redirect URLs** `https://<tu-sitio>/**`. Sin esto, los correos de confirmación vuelven a la URL vieja.
+2. Supabase → Edge Functions → Secrets: `APP_RETURN_URL=https://<tu-sitio>/app.html` (a dónde regresa el pago).
+3. Opcional: `ALLOWED_ORIGINS=https://<tu-sitio>` para cerrar CORS (por defecto está abierto).
+4. Nada en `web/config.js`: usa rutas relativas.

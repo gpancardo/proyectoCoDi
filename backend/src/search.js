@@ -58,6 +58,41 @@ export function buscarConPista(negocios, filtros, perfil, explicitos = {}) {
   return buscarDeterminista(negocios, { ...filtros, category: null }, perfil);
 }
 
+// Filtros que no se negocian: negocio activo, abierto si se pide, zona, rango de precio y, solo si lo manda la app, categoría.
+function pasaDuros(n, f, explicitos) {
+  if (!n.verificado || (f.openNow && !n.abierto)) return false;
+  if (f.zone && normalizar(n.zona) !== normalizar(f.zone)) return false;
+  if (f.category && explicitos.category && normalizar(n.categoria) !== f.category) return false;
+  const precios = productos(n).map((p) => Math.round(Number(p.precio) * 100)).filter(Number.isFinite);
+  return !precios.length || ((f.minAmount === null || precios.some((p) => p >= f.minAmount)) && (f.maxAmount === null || precios.some((p) => p <= f.maxAmount)));
+}
+
+export const SIMILITUD_MINIMA = 0.22; // por debajo, un vecino vectorial es ruido
+export const CORTE_RELATIVO = 0.7;    // y solo se conservan los que quedan cerca del mejor (si no, entra todo el catálogo)
+
+// Búsqueda híbrida (RAG): las reglas exactas y los vecinos semánticos del catálogo se fusionan con Reciprocal Rank Fusion.
+// "taco" sigue encontrando "Tacos Doña Lupe" por texto, y "algo para desayunar" encuentra la fonda aunque no diga "desayunar".
+// Los filtros duros aplican a ambos lados; el modelo nunca agrega negocios que no estén en el catálogo.
+export function buscarHibrido(negocios, entrada, perfil, similitudes = new Map(), explicitos = {}) {
+  const f = validarFiltros(entrada);
+  const lex = buscarConPista(negocios, entrada, perfil, explicitos);
+  const sem = negocios.filter((n) => pasaDuros(n, f, explicitos))
+    .map((n) => [n, similitudes.get(Number(n.id)) ?? 0]).filter(([, s]) => s >= SIMILITUD_MINIMA)
+    .sort((a, b) => b[1] - a[1] || Number(a[0].id) - Number(b[0].id))
+    .filter((x, _i, todos) => x[1] >= todos[0][1] * CORTE_RELATIVO);
+  const K = 60; const fusion = new Map();
+  lex.forEach((m, i) => fusion.set(Number(m.negocio.id), { negocio: m.negocio, score: 1 / (K + i + 1), razones: m.match_reasons.filter((r) => r !== 'Negocio disponible'), sem: false }));
+  sem.forEach(([n, s], i) => {
+    const e = fusion.get(Number(n.id)) ?? { negocio: n, score: 0, razones: [], sem: false };
+    e.score += 1 / (K + i + 1); e.sem = true; e.sim = s;
+    fusion.set(Number(n.id), e);
+  });
+  return [...fusion.values()]
+    .sort((a, b) => b.score - a.score || Number(a.negocio.id) - Number(b.negocio.id))
+    .map((e) => ({ negocio: e.negocio, score: Math.round(e.score * 100000) / 100,
+      match_reasons: [...e.razones, ...(e.sem ? ['Se parece a lo que buscas'] : [])].concat(!e.razones.length && !e.sem ? ['Negocio disponible'] : []) }));
+}
+
 export function seccionesDescubrimiento(negocios, perfil) {
   const abiertos = negocios.filter((n) => n.verificado && n.abierto);
   const porCategoria = new Map();
