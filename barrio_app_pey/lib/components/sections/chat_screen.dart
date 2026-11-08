@@ -263,7 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             letterSpacing: -.6)),
                     const SizedBox(height: 8),
                     const Text(
-                      'Lo rico y lo bueno están a la vuelta.',
+                      'Lo que buscas está a la vuelta.',
                       style: TextStyle(color: BarrioColors.gris, fontSize: 16),
                     ),
                     if (_answer == null) ...[
@@ -290,7 +290,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 onTap: _searchWith),
                             const SizedBox(height: 8),
                             _SuggestionChip(
-                                label: 'Algo abierto para desayunar',
+                                label: 'Una papelería abierta',
                                 onTap: _searchWith),
                           ],
                         ),

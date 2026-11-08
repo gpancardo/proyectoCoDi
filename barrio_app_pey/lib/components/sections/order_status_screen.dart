@@ -276,7 +276,8 @@ class _PaidOrder extends StatelessWidget {
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('✅', style: TextStyle(fontSize: 54)),
+                        const Icon(Icons.check_circle,
+                            size: 64, color: BarrioColors.blanco),
                         const SizedBox(height: 12),
                         Text(ready ? 'Ya puedes pasar' : '¡Pagado!',
                             style: const TextStyle(

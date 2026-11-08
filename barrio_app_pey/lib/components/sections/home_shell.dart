@@ -46,7 +46,7 @@ class _HomeShellState extends State<HomeShell> {
         drawer: Drawer(
           shape: const RoundedRectangleBorder(),
           child: SafeArea(
-              child: ColoredBox(
+              child: Material(
                   color: BarrioColors.crema,
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),

@@ -284,7 +284,7 @@ class _CityCell extends StatelessWidget {
 }
 
 const _labels = {
-  'primera': 'Primera compra',
+  'primera': 'Para empezar',
   'bronce': 'Bronce',
   'plata': 'Plata',
   'oro': 'Oro',
