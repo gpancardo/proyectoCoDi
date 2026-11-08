@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../i18n.dart';
-import '../../services/openai_service.dart';
+import '../../services/barrio_api.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../shared/barrio_icon.dart';
 import '../shared/barrio_surface.dart';
 import 'profile_screen.dart';
+import 'business_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -35,19 +36,19 @@ class _ChatScreenState extends State<ChatScreen> {
     if (query.isEmpty || _loading) return;
     setState(() => _loading = true);
     try {
-      final result = await context.read<OpenAIService>().search(
-            query,
-            zone: context.read<AppState>().zone,
-          );
+      final data = await context.read<BarrioApi>().post('/search/agent', {
+        'query': query,
+        'filters': {'zone': context.read<AppState>().zone},
+      }, token: context.read<AppState>().accessToken);
       if (!mounted) return;
       setState(() {
-        _answer = result.answer;
-        _businesses = result.businesses;
+        _answer = 'Estas opciones coinciden con lo que buscas.';
+        _businesses = (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
       });
     } on Exception catch (exception) {
       if (!mounted) return;
       setState(() {
-        _answer = exception is OpenAIServiceException
+        _answer = exception is BarrioApiException
             ? exception.message
             : 'Sin señal. Revisa tu conexión e inténtalo de nuevo.';
         _businesses = const [];
@@ -198,7 +199,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       const SizedBox(height: 24),
                       _MessageCard(text: _answer!),
                       for (final business in _businesses)
-                        _BusinessCard(business: business),
+                        _BusinessCard(business: business, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => BusinessScreen(businessId: (business['id'] as num).toInt())))),
                     ],
                   ],
                 ),
@@ -281,13 +282,13 @@ class _SuggestionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(6),
         onTap: () => onTap(label),
         child: Ink(
           decoration: BoxDecoration(
             color: BarrioColors.crema.withOpacity(.75),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: BarrioColors.borde),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: BarrioColors.marino, width: 2),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -327,8 +328,9 @@ class _MessageCard extends StatelessWidget {
 }
 
 class _BusinessCard extends StatelessWidget {
-  const _BusinessCard({required this.business});
+  const _BusinessCard({required this.business, required this.onTap});
   final Map<String, dynamic> business;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +339,7 @@ class _BusinessCard extends StatelessWidget {
     final neighborhood = business['colonia'] ?? '';
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: BarrioPanel(
+      child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(6), child: BarrioPanel(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
@@ -346,7 +348,7 @@ class _BusinessCard extends StatelessWidget {
               height: 50,
               decoration: BoxDecoration(
                   color: BarrioColors.crema,
-                  borderRadius: BorderRadius.circular(16)),
+                  borderRadius: BorderRadius.circular(6)),
               child: const BarrioIcon(asset: 'marketplace', size: 31),
             ),
             const SizedBox(width: 13),
@@ -371,7 +373,7 @@ class _BusinessCard extends StatelessWidget {
             const BarrioIcon(asset: 'chevron-right', size: 23),
           ],
         ),
-      ),
+      )),
     );
   }
 }
