@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { Supabase } from './supabase.js';
-import { buscarDeterminista, seccionesDescubrimiento } from './search.js';
+import { buscarConPista, buscarDeterminista, seccionesDescubrimiento } from './search.js';
 import { manejar, Fallo } from './rutas.js';
 import { barrido, recibirWebhook } from './pagos.js';
 import { combinarFiltros, embeddingConsulta, explicarCandidatos, interpretarConsulta } from './agent.js';
@@ -58,7 +58,7 @@ const manejarPeticion = async (req, res) => {
       } catch { /* catálogo determinista completo si RAG no está disponible */ }
       const search = combinarFiltros(entrada.filters ?? {}, interpretacion);
       const fuente = recuperados?.size ? negocios.filter((n) => recuperados.has(Number(n.id))) : negocios;
-      let matches = buscarDeterminista(fuente, search, perfil).slice(0, 12);
+      let matches = buscarConPista(fuente, search, perfil, entrada.filters ?? {}).slice(0, 12);
       let explicacion = null;
       if (interpretacion && recuperados) {
         try { explicacion = await explicarCandidatos({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL ?? 'gpt-4o-mini', query: entrada.query ?? '', candidatos: matches }); } catch { /* el orden determinista permanece */ }
