@@ -20,5 +20,4 @@ Fecha límite: domingo 8 de noviembre, 1:00 PM, por correo a hola@aibuilders.lat
 ## Si hay tiempo
 
 7. Comprobar que el webhook de pey llega a `.../functions/v1/api/webhooks/pey` con `PEY_WEBHOOK_SECRET`; si no, el cobro se confirma por la consulta de respaldo.
-8. Cargar `OPENAI_API_KEY` y correr `npm run index:catalog`. Sin llave, la búsqueda sigue funcionando sin modelo.
 9. Verificar las cifras marcadas con 🟡 en `docs/PRODUCTO.md` antes de decirlas en el pitch.

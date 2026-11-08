@@ -110,3 +110,11 @@ test('firma del webhook: válida, alterada y repetida fuera de ventana', () => {
   assert.ok(!verificarFirma(secreto, cuerpo, { ...h, 'webhook-signature': 'v1,AAAA' }));
   assert.ok(!verificarFirma('', cuerpo, h));
 });
+
+test('solo el negocio semilla con taco de prueba se autoacepta en la demo', async () => {
+  const { esPruebaDemo } = await import('../src/rutas.js');
+  const prueba = { items: [{ nombre: 'Taco de prueba' }] };
+  assert.equal(esPruebaDemo({ semilla: 'demo-seed' }, prueba), true);
+  assert.equal(esPruebaDemo({ semilla: null }, prueba), false);
+  assert.equal(esPruebaDemo({ semilla: 'demo-seed' }, { items: [{ nombre: 'Quesadilla' }] }), false);
+});
