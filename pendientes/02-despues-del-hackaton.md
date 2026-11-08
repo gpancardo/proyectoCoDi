@@ -8,6 +8,10 @@
 
 ## App
 
+- Quitar el auto-aceptado de la demo de Doña Lupe.
+- Salir de la cuenta debe limpiar el perfil local, y una cuenta sin celular debe pasar por el registro inicial.
+- Recuperar contraseña y eliminar cuenta.
+- Límite de uso en `POST /search/agent`, que hoy no pide sesión y llama al modelo.
 - Firma de publicación del APK y salida en Google Play. Hoy va con firma de depuración.
 - Avisos push reales (FCM): el comprador ya recibe avisos locales mientras la app siga viva; el panel del negocio pregunta cada 8 segundos.
 - Avisos del comprador en la app (`/me/notifications`): promociones que publica un negocio donde ya compró.

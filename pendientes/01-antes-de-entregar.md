@@ -4,20 +4,18 @@ Fecha límite: domingo 8 de noviembre, 1:00 PM, por correo a hola@aibuilders.lat
 
 ## Ya hecho
 
-- API desplegada el 8 nov 2026 (tablero del negocio, sellos de ciudad, promociones sin código). Comprobado: `/health` 200, `/business/dashboard` 401 sin sesión.
-- Migraciones hasta `20261108030000` aplicadas en producción.
-- Negocios demo con el celular de prueba; las cuentas nuevas usan el suyo.
+- API, migraciones, modelo y catálogo indexado en producción.
+- Cobro real de $0.01 de punta a punta, confirmado por el webhook firmado (pedido 21).
+- Chat con preguntas de seguimiento y avisos locales al comprador en el APK del 8 nov, 11:30.
+- Landing publicada en Netlify, solo con la app Android.
 
-## Sin esto no hay demo
+## Falta
 
-1. **APK final y enlace:** lo hace Raz (pasos en [`por-persona.md`](por-persona.md)): genera el APK, lo sube a Drive y cambia el enlace de `web/descargar/index.html` si cambia la carpeta.
-2. **Web publicada** (8 nov 2026). Si cambia algo en `web/`, hay que volver a subirla a Netlify (ver [`por-persona.md`](por-persona.md)); no se publica sola. Revisarla en un teléfono.
-3. **Probar un cobro real de $0.01** cuando el banco esté disponible. Los pedidos 10 y 11 de prueba quedaron en «cobrada»; vencen solos.
-4. **Probar el dictado** en un teléfono real: permiso del micrófono, español de México, y que busque al terminar.
-5. **Recorrer la demo completa** con una cuenta nueva de comprador y otra de negocio, de punta a punta, antes de grabar.
-6. **Grabar los videos** (`docs/VIDEOS.md`).
+1. **Subir el APK final a Drive** como `barrio-demo.apk`, reemplazando el anterior (ver [`por-persona.md`](por-persona.md)).
+2. **Probar el dictado** en un teléfono real: permiso del micrófono, español de México, y que busque al terminar.
+3. **Grabar los videos** (`docs/VIDEOS.md`).
+4. Verificar las cifras marcadas con 🟡 en `docs/PRODUCTO.md` antes de decirlas en el pitch.
 
-## Si hay tiempo
+## Al terminar la entrega
 
-7. Comprobar que el webhook de pey llega a `.../functions/v1/api/webhooks/pey` con `PEY_WEBHOOK_SECRET`; si no, el cobro se confirma por la consulta de respaldo.
-9. Verificar las cifras marcadas con 🟡 en `docs/PRODUCTO.md` antes de decirlas en el pitch.
+- Crear llaves nuevas de pey, actualizar `PEY_API_KEY` y `PEY_WEBHOOK_SECRET` en Supabase y borrar las anteriores: quedaron expuestas durante las pruebas.
