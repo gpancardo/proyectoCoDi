@@ -79,7 +79,7 @@ function pantallaAuth(modo = 'entrar') {
     if (!d.email || d.password.length < 8) return avisar('Escribe tu correo y una contraseña de al menos 8 caracteres.', true)
     const r = modo === 'entrar'
       ? await authRest('token', { email: d.email, password: d.password }, '?grant_type=password')
-      : await authRest('signup', { email: d.email, password: d.password, data: { nombre: d.nombre ?? '' } })
+      : await authRest('signup', { email: d.email, password: d.password, data: { nombre: d.nombre ?? '' } }, `?redirect_to=${encodeURIComponent(location.origin + location.pathname)}`)
     if (!r.ok) return avisar(modo === 'entrar' ? 'Correo o contraseña incorrectos.' : (r.data.msg ?? 'No pudimos crear tu cuenta. Revisa los datos.'), true)
     if (!tomar(r.data)) return avisar('Te mandamos un correo para confirmar tu cuenta. Después entra aquí.')
     iniciar()
@@ -230,7 +230,7 @@ function formNegocio() {
     e.preventDefault(); const d = Object.fromEntries(new FormData(f))
     const productos = [...filas.children].map((r) => ({ nombre: r.querySelector('.p-nombre').value.trim(), precio: Number(r.querySelector('.p-precio').value.replace(/[$\s,]/g, '')) })).filter((p) => p.nombre)
     await api('POST', '/businesses', { ...d, productos, auto_aceptar: !!d.auto_aceptar })
-    avisar('Listo. Tu negocio quedó en revisión; en cuanto lo verifiquemos recibe pedidos.')
+    avisar('Listo. Tu negocio ya está activo y recibe pedidos mientras estés abierto.')
     yo = await api('GET', '/me'); vistaNegocio('pedidos')
   }))
   pantalla(f)
@@ -239,7 +239,6 @@ const vistaNegocio = intentar(async (v) => {
   nav([['pedidos', 'Pedidos', () => vistaNegocio('pedidos')], ['promos', 'Promociones', () => vistaNegocio('promos')], ['menu', 'Mi menú', () => vistaNegocio('menu')]], v)
   yo = await api('GET', '/me'); const n = yo.negocio
   const cab = [h('h1', { style: 'font-size:2rem;margin-top:16px' }, n.nombre),
-    n.verificado ? null : h('p', { class: 'mensaje' }, 'Tu negocio está en revisión. En cuanto lo verifiquemos recibe pedidos.'),
     h('div', { class: 'barra-btns' },
       h('button', { class: 'btn btn-chico', onclick: intentar(async () => { await api('PATCH', '/business', { abierto: !n.abierto }); vistaNegocio(v) }) }, n.abierto ? 'Estás abierto · Cerrar' : 'Estás cerrado · Abrir'),
       h('button', { class: 'btn btn-sec btn-chico', onclick: intentar(async () => { await api('PATCH', '/business', { auto_aceptar: !n.auto_aceptar }); vistaNegocio(v) }) }, n.auto_aceptar ? 'Aceptas en automático · Cambiar' : 'Aceptas a mano · Cambiar'))]
