@@ -21,9 +21,9 @@ No se debe exponer `SUPABASE_SECRET_KEY`, `PEY_API_KEY` ni `OPENAI_API_KEY` al c
 
 La API ofrece dos experiencias que comparten catálogo y reglas. **Descubrir** funciona sin modelo y organiza categorías/carruseles. **Buscar con Barrio** recupera candidatos reales antes de invocar al modelo; no es un chat que consulte ni altere la base libremente.
 
-1. **Filtros exactos en SQL:** texto/categoría, zona o coordenadas, abierto ahora, disponibilidad, rango de precio y restricciones del usuario. Estos filtros siempre se aplican antes de ordenar resultados.
-2. **Orden estable inspirado en marketplaces:** disponibilidad, distancia, coincidencia de texto/categoría, calidad/completitud del catálogo y señales operativas. Definir pesos con producto; desempate estable por `negocio_id` y producto. No usar pagos ni datos sensibles para ranking.
-3. **Búsqueda textual determinista:** normalización de acentos/caso, alias explícitos y `tsvector`/trigramas en nombre, categoría y producto. Retornar por qué coincide.
+1. **Filtros deterministas:** texto/categoría, zona, apertura, disponibilidad y rango de precio. Estos filtros se validan antes de ordenar resultados.
+2. **Orden estable inspirado en marketplaces:** disponibilidad, zona, coincidencia de texto/categoría y afinidad explícita. El desempate es estable por `negocio_id`; no usa pagos ni datos sensibles.
+3. **Búsqueda textual determinista:** normalización de acentos/caso y alias explícitos en nombre, categoría y producto. Cada resultado explica por qué coincide. `tsvector` y trigramas no están implementados aún.
 4. **RAG híbrido y acotado:** cada negocio tiene un documento de catálogo (nombre, descripción, categoría, colonia, alcaldía, dirección y productos) con su vector. La consulta se vectoriza y se buscan sus vecinos en `catalogo_documentos` (búsqueda exacta, sin índice aproximado). Ese ranking semántico se **fusiona con las reglas exactas** (texto, categoría, zona, precio) mediante Reciprocal Rank Fusion, así "taco" sigue encontrando "Tacos Doña Lupe" y "algo para desayunar" encuentra la fonda sin compartir palabras. Los vecinos pasan un umbral (0.22) y un corte relativo (70 % del mejor) para no traer ruido. Los filtros duros (negocio activo, abierto, zona, precio y la categoría que manda la app) aplican a ambos lados; la categoría que infiere el modelo es solo una pista.
 5. **Agente:** interpreta frases libres y devuelve filtros tipados y una explicación breve bajo JSON Schema estricto. Su salida se valida y los filtros explícitos de la app tienen prioridad. Solo recibe los candidatos ya recuperados; no inventa negocios, artículos, disponibilidad ni precios y no calcula totales. `meta.mode` indica `agent_rag`, `agent`, `rag` o `deterministic_fallback`, y `meta.retrieved` cuántos vecinos entraron.
 6. **Perfil:** el backend registra `search`, `view`, `save` y `order`, y agrega afinidad por categoría. Se usa como señal leve, reproducible y visible; nunca para precio, elegibilidad, pago o datos sensibles.
@@ -49,7 +49,7 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `GET /me/profile` | comprador | Pedidos pagados e insignias (obtenidas y en progreso) |
 | `GET /me/notifications`, `POST /coupons/{id}/accept\|decline` | comprador | Avisos de cupones; aceptar los autoaplica |
 | `POST /businesses` | sesión | Alta del negocio de la sesión (activo al registrarse) |
-| `GET /business`, `PATCH /business` | negocio | Abrir/cerrar, aceptar en automático, descripción y menú |
+| `PATCH /business` | negocio | Abrir/cerrar, aceptar en automático, descripción y menú |
 | `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | negocio | Cupones por porcentaje, monto o producto gratis; pueden llevar un código único, mínimo y vencimiento |
 | `POST /orders/quotes` | comprador | Cotiza desde el catálogo del servidor; autoaplica el mejor cupón aceptado o valida `coupon_code`; caduca a los 10 min |
 | `POST /orders` | comprador | Crea el pedido desde `quote_id` con `Idempotency-Key` y `confirmed_total_minor` igual al total cotizado |
@@ -68,7 +68,7 @@ La cotización calcula precios y total desde el catálogo del servidor y conserv
 
 ### Estados y pagos
 
-Conservar y formalizar la máquina de estados existente en migraciones/código. Toda transición usa compare-and-set (estado anterior esperado); solo se crea otro intento de cobro cuando el anterior vence. Un webhook firmado es idempotente y solo confirma si la referencia corresponde y el monto pagado cubre el pedido. Un proceso de reconciliación consulta a pey como respaldo. La respuesta al cliente no revela datos bancarios ni secretos.
+Toda transición usa compare-and-set (estado anterior esperado): `pendiente → aceptada → cobrada → pagada → lista → entregada`, con rutas de rechazo, cancelación y vencimiento según el estado. Solo se crea otro intento de cobro cuando el anterior vence. Un webhook firmado es idempotente y solo confirma si la referencia corresponde y el monto pagado cubre el pedido. Un proceso de reconciliación consulta pey como respaldo. La respuesta al cliente no revela datos bancarios ni secretos.
 
 Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `eventos_webhook`; no reutiliza `ordenes.pey_ref` como historial. Un intento guarda vía, referencia de pey, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide dos intentos vigentes por pedido. El webhook persiste primero su identificador para deduplicar, localiza el intento por referencia, valida monto y actualiza con condición de estado. Un pago tardío de un intento vencido requiere revisión; nunca confirma automáticamente un intento nuevo.
 
@@ -114,6 +114,7 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 - **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
 - **Base:** migraciones hasta `20261107060000` aplicadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
+- **Cambios listos para publicar:** `20261108010000_entrega_y_codigos.sql` añade `entregada`, códigos únicos y producto gratis; requiere aplicar la migración y desplegar el bundle de backend correspondiente. Hasta entonces no está en producción.
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
 - **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
@@ -124,8 +125,8 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 2. Cargar `OPENAI_API_KEY` (OpenRouter o OpenAI) en Edge Function Secrets y ejecutar `index:catalog`.
 3. Registrar una CLABE de [`PEY.md`](PEY.md) en el portal de pey y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
 4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
-5. Acordar ubicación (coordenadas) y pesos del ranking; la app Flutter (`barrio_app_pey/`) aún no consume la API.
-6. Entrega: **domingo 8 nov, 1:00 PM**, a hola@aibuilders.lat. Pruebas de pago solo de $0.01 (no se devuelve).
+5. Aplicar `20261108010000_entrega_y_codigos.sql`, ejecutar `npm run build:edge` y desplegar la función `api` de forma controlada.
+6. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.
 
 ## App Flutter: estado de validación (8 nov 2026)
 

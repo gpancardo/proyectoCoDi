@@ -1,60 +1,131 @@
-# Barrio
+<div align="center">
 
-Barrio conecta a personas con negocios cercanos: exploran el catálogo, arman un pedido, el negocio lo acepta y pagan con CoDi (cobro por pey). Hay una web para comprador y negocio (`web/app.html`) y una app Flutter en construcción; ambas hablan con una API HTTPS propia. WhatsApp ya no es canal del producto.
+<br />
+
+# <span style="color:#0B2545">Barrio</span>
+
+### <span style="color:#0F7C75">Lo bueno del barrio, a un toque.</span>
+
+<img alt="Barrio" src="https://img.shields.io/badge/Barrio-CDMX-0B2545?style=for-the-badge&labelColor=F5A524" />
+<img alt="CoDi por pey" src="https://img.shields.io/badge/CoDi-push%20con%20pey-0F7C75?style=for-the-badge" />
+<img alt="API propia" src="https://img.shields.io/badge/API-propia-0B2545?style=for-the-badge" />
+
+**Descubre negocios cercanos, pide con una cuenta clara y paga con CoDi desde tu banco.**
+
+[Producto](docs/PRODUCTO.md) · [Demo técnica](docs/BACKEND.md) · [Diseño](docs/DESIGN.md) · [Guía de contribución](AGENTS.md)
+
+</div>
+
+---
+
+## La idea
+
+Barrio hace que pagar digitalmente en el comercio local sea tan sencillo como pedir en la esquina. La persona conversa o explora, elige un negocio real de su zona y ve un total que el servidor calcula desde el menú vigente. El negocio acepta el pedido; el banco recibe un cobro CoDi por *push* mediante pey. Sin efectivo, sin terminal y sin que una IA invente precios.
 
 ```text
-Web / App ──HTTPS──► API Barrio (Supabase Edge Function) ──► Postgres (Supabase)
-                          ├──► OpenRouter u OpenAI (opcional: interpretar búsquedas)
-                          └──► pey (cobros CoDi) ──webhook firmado──► estado del pedido
+Comprador ── busca / descubre ──► catálogo real ──► cotización protegida
+    ▲                                                     │
+    │                                           negocio acepta
+    │                                                     ▼
+confirmación de entrega ◄── código ◄── CoDi push ◄── pey + webhook firmado
 ```
 
-## Repositorio
+## Por qué importa
 
-| Ruta | Contenido |
+| Para AI Builders | Para pey | Para SEDECO | Para OpenAI |
+|---|---|---|---|
+| IA acotada a una tarea útil: convertir lenguaje natural en filtros verificables de catálogo. | Una experiencia de cobro CoDi por push integrada en un flujo comercial completo. | Más visibilidad y ventas para changarros; infraestructura digital pensada para el barrio. | Un agente que ayuda a encontrar, pero no gobierna dinero, disponibilidad ni estados. |
+| Fallback determinista si el modelo no está disponible. | Webhook firmado, idempotencia y reconciliación del pago. | Diseño Android-first, español de México y operación de un toque. | RAG sobre catálogo propio, salida tipada y validada en el servidor. |
+
+## Lo que está construido
+
+- **Dos puertas de compra:** Buscar con Barrio, con dictado en español México, y Descubrir con categorías, buscador y carruseles.
+- **Pedido seguro:** cotización con vencimiento, confirmación explícita, idempotencia y total calculado exclusivamente en la API.
+- **Cobro realista:** CoDi por push con pey, webhook firmado, reconciliación y reintentos solo cuando el anterior vence.
+- **Operación para negocio:** abrir/cerrar, aceptar, rechazar, marcar listo, menú y códigos de descuento por porcentaje, monto o producto gratis.
+- **Cierre humano:** código de recogida, confirmación de entrega y reporte de problema con contexto del pedido.
+- **IA responsable:** el modelo es opcional; la búsqueda determinista sigue funcionando sin llave ni modelo.
+
+> **Estado honesto, 8 nov 2026:** la API desplegada y el catálogo de demo ya funcionan. La migración `20261108010000_entrega_y_codigos.sql` y su bundle de Edge Function están preparados en esta rama, pero todavía requieren aplicación/despliegue controlado en Supabase. No se presenta como funcionalidad ya publicada.
+
+## Arquitectura
+
+```text
+Flutter / web estática
+        │ HTTPS + sesión de Supabase Auth
+        ▼
+API Barrio · Edge Function `api`
+        ├── Postgres / Auth / almacenamiento · Supabase
+        ├── pey · CoDi push + webhook firmado
+        └── OpenAI · interpretación opcional de búsqueda
+```
+
+El cliente **no** toca tablas de Supabase ni contiene llaves de servidor. La API valida permisos, calcula precios y totales, controla transiciones de pedido y es la única que habla con pey y OpenAI.
+
+## Recorrido de demo
+
+1. Di o escribe: “quiero tacos baratos en Coyoacán”.
+2. Compara opciones reales en **Descubrir** o abre la recomendación del agente.
+3. Elige productos, aplica un código si tienes uno y confirma la cuenta.
+4. El negocio acepta; llega el cobro CoDi por push a tu banco.
+5. Aprueba, recoge con el código y confirma que recibiste tu pedido.
+
+## Estructura
+
+| Ruta | Propósito |
 |---|---|
-| `backend/` | API (Node 22, sin dependencias): Descubrir, búsqueda, pedidos, cobros, cupones, insignias, gestión del negocio. `edge/api.js` la adapta a Edge Functions |
-| `supabase/` | Migraciones, datos de demo y pruebas del esquema (`tests/`) |
-| `web/` | Landing, redirección del registro y la app web (`app.html`, `app.js`) |
-| `barrio_app_pey/` | App Flutter (en construcción, aún sin integrar a la API) |
-| `docs/PRODUCTO.md` | Fuente de verdad del producto |
-| `docs/BACKEND.md` | Contrato de la API, esquema, estado desplegado y pendientes |
-| `docs/PEY.md` | Cuentas de prueba, reglas de pago y entrega del hackathon |
-| `docs/DESIGN.md`, `docs/VOZ-DE-MARCA.md` | Diseño y textos |
-| `AGENTS.md` | Reglas de trabajo y Git |
+| [`barrio_app_pey/`](barrio_app_pey) | App Flutter: compra, gestión de negocio y dictado. |
+| [`backend/`](backend) | API Node adaptada a Supabase Edge Functions; reglas de pedidos, pagos y búsqueda. |
+| [`supabase/`](supabase) | Migraciones, seed y prueba de humo del esquema. |
+| [`web/`](web) | Landing y superficie web heredada; su publicación la controla el responsable web. |
+| [`docs/`](docs) | Producto, contrato de API, diseño, tono y operación. |
 
-## Estado
+## Para correrlo
 
-API desplegada como Edge Function `api` en el proyecto de Supabase del equipo; migraciones aplicadas hasta `20261107060000`. Funciona de punta a punta contra la base real (cotizar → pedir → aceptar → cobro → pagado, cupones, insignias). Un cobro real de $0.01 por push CoDi se probó contra pey. Pendientes y detalles: [docs/BACKEND.md](docs/BACKEND.md#estado-desplegado-y-pendientes).
-
-## Desarrollo
+### API
 
 ```bash
 cd backend
-npm run check && npm test           # sintaxis y pruebas unitarias (Node >= 22)
-npm start                           # API local en :3000 (necesita backend/.env, ver .env.example)
-npm run build:edge                  # empaqueta supabase/functions/api/index.ts para desplegar
-E2E_CONFIRM=1 npm run e2e:live      # recorrido completo contra la base real, pey en mock (borra sus datos)
+npm run check && npm test
+npm start
 ```
 
-Esquema: `bash supabase/tests/run.sh` aplica migraciones, seed y la prueba de humo en un Postgres con pgvector (el CI hace lo mismo). Las migraciones nuevas van en `supabase/migrations/`, con GRANT/REVOKE explícitos.
+Requiere `backend/.env` basado en `.env.example`. Los secretos viven solo en el backend o en Edge Function Secrets.
 
-No pongas llaves en el repo: el backend usa secretos de entorno (`backend/.env` en local, Edge Function Secrets en Supabase) y los clientes solo reciben datos autorizados para su sesión. Lee [AGENTS.md](AGENTS.md) y sigue el flujo `feature/* → dev → stg → main`.
+### App Flutter
 
-## Publicar la web gratis
+```bash
+cd barrio_app_pey
+flutter pub get
+flutter analyze
+flutter run
+```
 
-La web es estática (`web/`, sin build). Cualquiera de estos sirve; los dos primeros no piden permisos sobre el repo:
+La app usa valores públicos de `.env.example`; no agregues secretos. Consulta su [README](barrio_app_pey/README.md) para Android, permisos y voz.
 
-| Servicio | Cómo |
-|---|---|
-| **Cloudflare Pages** (recomendado) | Dashboard → Workers & Pages → Create → Pages → *Upload assets* y arrastra la carpeta `web/`; o `npx wrangler pages deploy web --project-name barrio` |
-| **Netlify** | Arrastra `web/` a <https://app.netlify.com/drop>; o `npx netlify-cli deploy --dir web --prod` |
-| **GitHub Pages** | Workflow manual `.github/workflows/pages.yml` (lo publica quien administra el repo) |
-| Render Static Sites, Firebase Hosting, GitLab Pages, Surge (`npx surge web`) | Planes gratis equivalentes |
+### Esquema
 
-Vercel Hobby también funciona, pero su plan gratis es solo para uso no comercial.
+```bash
+bash supabase/tests/run.sh
+```
 
-**Dónde poner la URL final** (por ejemplo `https://barrio.pages.dev`):
-1. Supabase → Authentication → URL Configuration: **Site URL** `https://<tu-sitio>/app.html` y en **Redirect URLs** `https://<tu-sitio>/**`. Sin esto, los correos de confirmación vuelven a la URL vieja.
-2. Supabase → Edge Functions → Secrets: `APP_RETURN_URL=https://<tu-sitio>/app.html` (a dónde regresa el pago).
-3. Opcional: `ALLOWED_ORIGINS=https://<tu-sitio>` para cerrar CORS (por defecto está abierto).
-4. Nada en `web/config.js`: usa rutas relativas.
+Las migraciones nuevas requieren `GRANT`/`REVOKE` explícitos. Antes de desplegar backend: `cd backend && npm run build:edge`. No publiques `web/` desde una sesión de agente.
+
+## Principios no negociables
+
+- El precio, la disponibilidad y el total nacen en el servidor.
+- Un pedido solo se crea desde una cotización vigente que la persona confirmó.
+- Cada cambio de estado es atómico y condicionado a su estado anterior.
+- Un pedido no puede tener dos cobros vigentes.
+- La IA interpreta intención; nunca decide hechos de negocio.
+
+## Documentación que manda
+
+- [Producto](docs/PRODUCTO.md): alcance y decisiones vigentes.
+- [Backend](docs/BACKEND.md): contrato de la API, datos, despliegue y pendientes verificables.
+- [Diseño](docs/DESIGN.md) y [voz](docs/VOZ-DE-MARCA.md): identidad visual y lenguaje.
+- [AGENTS.md](AGENTS.md): seguridad, Git y reglas operativas.
+
+---
+
+<div align="center"><sub>Hecho para que el comercio de barrio venda más lejos sin dejar de sentirse cerca.</sub></div>
