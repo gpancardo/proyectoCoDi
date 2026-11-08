@@ -105,7 +105,7 @@ const manejarPeticion = async (req, res) => {
 };
 const app = createServer(manejarPeticion);
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && typeof Deno === 'undefined') { // en Edge Functions (Deno) arranca edge/api.js
   app.listen(port, () => console.log(`Barrio API lista en :${port}`));
   // ponytail: barrido en el mismo proceso cada minuto; con varias instancias moverlo a un cron único (/internal/sweep)
   if (db) setInterval(() => barrido(db).catch((e) => console.error('barrido', e.message)), 60_000).unref();
