@@ -158,7 +158,7 @@ export async function montarChangarrito(lienzo, { quieto = false } = {}) {
   Object.assign(sol.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 20 })
   sol.shadow.radius = 4
   escena.add(sol)
-  const piso = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ color: C.marino, opacity: 0.22 }))
+  const piso = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.ShadowMaterial({ color: C.marino, opacity: 0.3 }))
   piso.rotation.x = -Math.PI / 2
   piso.receiveShadow = true
   escena.add(piso)
