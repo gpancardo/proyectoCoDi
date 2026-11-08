@@ -63,7 +63,7 @@ try {
   assert.equal((await llamar(buyer, 'POST', `/orders/${o2.data.id}/cancel`)).data.estado, 'cancelada');
   const q4 = await llamar(buyer, 'POST', '/orders/quotes', { business_id: NEG_ID, items: [{ nombre: 'Taco de canasta', cantidad: 2 }] }); assert.equal(q4.data.descuento_minor, 240); ok('cancelar devuelve el cupón');
   // 5. perfil con insignias
-  const pf = await llamar(buyer, 'GET', '/me/profile'); assert.equal(pf.status, 200); assert.ok(pf.data.insignias.length >= 1); ok(`perfil: ${pf.data.pedidos_pagados} pagado(s), ${pf.data.insignias.length} insignia(s) en progreso`);
+  const pf = await llamar(buyer, 'GET', '/me/profile'); assert.equal(pf.status, 200); assert.equal(pf.data.insignias.length, 4); ok(`perfil: ${pf.data.pedidos_pagados} pagado(s), ${pf.data.insignias.length} insignia(s) en progreso`);
   // 6. autorización por objeto
   const otro = { comprador: { id: -1 } }; assert.equal((await llamar(otro, 'GET', `/orders/${o1.data.id}`)).status, 404); ok('pedido ajeno no se revela');
   // 7. barrido SQL (RPC real)
@@ -81,6 +81,7 @@ finally {
   await db.request(`/rest/v1/eventos_webhook?id=like.e2e-evt-*`, { method: 'DELETE' });
   await db.request(`/rest/v1/eventos_descubrimiento?comprador_id=eq.${comprador.id}`, { method: 'DELETE' });
   await db.request(`/rest/v1/perfiles_descubrimiento?comprador_id=eq.${comprador.id}`, { method: 'DELETE' });
+  for (const t of ['notificaciones', 'cupon_canjes']) await db.request(`/rest/v1/${t}?comprador_id=eq.${comprador.id}`, { method: 'DELETE' });
   await db.request(`/rest/v1/compradores?id=eq.${comprador.id}`, { method: 'DELETE' });
   if (!process.exitCode) console.log(pasos.join('\n') + '\n(datos de prueba borrados)');
 }

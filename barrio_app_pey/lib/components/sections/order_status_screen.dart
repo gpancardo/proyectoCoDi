@@ -10,12 +10,13 @@ import '../../utils/money.dart';
 import '../shared/app_button.dart';
 import '../shared/barrio_surface.dart';
 
-const _statusCopy = <String, String>{
+const statusCopy = <String, String>{
   'pendiente': 'Esperando al negocio',
   'aceptada': 'El negocio aceptó tu pedido',
   'cobrada': 'Aprueba el cobro en tu banco',
   'pagada': '✅ ¡Pagado!',
   'lista': 'Tu pedido ya está listo',
+  'entregada': 'Ya lo recibiste',
   'rechazada': 'El negocio no pudo aceptar tu pedido',
   'expirada': 'El negocio no contestó',
   'vencida': 'Este cobro ya venció',
@@ -138,7 +139,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                Text(_statusCopy[state] ?? state,
+                Text(statusCopy[state] ?? state,
                     style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -275,7 +276,8 @@ class _PaidOrder extends StatelessWidget {
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('✅', style: TextStyle(fontSize: 54)),
+                        const Icon(Icons.check_circle,
+                            size: 64, color: BarrioColors.blanco),
                         const SizedBox(height: 12),
                         Text(ready ? 'Ya puedes pasar' : '¡Pagado!',
                             style: const TextStyle(

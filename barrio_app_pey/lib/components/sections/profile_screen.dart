@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = context.read<AppState>();
     _name.text = profile.name;
     _phone.text = profile.phone;
-    _zone = profile.zone.isEmpty ? null : profile.zone;
+    _zone = I18n.alcaldiasCdmx.contains(profile.zone) ? profile.zone : null;
     _neighborhood.text = profile.neighborhood;
   }
 
@@ -54,15 +54,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final profile = context.read<AppState>();
-    await context.read<BarrioApi>().post(
-        '/me',
-        {
-          'nombre': _name.text.trim(),
-          'telefono': _phone.text.trim(),
-          'zona': _zone,
-          'colonia': _neighborhood.text.trim(),
-        },
-        token: profile.accessToken);
+    try {
+      await context.read<BarrioApi>().post(
+          '/me',
+          {
+            'nombre': _name.text.trim(),
+            'telefono': _phone.text.trim(),
+            'zona': _zone,
+            'colonia': _neighborhood.text.trim(),
+          },
+          token: profile.accessToken);
+    } catch (error) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(mensajeDe(error))));
+      }
+      return;
+    }
     await profile.updateProfile(
       name: _name.text,
       phone: _phone.text,
