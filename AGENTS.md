@@ -4,7 +4,7 @@ Lee primero [`docs/PRODUCTO.md`](docs/PRODUCTO.md) y luego [`docs/BACKEND.md`](d
 
 ## Producto y arquitectura
 
-Barrio será una app standalone que consume una API HTTPS propia. WhatsApp/Baileys ya no es canal del producto. El cliente no accede a tablas directamente ni contiene secretos. El backend mantiene catálogo, identidad/autorización, pedidos y pagos; OpenAI es opcional para interpretar búsquedas y nunca determina precios, disponibilidad ni totales.
+Barrio será una app standalone que consume una API HTTPS propia. La app es el único canal del producto. El cliente no accede a tablas directamente ni contiene secretos. El backend mantiene catálogo, identidad/autorización, pedidos y pagos; OpenAI es opcional para interpretar búsquedas y nunca determina precios, disponibilidad ni totales.
 
 La búsqueda determinista es funcional sin modelo: filtros de zona/distancia, apertura, categoría, texto/alias, disponibilidad y precio. El agente puede traducir lenguaje libre a filtros tipados, que el backend valida. Revisa `docs/BACKEND.md` para contrato y orden de entrega.
 
@@ -52,9 +52,9 @@ feature/<área>-<cambio> → dev → stg → main
 | Ruta | Estado |
 |---|---|
 | `backend/` | API en producción como Edge Function (`edge/api.js` + `src/`); pruebas en `test/`, recorrido real en `scripts/e2e-live.mjs` |
-| `supabase/` | migraciones (hasta `20261107060000`, todas aplicadas en producción), seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
+| `supabase/` | migraciones hasta `20261108010000` aplicadas en producción, seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
 | `web/` | landing y registro heredados + app web (`app.html`/`app.js`); la publicación de la web la hace otro integrante |
-| `barrio_app_pey/` | app Flutter en construcción (otro integrante) |
+| `barrio_app_pey/` | app Flutter integrada a la API: compra, gestión de negocio y dictado; falta prueba de voz en Android físico |
 | `docs/` | producto, contrato y estado del backend, pey, diseño y voz |
 
 ## Comprobaciones

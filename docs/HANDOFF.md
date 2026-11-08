@@ -11,11 +11,11 @@ La fuente vigente es, en este orden:
 
 ## Decisiones consolidadas desde ese traspaso
 
-- El canal es la app y la API HTTPS propia; WhatsApp/Baileys no forma parte del producto.
+- El canal es la app y la API HTTPS propia.
 - La app Flutter ya consume la API para el flujo comprador y vendedor.
 - El cobro de demo es CoDi por **push**. No se ofrecen QR ni links como desvío automático.
 - La persona confirma que recibió el pedido; el negocio puede crear cupones con código y producto gratis.
 - Las insignias siguen calculándose en servidor y no requieren una tabla nueva.
-- La migración `20261108010000_entrega_y_codigos.sql` y el bundle API asociado aún requieren despliegue controlado en Supabase.
+- La migración `20261108010000_entrega_y_codigos.sql` y su bundle API asociado ya están publicados en Supabase.
 
 Para un traspaso nuevo, actualiza los documentos vigentes anteriores en vez de extender esta nota.

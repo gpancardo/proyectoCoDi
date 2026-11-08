@@ -13,8 +13,8 @@ const NEG_ID = Number(process.env.E2E_NEGOCIO_ID ?? 7); const ids = { ordenes: [
 const [negocio] = await db.get('negocios', `id=eq.${NEG_ID}&select=id,nombre`);
 // El comprador demo cobra por push a este celular (el de quien prueba); telefono ya no es único.
 const TEL_DEMO = process.env.E2E_PHONE ?? '5615156164';
-let [comprador] = await db.get('compradores', 'wa_jid=eq.e2e-test&select=id,nombre,telefono');
-if (!comprador) [comprador] = await db.insertar('compradores', { wa_jid: 'e2e-test', nombre: 'E2E prueba', telefono: TEL_DEMO });
+let [comprador] = await db.get('compradores', 'nombre=eq.E2E prueba&select=id,nombre,telefono');
+if (!comprador) [comprador] = await db.insertar('compradores', { nombre: 'E2E prueba', telefono: TEL_DEMO });
 else if (comprador.telefono !== TEL_DEMO) await db.actualizar('compradores', `id=eq.${comprador.id}`, { telefono: TEL_DEMO });
 const llamar = async (auth, method, path, body, headers = {}) => {
   let out; const res = {}; const req = { method, headers: { ...headers } };
