@@ -176,23 +176,24 @@ Cada estado lleva texto y una forma distinta, nunca solo color:
 | Aceptada | Aprueba el cobro en tu banco | billete |
 | Pagada | ¡Pagado! | ✅ y teal |
 | Lista | Ya puedes pasar | bolsa |
+| Entregada | Pedido recibido | marca de confirmación y teal |
 | Rechazada, vencida o cancelada | Pedido cancelado, con el motivo | tache y rojo |
 
 ### Pagado
 
 Pantalla en `--teal` con ✅, el monto, "¡Pagado!" y el código de recoger en 800 expandido, grande. **No se cierra sola:** el código tiene que seguir visible hasta que la persona lo descarte. Vibración corta; el sonido es opcional y apagado por defecto.
 
-### Cobro por QR (respaldo)
+### Confirmación de entrega
 
-Solo aparece si falla el cobro por notificación y el enlace de pago. Fondo marino para que el QR blanco resalte, sobre cuadro blanco con margen amplio y lo más grande posible. Arriba, el nombre del negocio; abajo, el monto en mango (56 px). Texto "Esperando que te paguen…" y botón visible "Cancelar cobro".
+Cuando el negocio marca **Listo**, la persona ve el código de recogida y una acción principal: **Confirmar que lo recibí**. La pantalla conserva el fondo teal y el código legible; debajo va el enlace discreto **Reportar un problema**, que abre un correo prellenado con pedido, negocio y total. No se culpa a la persona ni se cierra la pantalla sola.
 
 ### Panel del negocio
 
 Acciones visibles y de un solo toque: aceptar, rechazar, marcar listo, abrir o cerrar, publicar cupón y ver el resumen del día. Un pedido nuevo muestra cuánto falta para que se cancele por falta de respuesta (8 minutos). El interruptor de abierto o cerrado lleva texto ("Abierto", "Cerrado"), no solo posición.
 
-### Dictado por voz *(abierto, posterior al MVP)*
+### Dictado por voz
 
-Círculo de 96 px en mango con el ícono `mic` en marino; grabando, anillo mango y "Te escucho…". Siempre junto a una caja de texto visible. Pertenece a Barrio Mostrador.
+El micrófono vive junto a la caja de búsqueda de **Buscar con Barrio**, nunca como sustituto de texto. En escucha muestra un estado visible y detiene la animación con `prefers-reduced-motion`; si no hay permiso o reconocimiento, explica cómo activarlo y permite escribir sin fricción.
 
 ## 8. Landing y movimiento
 

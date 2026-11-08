@@ -11,6 +11,7 @@ abstract final class BarrioColors {
   static const rojo = Color(0xFFC2392B);
   static const blanco = Color(0xFFFFFFFF);
   static const borde = Color(0xFFE8DFCF);
+  static const trazo = Color(0xFF7D7666);
   static const niebla = Color(0xFFE8EDF4);
 }
 
@@ -28,7 +29,7 @@ abstract final class BarrioTheme {
       primaryColor: BarrioColors.marino,
       colorScheme: scheme,
       scaffoldBackgroundColor: BarrioColors.crema,
-      fontFamily: 'sans-serif',
+      fontFamily: 'Archivo',
       appBarTheme: const AppBarTheme(
         backgroundColor: BarrioColors.crema,
         foregroundColor: BarrioColors.marino,
@@ -56,11 +57,11 @@ abstract final class BarrioTheme {
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide:
-                const BorderSide(color: BarrioColors.borde, width: 1.5)),
+                const BorderSide(color: BarrioColors.trazo, width: 1.5)),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide:
-                const BorderSide(color: BarrioColors.borde, width: 1.5)),
+                const BorderSide(color: BarrioColors.trazo, width: 1.5)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: const BorderSide(color: BarrioColors.marino, width: 2)),
@@ -76,7 +77,46 @@ abstract final class BarrioTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
-      cardTheme: CardTheme(
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: BarrioColors.marino,
+          minimumSize: const Size.fromHeight(64),
+          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          side: const BorderSide(color: BarrioColors.marino, width: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: BarrioColors.marino,
+          minimumSize: const Size(48, 48),
+          textStyle: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              decoration: TextDecoration.underline),
+        ),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: BarrioColors.marino,
+        contentTextStyle: TextStyle(
+            color: BarrioColors.crema, fontSize: 16, fontFamily: 'Archivo'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      ),
+      progressIndicatorTheme:
+          const ProgressIndicatorThemeData(color: BarrioColors.marino),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected)
+                ? BarrioColors.marino
+                : BarrioColors.trazo),
+        trackColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected)
+                ? BarrioColors.mango
+                : BarrioColors.niebla),
+        trackOutlineColor: const WidgetStatePropertyAll(BarrioColors.marino),
+      ),
+      cardTheme: CardThemeData(
         color: BarrioColors.blanco,
         elevation: 0,
         shape: RoundedRectangleBorder(

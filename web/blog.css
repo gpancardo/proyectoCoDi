@@ -1,0 +1,48 @@
+/* Blog, descarga: páginas de lectura sobre la base de estilo.css */
+body.hoja { background: var(--crema); }
+.barra nav { display: flex; align-items: center; gap: 20px; }
+main { padding-block: clamp(32px, 6vw, 72px); }
+main > h1, .articulo > h1 { font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1; margin-bottom: 20px; }
+.articulo { max-width: 68ch; }
+.entrada { font-size: 1.2rem; line-height: 1.5; color: var(--tinta); }
+.etiqueta { display: block; font-size: 14px; font-weight: 700; color: var(--gris); margin-bottom: 8px; }
+.articulo h2 { margin-top: 36px; }
+.articulo ul, .articulo ol, .pasos-i { padding-left: 1.3em; margin: 0 0 20px; }
+.articulo li, .pasos-i li { margin-bottom: 8px; }
+.pasos-i { max-width: 60ch; }
+
+/* tabla: renglones con regla, sin tarjetas */
+.tabla { overflow-x: auto; margin: 24px 0; border-top: 2px solid var(--marino); border-bottom: 2px solid var(--marino); }
+.tabla table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 16px; }
+.tabla th, .tabla td { text-align: left; vertical-align: top; padding: 12px 14px 12px 0; border-bottom: 1px solid var(--borde); }
+.tabla thead th { font-size: 14px; color: var(--gris); }
+.tabla tbody th { color: var(--marino); }
+.tabla tr:last-child th, .tabla tr:last-child td { border-bottom: 0; }
+
+.llamada { margin: 44px 0 24px; padding: 28px; background: var(--mango); border: 2px solid var(--marino); border-radius: 6px; }
+.llamada h2 { margin-top: 0; }
+.llamada .btn { background: var(--marino); color: var(--crema); }
+
+.lista-blog { list-style: none; padding: 0; margin: 32px 0 0; max-width: 720px; border-top: 2px solid var(--marino); }
+.lista-blog li { border-bottom: 2px solid var(--marino); }
+.lista-blog a { display: grid; gap: 4px; padding: 22px 0; text-decoration: none; color: var(--tinta); }
+.lista-blog strong { font-size: 1.35rem; font-stretch: 112%; font-weight: 800; color: var(--marino); line-height: 1.2; }
+.lista-blog a:hover strong { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--mango); }
+
+.pie-h { padding-block: 32px 48px; border-top: 2px solid var(--marino); font-size: 15px; color: var(--gris); }
+.pie-h nav { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 12px; }
+.pie-h nav a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+@media (max-width: 560px) {
+  .barra { flex-wrap: wrap; }
+  .barra nav { gap: 12px; }
+}
+
+@media (max-width: 640px) {
+  .tabla { overflow: visible; }
+  .tabla table, .tabla tbody, .tabla tr, .tabla th, .tabla td { display: block; min-width: 0; width: 100%; }
+  .tabla thead { position: absolute; left: -9999px; }
+  .tabla tr { padding: 12px 0; border-bottom: 1px solid var(--borde); }
+  .tabla tbody th { font-size: 1.15rem; padding: 0 0 4px; border: 0; }
+  .tabla td { padding: 2px 0; border: 0; }
+  .tabla td::before { content: attr(data-l) ': '; font-weight: 700; color: var(--gris); }
+}

@@ -261,15 +261,17 @@ const promosNegocio = async (cab) => {
   const f = h('form', { class: 'formulario', novalidate: true }, h('h3', {}, 'Nuevo cupón'),
     h('p', { class: 'ayuda' }, 'Les avisamos a quienes ya te compraron. Si lo aceptan, se descuenta solo al cobrar.'),
     h('label', {}, 'Título', h('input', { name: 'title', maxlength: 80, placeholder: '10% en tu siguiente pedido' })),
-    h('label', {}, 'Tipo', h('select', { name: 'type' }, h('option', { value: 'porcentaje' }, 'Porcentaje'), h('option', { value: 'monto' }, 'Monto en pesos'))),
+    h('label', {}, 'Tipo', h('select', { name: 'type' }, h('option', { value: 'porcentaje' }, 'Porcentaje'), h('option', { value: 'monto' }, 'Monto en pesos'), h('option', { value: 'producto_gratis' }, 'Producto gratis'))),
     h('label', {}, 'Valor (10 = 10% o $10)', h('input', { name: 'value', inputmode: 'numeric' })),
+    h('label', {}, 'Código (opcional)', h('input', { name: 'code', maxlength: 24, placeholder: 'VECINOS10' })),
+    h('label', {}, 'Producto gratis (si aplica)', h('input', { name: 'free_product', maxlength: 60, placeholder: 'Agua de horchata' })),
     h('label', {}, 'Compra mínima en pesos (opcional)', h('input', { name: 'min', inputmode: 'numeric' })),
     h('label', {}, 'Vence', h('input', { name: 'vence', type: 'date' })),
     h('button', { class: 'btn' }, 'Publicar cupón'))
   f.addEventListener('submit', intentar(async (e) => {
     e.preventDefault(); const d = Object.fromEntries(new FormData(f))
     const valor = Number(d.value); const fin = new Date(`${d.vence}T23:59:59`)
-    const r = await api('POST', '/business/coupons', { title: d.title, type: d.type, value: d.type === 'monto' ? Math.round(valor * 100) : valor, min_amount_minor: Math.round(Number(d.min || 0) * 100), expires_at: fin.toISOString() })
+    const r = await api('POST', '/business/coupons', { title: d.title, type: d.type, value: d.type === 'producto_gratis' ? 1 : d.type === 'monto' ? Math.round(valor * 100) : valor, code: d.code, free_product: d.free_product, min_amount_minor: Math.round(Number(d.min || 0) * 100), expires_at: fin.toISOString() })
     avisar(`Cupón publicado. Avisamos a ${r.notificados} cliente(s).`); promosNegocio(cab)
   }))
   pantalla(cab, h('h2', {}, 'Promociones'), f, h('div', { class: 'rejilla' }, cs.map((c) => h('article', { class: 'tarjeta' }, h('h3', {}, c.titulo), h('p', {}, h('span', { class: `chip ${c.activo ? 'ok' : ''}` }, c.activo ? 'Activo' : 'Apagado'), h('span', { class: 'chip' }, c.tipo === 'porcentaje' ? `${c.valor}%` : pesos(c.valor))), h('p', { class: 'ayuda' }, `Vence ${new Date(c.vence).toLocaleDateString('es-MX')}`), c.activo ? h('button', { class: 'btn btn-sec btn-chico', onclick: intentar(async () => { await api('DELETE', `/business/coupons/${c.id}`); promosNegocio(cab) }) }, 'Apagar') : null))))

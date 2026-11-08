@@ -1,13 +1,13 @@
 import { calcularInsignias, cotizar, mejorCupon, MINUTOS, puede } from './pedidos.js';
 import { iniciarCobro, liberarCupon, reconciliar } from './pagos.js';
-import { ZONAS } from './text.js';
+import { ZONAS, normalizar } from './text.js';
 
 class Fallo extends Error { constructor(status, code, message, field) { super(message); Object.assign(this, { status, code, field }); } }
 const q = encodeURIComponent;
 const exigir = (cond, status, code, message, field) => { if (!cond) throw new Fallo(status, code, message, field); };
 const ahoraIso = () => new Date().toISOString();
 const publica = (o, esComprador) => ({ id: o.id, negocio_id: o.negocio_id, estado: o.estado, items: o.items, total_minor: Math.round(o.monto * 100), descuento_minor: o.descuento_minor, notas: o.notas, creado: o.creado,
-  ...(esComprador && ['pagada', 'lista'].includes(o.estado) ? { codigo: o.codigo } : {}) });
+  ...(esComprador && ['pagada', 'lista', 'entregada'].includes(o.estado) ? { codigo: o.codigo } : {}) });
 
 // Transición atómica: solo cambia si el estado previo sigue siendo el esperado.
 async function mover(db, orden, a, extra = {}) {
@@ -125,8 +125,19 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     const r = cotizar(n.productos, b.items);
     exigir(!r.error, 422, 'INVALID_ITEMS', r.error, 'items');
     // cupones aceptados por esta persona para este negocio, autoaplicados al total
-    const canjes = await db.get('cupon_canjes', `comprador_id=eq.${c.id}&estado=eq.aceptado&select=id,cupones!inner(id,negocio_id,tipo,valor,min_compra_minor,vence,activo,titulo)&cupones.negocio_id=eq.${n.id}`);
-    const mejor = mejorCupon(canjes.map((x) => ({ ...x.cupones, canje_id: x.id })), r.subtotal_minor);
+    const canjes = await db.get('cupon_canjes', `comprador_id=eq.${c.id}&estado=eq.aceptado&select=id,cupones!inner(id,negocio_id,tipo,valor,min_compra_minor,vence,activo,titulo,producto_regalo)&cupones.negocio_id=eq.${n.id}`);
+    const codigo = String(b.coupon_code ?? '').trim().toUpperCase();
+    if (codigo) {
+      exigir(/^[A-Z0-9-]{3,24}$/.test(codigo), 422, 'INVALID_COUPON', 'El código no es válido.', 'coupon_code');
+      const [cupon] = await db.get('cupones', `negocio_id=eq.${n.id}&codigo=eq.${q(codigo)}&activo=eq.true&select=id,negocio_id,tipo,valor,min_compra_minor,vence,activo,titulo,producto_regalo&limit=1`);
+      exigir(cupon, 422, 'INVALID_COUPON', 'Ese código no aplica aquí.', 'coupon_code');
+      let [canje] = await db.get('cupon_canjes', `cupon_id=eq.${cupon.id}&comprador_id=eq.${c.id}&limit=1`);
+      if (!canje) { try { [canje] = await db.insertar('cupon_canjes', { cupon_id: cupon.id, comprador_id: c.id, estado: 'aceptado' }); } catch { [canje] = await db.get('cupon_canjes', `cupon_id=eq.${cupon.id}&comprador_id=eq.${c.id}&limit=1`); } }
+      if (canje?.estado === 'ofrecido') [canje] = await db.actualizar('cupon_canjes', `id=eq.${canje.id}&estado=eq.ofrecido`, { estado: 'aceptado', actualizado: ahoraIso() });
+      exigir(canje?.estado === 'aceptado', 409, 'COUPON_UNAVAILABLE', 'Ese código ya no está disponible.');
+      canjes.push({ id: canje.id, cupones: cupon });
+    }
+    const mejor = mejorCupon(canjes.map((x) => ({ ...x.cupones, canje_id: x.id })), r.subtotal_minor, r.items);
     const descuento_minor = mejor?.descuento_minor ?? 0;
     const [cot] = await db.insertar('cotizaciones', { comprador_id: c.id, negocio_id: n.id, items: r.items, subtotal_minor: r.subtotal_minor, descuento_minor, total_minor: r.subtotal_minor - descuento_minor, canje_id: mejor?.cupon.canje_id ?? null, expira: new Date(Date.now() + MINUTOS.cotizacion * 60_000).toISOString() });
     return ok(201, { quote_id: cot.id, business: { id: n.id, nombre: n.nombre }, items: cot.items, subtotal_minor: cot.subtotal_minor, descuento_minor, coupon: mejor ? { titulo: mejor.cupon.titulo } : null, total_minor: cot.total_minor, expires_at: cot.expira });
@@ -163,14 +174,21 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     const quien = auth.negocio ? `negocio_id=eq.${auth.negocio.id}` : `comprador_id=eq.${comp().id}`;
     const estado = url.searchParams.get('status');
     const filas = await db.get('ordenes', `${quien}${estado ? `&estado=eq.${q(estado)}` : ''}&order=id.desc&limit=50`);
-    return ok(200, filas.map((o) => publica(o, !auth.negocio)));
+    if (!auth.negocio) return ok(200, filas.map((o) => publica(o, true)));
+    const compradores = [...new Set(filas.map((o) => o.comprador_id))];
+    const pagados = compradores.length ? await db.get('ordenes', `comprador_id=in.(${compradores.join(',')})&estado=in.(pagada,lista,entregada)&select=comprador_id,negocio_id`) : [];
+    const negocioIds = [...new Set(pagados.map((o) => o.negocio_id))];
+    const negocios = negocioIds.length ? await db.get('negocios', `id=in.(${negocioIds.join(',')})&select=id,nombre,colonia,zona`) : [];
+    const porNegocio = new Map(negocios.map((n) => [n.id, n])); const logros = new Map();
+    for (const compradorId of compradores) logros.set(compradorId, calcularInsignias(pagados.filter((o) => o.comprador_id === compradorId).map((o) => { const n = porNegocio.get(o.negocio_id) ?? {}; return { negocio_id: o.negocio_id, negocio_nombre: n.nombre, colonia: n.colonia, zona: n.zona }; })).filter((b) => b.obtenida));
+    return ok(200, filas.map((o) => ({ ...publica(o, false), comprador_logros: logros.get(o.comprador_id) ?? [] })));
   }
   if (m === 'GET' && (p = ruta.match(/^\/orders\/(\d+)$/))) {
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
     const { o, esComprador } = await pedidoDe(db, Number(p[1]), auth);
     return ok(200, publica(o, esComprador));
   }
-  if (m === 'POST' && (p = ruta.match(/^\/orders\/(\d+)\/(cancel|accept|reject|ready|payments)$/))) {
+  if (m === 'POST' && (p = ruta.match(/^\/orders\/(\d+)\/(cancel|accept|reject|ready|received|payments)$/))) {
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
     const { o, esComprador } = await pedidoDe(db, Number(p[1]), auth);
     const accion = p[2];
@@ -186,6 +204,10 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
       const r = await cobrarPedido(db, o);
       exigir(r.intento, 503, 'PAYMENT_UNAVAILABLE', r.error);
       const i = r.intento; return ok(r.repetido ? 200 : 201, { payment_id: i.id, via: i.via, estado: i.estado, vence: i.vence, link: r.url ?? i.instrucciones?.link ?? null, qr_image: r.qr_image ?? i.instrucciones?.qr_image ?? null, amount_minor: i.monto_minor });
+    }
+    if (accion === 'received') {
+      exigir(esComprador, 403, 'FORBIDDEN', 'Solo quien pidió puede confirmar la entrega.');
+      return ok(200, publica(await mover(db, o, 'entregada'), true));
     }
     exigir(!esComprador, 403, 'FORBIDDEN', 'Solo el negocio del pedido puede hacer esto.');
     if (accion === 'accept') { const nueva = await mover(db, o, 'aceptada'); await cobrarPedido(db, nueva); return ok(200, publica((await db.get('ordenes', `id=eq.${o.id}`))[0], false)); }
@@ -211,12 +233,16 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   if (ruta === '/business/coupons' && m === 'POST') {
     const n = neg(); const b = await cuerpo();
     const valor = Number(b.value); const min = Number(b.min_amount_minor ?? 0); const vence = new Date(b.expires_at);
-    exigir(['porcentaje', 'monto'].includes(b.type), 422, 'INVALID_COUPON', 'Elige porcentaje o monto.', 'type');
+    exigir(['porcentaje', 'monto', 'producto_gratis'].includes(b.type), 422, 'INVALID_COUPON', 'Elige porcentaje, monto o producto gratis.', 'type');
     exigir(Number.isInteger(valor) && valor > 0 && (b.type === 'monto' || valor <= 100), 422, 'INVALID_COUPON', 'El valor no es válido.', 'value');
     exigir(Number.isInteger(min) && min >= 0, 422, 'INVALID_COUPON', 'La compra mínima no es válida.', 'min_amount_minor');
     exigir(vence > new Date(), 422, 'INVALID_COUPON', 'La fecha debe ser futura.', 'expires_at');
     exigir(typeof b.title === 'string' && b.title.trim().length >= 3 && b.title.length <= 80, 422, 'INVALID_COUPON', 'Escribe un título corto.', 'title');
-    const [cupon] = await db.insertar('cupones', { negocio_id: n.id, titulo: b.title.trim(), tipo: b.type, valor, min_compra_minor: min, vence: vence.toISOString() });
+    const codigo = b.code ? String(b.code).trim().toUpperCase() : null;
+    exigir(!codigo || /^[A-Z0-9-]{3,24}$/.test(codigo), 422, 'INVALID_COUPON', 'El código usa letras, números y guiones.', 'code');
+    const regalo = b.type === 'producto_gratis' ? String(b.free_product ?? '').trim() : null;
+    exigir(b.type !== 'producto_gratis' || (regalo && n.productos?.some((p) => normalizar(p.nombre) === normalizar(regalo))), 422, 'INVALID_COUPON', 'Elige un producto de tu menú para regalar.', 'free_product');
+    const [cupon] = await db.insertar('cupones', { negocio_id: n.id, titulo: b.title.trim(), tipo: b.type, valor: b.type === 'producto_gratis' ? 1 : valor, codigo, producto_regalo: regalo, min_compra_minor: min, vence: vence.toISOString() });
     // avisa solo a quienes ya compraron aquí (pedido pagado)
     const clientes = [...new Set((await db.get('ordenes', `negocio_id=eq.${n.id}&estado=in.(pagada,lista)&select=comprador_id`)).map((o) => o.comprador_id))];
     if (clientes.length) {

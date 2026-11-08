@@ -313,3 +313,26 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
   .txt-largo { display: none; }
   .txt-corto { display: inline; }
 }
+
+/* opciones del ejemplo: compactas en móvil */
+@media (max-width: 560px) {
+  .opciones { gap: 8px; margin-top: 20px; }
+  .opciones span { min-height: 44px; padding: 0 14px; font-size: 15px; }
+  .linea { font-size: clamp(30px, 9vw, 44px); }
+  .respuesta { margin-top: 20px; }
+  .nota-viva { font-size: 16px; }
+}
+.enlace-app + .enlace-app { margin-left: 8px; }
+@media (max-width: 560px) { .banda-acciones { display: flex; flex-wrap: wrap; gap: 0 20px; } .enlace-app + .enlace-app { margin-left: 0; } }
+
+/* blog en la portada: renglones con regla */
+.del-blog { background: var(--crema); padding: var(--s-seccion) var(--m); }
+.del-blog h2 { font-size: clamp(32px, 4vw, 56px); margin-bottom: var(--s-titulo); }
+.del-blog ul { list-style: none; margin: 0 0 20px; padding: 0; max-width: 720px; border-top: 2px solid var(--marino); }
+.del-blog li { border-bottom: 2px solid var(--marino); }
+.del-blog li a { display: grid; gap: 2px; padding: 16px 0; text-decoration: none; min-height: 48px; }
+.del-blog li strong { color: var(--marino); font-size: 1.15rem; }
+.del-blog li span { color: var(--gris); font-size: 15px; }
+.del-blog li a:hover strong { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--mango); }
+.dialogo-app { margin: 14px 0 0; font-weight: 700; }
+.pie-cols nav a { min-height: 44px; }
