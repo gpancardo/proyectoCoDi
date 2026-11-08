@@ -133,12 +133,10 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     await _speech.listen(
       onResult: _onSpeech,
-      listenOptions: SpeechListenOptions(
-        localeId: _localeId.isEmpty ? null : _localeId,
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 4),
-        partialResults: true,
-      ),
+      localeId: _localeId.isEmpty ? null : _localeId,
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 4),
+      listenOptions: SpeechListenOptions(partialResults: true),
     );
   }
 
