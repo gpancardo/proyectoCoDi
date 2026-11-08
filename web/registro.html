@@ -4,14 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Registra tu negocio · Barrio</title>
-  <meta name="description" content="Recibe pedidos por WhatsApp con la cuenta hecha y cobra con CoDi, sin comisión.">
+  <meta name="description" content="Registra tu negocio en Barrio: publica tu menú y tus precios, recibe pedidos con la cuenta hecha y cobra con CoDi, sin comisión.">
   <meta name="theme-color" content="#0B2545">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B2545'/%3E%3Cpath d='M5 7h22v7H5z' fill='%23F5A524'/%3E%3Cpath d='M9 7h4v7H9zM19 7h4v7h-4z' fill='%23FFF8EC'/%3E%3Crect x='8' y='17' width='16' height='9' fill='%23FFF8EC'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400;100,500;100,700;112.5,800;125,800&display=swap">
   <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
 <a class="salto" href="#f">Saltar al formulario</a>
 
+<div class="toldo" aria-hidden="true"></div>
 <header class="contenedor barra">
   <a class="logo" href="./" aria-label="Barrio, inicio">
     <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0B2545"/><path d="M5 7h22v7H5z" fill="#F5A524"/><path d="M9 7h4v7H9zM19 7h4v7h-4z" fill="#FFF8EC"/><rect x="8" y="17" width="16" height="9" fill="#FFF8EC"/><path d="M11 20h3v3h-3zM18 20h3v3h-3z" fill="#0B2545"/></svg>
@@ -19,38 +23,47 @@
   </a>
 </header>
 
-<main class="contenedor">
-  <h1>Registra tu negocio</h1>
-  <p class="lead">Toma 2 minutos. Después los pedidos te llegan por WhatsApp y los aceptas con un <strong>sí</strong>.</p>
-  <p class="ayuda">¿Quieres pedir? No necesitas registrarte: <a id="wa-comprar" href="#">escríbele a Barrio</a>.</p>
+<main class="contenedor registro">
+  <div class="intro">
+    <h1>Registra tu negocio</h1>
+    <p class="lead">Toma 2 minutos. Publicas tu menú y tus precios, y verificamos tu negocio antes de que empiece a recibir pedidos.</p>
+    <p class="ayuda">Todos los campos son obligatorios.</p>
+  </div>
 
   <form id="f" class="formulario" novalidate>
-    <label>Nombre de tu negocio
-      <input name="nombre" required minlength="2" maxlength="60" autocomplete="organization"></label>
+    <fieldset>
+      <legend>Tu negocio</legend>
+      <label>Nombre de tu negocio
+        <input name="nombre" required minlength="2" maxlength="60" autocomplete="organization"></label>
 
-    <label>Tu WhatsApp, 10 números
-      <input name="telefono" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="5512345678" autocomplete="tel-national" aria-describedby="ayuda-tel">
-      <span class="ayuda" id="ayuda-tel">Aquí te llegan los pedidos. Sin +52.</span></label>
+      <label>Tu celular, 10 números
+        <input name="telefono" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="5512345678" autocomplete="tel-national" aria-describedby="ayuda-tel">
+        <span class="ayuda" id="ayuda-tel">Para contactarte si hace falta. Sin +52.</span></label>
 
-    <label>Alcaldía <select name="zona" required></select></label>
+      <label>Alcaldía <select name="zona" required></select></label>
 
-    <label>Dirección donde te recogen
-      <input name="direccion" required minlength="5" maxlength="200" placeholder="Calle, número y colonia" autocomplete="street-address"></label>
+      <label>Dirección donde te recogen
+        <input name="direccion" required minlength="5" maxlength="200" placeholder="Calle, número y colonia" autocomplete="street-address"></label>
 
-    <label>Tipo de negocio
-      <input name="categoria" required minlength="2" maxlength="60" list="giros" placeholder="Taquería, tortillería, papelería"></label>
-    <datalist id="giros"><option>Taquería</option><option>Fonda</option><option>Tortillería</option><option>Panadería</option>
-      <option>Tienda de abarrotes</option><option>Papelería</option><option>Frutería</option><option>Cafetería</option></datalist>
+      <label>Tipo de negocio
+        <input name="categoria" required minlength="2" maxlength="60" list="giros" placeholder="Taquería, tortillería, papelería"></label>
+      <datalist id="giros"><option>Taquería</option><option>Fonda</option><option>Tortillería</option><option>Panadería</option>
+        <option>Tienda de abarrotes</option><option>Papelería</option><option>Frutería</option><option>Cafetería</option></datalist>
+    </fieldset>
 
     <fieldset aria-describedby="ayuda-prod">
       <legend>Tus precios</legend>
       <span class="ayuda" id="ayuda-prod">Con esto tu cliente ve el total antes de pedir y tú no escribes precios.</span>
-      <div id="productos" style="display:grid;gap:10px"></div>
-      <button type="button" class="btn btn-sec" id="agregar">Agregar producto</button>
+      <div class="fila-cab" aria-hidden="true"><span>Producto</span><span>Precio</span><span></span></div>
+      <div id="productos"></div>
+      <button type="button" class="btn btn-texto" id="agregar">+ Agregar otro producto</button>
     </fieldset>
 
-    <label class="check"><input type="checkbox" name="auto_aceptar">
-      <span><strong>Aceptar pedidos en automático</strong><br><span class="ayuda">Tu cliente paga en cuanto pide y tú solo lo preparas. Escribe <em>cerrar</em> a Barrio cuando ya no atiendas.</span></span></label>
+    <fieldset>
+      <legend>Pedidos</legend>
+      <label class="check"><input type="checkbox" name="auto_aceptar">
+        <span><strong>Aceptar pedidos en automático</strong><br><span class="ayuda">Los pedidos entran sin que tengas que aceptarlos. Puedes cerrar tu negocio cuando quieras.</span></span></label>
+    </fieldset>
 
     <button class="btn" id="enviar">Registrar mi negocio</button>
     <div id="msg" class="mensaje" role="status" aria-live="polite" tabindex="-1" hidden></div>
@@ -61,29 +74,35 @@
 
 <script src="config.js"></script>
 <script>
-  const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, BOT } = window.BARRIO
+  const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = window.BARRIO
   const ZONAS = ['Álvaro Obregón', 'Azcapotzalco', 'Benito Juárez', 'Coyoacán', 'Cuajimalpa', 'Cuauhtémoc',
     'Gustavo A. Madero', 'Iztacalco', 'Iztapalapa', 'Magdalena Contreras', 'Miguel Hidalgo', 'Milpa Alta',
-    'Tláhuac', 'Tlalpan', 'Venustiano Carranza', 'Xochimilco'] // igual que en bot/index.js
+    'Tláhuac', 'Tlalpan', 'Venustiano Carranza', 'Xochimilco'] // ponytail: lista fija; la migración valida la alcaldía en el servidor. Compartirla si hay build
 
-  const wa = (texto) => `https://wa.me/${BOT}?text=${encodeURIComponent(texto)}`
-  document.getElementById('wa-comprar').href = wa('Hola Barrio')
   const f = document.getElementById('f'), msg = document.getElementById('msg'), lista = document.getElementById('productos')
   const boton = document.getElementById('enviar')
   f.zona.innerHTML = '<option value="">Elige tu alcaldía</option>' + ZONAS.map(z => `<option>${z}</option>`).join('')
 
+  // Ejemplos distintos por fila: tres placeholders iguales parecen plantilla
+  const EJEMPLOS = [['Taco de canasta', '12'], ['Agua de horchata', '25'], ['Refresco 600 ml', '22'], ['Tamal de rajas', '18']]
   function fila() {
+    const [ej, precio] = EJEMPLOS[lista.children.length % EJEMPLOS.length]
     const d = document.createElement('div')
     d.className = 'fila'
-    d.innerHTML = `<label>Producto <input class="p-nombre" maxlength="60" placeholder="Taco de canasta"></label>
-      <label>Precio <input class="p-precio" inputmode="decimal" placeholder="12" aria-label="Precio en pesos"></label>
-      <button type="button" class="quitar" aria-label="Quitar este producto">✕</button>`
+    d.innerHTML = `<input class="p-nombre" maxlength="60" aria-label="Nombre del producto" placeholder="${ej}">
+      <input class="p-precio" inputmode="decimal" aria-label="Precio en pesos" placeholder="${precio}">
+      <button type="button" class="quitar" aria-label="Quitar este producto">×</button>`
     d.querySelector('.quitar').onclick = () => { d.remove(); (lista.querySelector('input') ?? document.getElementById('agregar')).focus() }
     lista.append(d)
     return d
   }
   document.getElementById('agregar').onclick = () => fila().querySelector('input').focus()
   fila(); fila(); fila()
+
+  // Lo que se escribió en el cierre de la landing (registro.html?nombre=…&auto=1)
+  const previo = new URLSearchParams(location.search)
+  if (previo.get('nombre')) f.nombre.value = previo.get('nombre').slice(0, 60)
+  if (previo.get('auto') === '1') f.auto_aceptar.checked = true
 
   function mostrar(texto, malo) {
     msg.hidden = false
@@ -104,7 +123,7 @@
     const tel = d.telefono.replace(/\D/g, '')
     const falta =
       d.nombre.trim().length < 2 ? ['nombre', 'Escribe el nombre de tu negocio.'] :
-      tel.length !== 10 ? ['telefono', 'Tu WhatsApp debe tener 10 números, sin +52.'] :
+      tel.length !== 10 ? ['telefono', 'Tu celular debe tener 10 números, sin +52.'] :
       !d.zona ? ['zona', 'Elige tu alcaldía.'] :
       d.direccion.trim().length < 5 ? ['direccion', 'Escribe la dirección donde te recogen.'] :
       d.categoria.trim().length < 2 ? ['categoria', 'Dinos qué tipo de negocio es.'] :
@@ -119,6 +138,8 @@
 
     boton.disabled = true
     boton.textContent = 'Registrando…'
+    // ponytail: el alta aún inserta directo con la llave pública (RLS solo permite negocios sin verificar).
+    // Migrar a un POST del backend (docs/BACKEND.md, etapa 4) cuando exista la ruta.
     const r = await fetch(`${SUPABASE_URL}/rest/v1/negocios`, {
       method: 'POST',
       // Las llaves sb_publishable_ no son JWT: van solo en apikey. (Las legacy eyJ... también en Authorization.)
@@ -132,25 +153,11 @@
     boton.textContent = 'Registrar mi negocio'
 
     if (!r) return mostrar('Sin señal. Revisa tu conexión e inténtalo de nuevo.', true)
-    if (r.status === 409) return mostrar('Ese WhatsApp ya tiene un negocio registrado. Escríbele a Barrio para empezar.', true)
+    if (r.status === 409) return mostrar('Ese celular ya tiene un negocio registrado.', true)
     if (!r.ok) return mostrar('No pudimos registrar tu negocio. Inténtalo de nuevo en un momento.', true)
 
-    const nombre = d.nombre.trim()
-    const link = wa(`Quiero pedir en ${nombre}`)
     msg.className = 'mensaje'
-    msg.textContent = `Listo, ${nombre}. Último paso: salúdanos por WhatsApp para empezar a recibir pedidos.`
-    const saludo = Object.assign(document.createElement('a'), { className: 'btn', textContent: 'Saludar a Barrio', href: wa(`Hola, soy ${nombre}`) })
-    const compartir = document.createElement('p')
-    compartir.style.marginTop = '20px'
-    compartir.append('Comparte este link con tus clientes, en WhatsApp o en un letrero:')
-    compartir.append(document.createElement('br'))
-    compartir.append(Object.assign(document.createElement('a'), { className: 'enlace', href: link, textContent: link }))
-    const copiar = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn-sec', textContent: 'Copiar link' })
-    copiar.onclick = async () => {
-      try { await navigator.clipboard.writeText(link); copiar.textContent = 'Copiado' }
-      catch { copiar.textContent = 'Mantén presionado el link para copiarlo' }
-    }
-    msg.append(saludo, compartir, copiar)
+    msg.textContent = `Listo, ${d.nombre.trim()}. Tu negocio quedó en revisión. Hasta que lo verifiquemos no recibe pedidos.`
     msg.focus()
     f.querySelectorAll('input:not([type=checkbox]), select').forEach(i => { i.value = '' })
   })
