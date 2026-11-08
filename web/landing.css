@@ -140,6 +140,8 @@
 .dialogo { grid-column: 7 / 12; width: min(100%, 440px); justify-self: center; display: grid; gap: 20px; background: var(--blanco);
   border-radius: 8px; padding: 28px; box-shadow: 0 24px 48px rgba(11, 37, 69, .22); } /* taste-skill-ignore: es un diálogo abierto sobre la página */
 .dialogo-titulo { margin: 0; font-size: 1.35rem; font-weight: 800; font-stretch: 112%; color: var(--marino); }
+.dialogo-pasos { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; font-size: 17px; }
+.dialogo-pasos li::marker { font-weight: 800; color: var(--marino); }
 .segmento { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .segmento legend { font-weight: 700; color: var(--marino); margin-bottom: 8px; font-size: 1rem; font-stretch: 100%; }
 .segmento label { display: block; }
