@@ -51,20 +51,33 @@ export function mejorCupon(cupones, subtotal_minor, items = [], ahora) {
   return mejor;
 }
 
-// Insignias derivadas de pedidos pagados: no se guardan, así no hay premios desincronizados.
-export const REGLAS_INSIGNIAS = { colonia: 3, alcaldia: 5, negocio: 3 };
-export function calcularInsignias(pedidos) { // pedidos: [{ negocio_id, negocio_nombre, colonia, zona }]
-  const cuenta = (llave) => pedidos.reduce((m, p) => { const k = llave(p); if (k) m.set(k, (m.get(k) ?? 0) + 1); return m; }, new Map());
-  const nombres = { colonia: (k) => `Vecino de ${k}`, alcaldia: (k) => `Fiel a ${k}`, negocio: (k) => `De la casa: ${k}` };
-  const grupos = {
-    colonia: cuenta((p) => p.colonia), alcaldia: cuenta((p) => p.zona),
-    negocio: cuenta((p) => p.negocio_nombre),
-  };
-  return Object.entries(grupos).flatMap(([alcance, mapa]) => [...mapa].map(([ref, pedidos_pagados]) => {
-    const meta = REGLAS_INSIGNIAS[alcance];
-    return { id: `${alcance}:${normalizar(ref)}`, alcance, nombre: nombres[alcance](ref), pedidos_pagados, meta, obtenida: pedidos_pagados >= meta };
-  })).sort((a, b) => Number(b.obtenida) - Number(a.obtenida) || b.pedidos_pagados - a.pedidos_pagados || a.id.localeCompare(b.id));
+// Sellos derivados de pedidos pagados: no se guardan, así no hay premios desincronizados. Siempre son cuatro.
+export const METAS_SELLOS = { primera: 1, bronce: 3, plata: 3, oro: 4 };
+// Lo que ve un negocio: nunca el nombre de otros negocios ni dónde más compra su cliente.
+export const SELLO_PUBLICO = { primera: 'Primera compra', bronce: 'Cliente frecuente', plata: 'Conoce la colonia', oro: 'Compra de todo' };
+export function calcularInsignias(pedidos) { // en orden de compra: [{ negocio_id, negocio_nombre, colonia, categoria }]
+  const porNegocio = new Map(); const porColonia = new Map(); const giros = new Map();
+  for (const p of pedidos) {
+    if (p.negocio_id != null) { const v = porNegocio.get(p.negocio_id) ?? { nombre: p.negocio_nombre, compras: 0 }; v.compras += 1; porNegocio.set(p.negocio_id, v); }
+    if (p.colonia) { const k = normalizar(p.colonia); const v = porColonia.get(k) ?? { nombre: p.colonia, negocios: new Set() }; v.negocios.add(p.negocio_id); porColonia.set(k, v); }
+    if (p.categoria) giros.set(normalizar(p.categoria), p.categoria.toLowerCase());
+  }
+  const casa = [...porNegocio.values()].sort((a, b) => b.compras - a.compras)[0];
+  const colonia = [...porColonia.values()].sort((a, b) => b.negocios.size - a.negocios.size)[0];
+  const sello = (nivel, nombre, detalle, avance) => ({ id: nivel, nivel, nombre, detalle, avance: Math.min(avance, METAS_SELLOS[nivel]), meta: METAS_SELLOS[nivel], obtenida: avance >= METAS_SELLOS[nivel] });
+  return [
+    sello('primera', 'Primera compra', pedidos.length ? `La hiciste en ${pedidos[0].negocio_nombre ?? 'tu barrio'}.` : 'Tu primer pedido pagado en Barrio.', pedidos.length),
+    sello('bronce', casa ? `Ya te conocen en ${casa.nombre}` : 'Ya te conocen', 'Tres compras en el mismo negocio.', casa?.compras ?? 0),
+    sello('plata', colonia ? `Conoces ${colonia.nombre}` : 'Conoces tu colonia', 'Tres negocios distintos de una misma colonia.', colonia?.negocios.size ?? 0),
+    sello('oro', 'De todo en tu barrio', giros.size >= METAS_SELLOS.oro ? `Compraste en ${[...giros.values()].slice(0, 4).join(', ')}.` : 'Cuatro tipos de negocio: papelería, ferretería, lo que ocupes.', giros.size),
+  ];
 }
+
+// Quien ya pagó aquí recibe las promociones sin código que aún no tiene: se descuentan solas en su siguiente cuenta.
+export const cuponesPorOfrecer = (cupones, canjes, comprador_id) => {
+  const ya = new Set(canjes.map((x) => x.cupon_id));
+  return cupones.filter((c) => !ya.has(c.id)).map((c) => ({ cupon_id: c.id, comprador_id, estado: 'aceptado' }));
+};
 
 // ¿pey confirma que el cobro se pagó completo? Cuenta el monto base (sin propina ni comisión).
 export function pagoConfirmado(via, r, monto_minor) {

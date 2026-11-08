@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
-import { calcularInsignias, cotizar, descuentoCupon, mejorCupon, pagoConfirmado, puede, verificarFirma } from '../src/pedidos.js';
+import { calcularInsignias, cotizar, cuponesPorOfrecer, descuentoCupon, mejorCupon, pagoConfirmado, puede, verificarFirma } from '../src/pedidos.js';
 
 const menu = [{ nombre: 'Taco de canasta', precio: 12 }, { nombre: 'Refresco', precio: '18.5' }, { nombre: 'Malo', precio: -5 }];
 
@@ -25,13 +25,24 @@ test('cupones: porcentaje, monto, mínimo, vencimiento y total nunca en cero', (
   assert.equal(descuentoCupon(gratis, 15700, [{ nombre: 'Refresco', precio_minor: 1850, cantidad: 2 }]), 1850);
 });
 
-test('insignias por colonia, alcaldía y negocio', () => {
-  const p = (negocio_nombre, colonia, zona) => ({ negocio_nombre, colonia, zona });
-  const r = calcularInsignias([p('Tacos Lupe', 'San Lucas', 'Coyoacán'), p('Pan Beto', 'San Lucas', 'Coyoacán'), p('Tacos Lupe', 'San Lucas', 'Coyoacán'), p('Tacos Lupe', 'San Lucas', 'Coyoacán')]);
-  const ganadas = r.filter((x) => x.obtenida).map((x) => x.nombre).sort();
-  assert.deepEqual(ganadas, ['De la casa: Tacos Lupe', 'Vecino de San Lucas']); // alcaldía pide 5 y lleva 4
-  assert.equal(r.find((x) => x.alcance === 'alcaldia').pedidos_pagados, 4);
-  assert.deepEqual(calcularInsignias([]), []);
+test('sellos: siempre cuatro, personalizados y sin depender de comida', () => {
+  const p = (negocio_id, negocio_nombre, colonia, categoria) => ({ negocio_id, negocio_nombre, colonia, categoria });
+  const nivel = (r, n) => r.find((x) => x.nivel === n);
+  const vacio = calcularInsignias([]);
+  assert.equal(vacio.length, 4); assert.ok(vacio.every((x) => !x.obtenida && x.avance === 0));
+  const r = calcularInsignias([p(1, 'La Espiga', 'Clavería', 'Panadería'), p(2, 'Miranda', 'Clavería', 'Papelería'), p(1, 'La Espiga', 'Clavería', 'Panadería'), p(3, 'San Miguel', 'Clavería', 'Ferretería'), p(1, 'La Espiga', 'Clavería', 'Panadería')]);
+  assert.match(nivel(r, 'primera').detalle, /La Espiga/);
+  assert.ok(nivel(r, 'bronce').obtenida); assert.equal(nivel(r, 'bronce').nombre, 'Ya te conocen en La Espiga');
+  assert.ok(nivel(r, 'plata').obtenida); assert.equal(nivel(r, 'plata').nombre, 'Conoces Clavería');
+  assert.ok(!nivel(r, 'oro').obtenida); assert.equal(nivel(r, 'oro').avance, 3);
+  const mismoNombre = calcularInsignias([p(1, 'Tacos', 'A', 'x'), p(2, 'Tacos', 'A', 'x'), p(3, 'Tacos', 'A', 'x')]);
+  assert.ok(!nivel(mismoNombre, 'bronce').obtenida); // dos negocios con el mismo nombre no se suman
+  assert.equal(nivel(calcularInsignias([p(1, 'x', 'A', 'a'), p(1, 'x', 'A', 'a'), p(1, 'x', 'A', 'a'), p(1, 'x', 'A', 'a')]), 'bronce').avance, 3); // no rebasa la meta
+});
+
+test('promociones sin código: solo se ofrecen una vez a quien ya pagó', () => {
+  assert.deepEqual(cuponesPorOfrecer([{ id: 1 }, { id: 2 }], [{ cupon_id: 1 }], 9), [{ cupon_id: 2, comprador_id: 9, estado: 'aceptado' }]);
+  assert.deepEqual(cuponesPorOfrecer([{ id: 1 }], [{ cupon_id: 1 }], 9), []);
 });
 
 test('máquina de estados', () => {
