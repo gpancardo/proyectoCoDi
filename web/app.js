@@ -207,8 +207,8 @@ const avisos = async () => {
 }
 const perfil = async () => {
   const p = await api('GET', '/me/profile')
-  pantalla(h('h1', { style: 'font-size:2rem;margin-top:16px' }, p.nombre ? `Hola, ${p.nombre}` : 'Mi perfil'), h('p', {}, `${p.pedidos_pagados} pedido(s) pagado(s). Compra seguido en tu colonia, tu alcaldía o tu negocio favorito y gana insignias.`),
-    p.insignias.length ? h('div', { class: 'rejilla' }, p.insignias.map((b) => h('article', { class: 'tarjeta' }, h('h3', {}, b.nombre), h('p', {}, h('span', { class: `chip ${b.obtenida ? 'ok' : ''}` }, b.obtenida ? 'Ganada' : `${b.pedidos_pagados} de ${b.meta}`)), h('div', { class: 'progreso', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.min(100, b.pedidos_pagados / b.meta * 100)}%` }))))) : h('p', { class: 'vacio' }, 'Tus insignias aparecen con tu primer pedido pagado.'))
+  pantalla(h('h1', { style: 'font-size:2rem;margin-top:16px' }, p.nombre ? `Hola, ${p.nombre}` : 'Mi perfil'), h('p', {}, `${p.pedidos_pagados} pedido(s) pagado(s). Cada compra en tu barrio suma a tus sellos.`),
+    p.insignias.length ? h('div', { class: 'rejilla' }, p.insignias.map((b) => h('article', { class: 'tarjeta' }, h('h3', {}, b.nombre), h('p', {}, h('span', { class: `chip ${b.obtenida ? 'ok' : ''}` }, b.obtenida ? 'Ganada' : `${b.avance} de ${b.meta}`)), h('div', { class: 'progreso', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.min(100, b.avance / b.meta * 100)}%` }))))) : h('p', { class: 'vacio' }, 'Tus insignias aparecen con tu primer pedido pagado.'))
 }
 
 // ---------- negocio ----------

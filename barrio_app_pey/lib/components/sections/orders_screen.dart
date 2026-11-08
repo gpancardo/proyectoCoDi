@@ -24,11 +24,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _load() async {
     try {
-      final data = await context.read<BarrioApi>().get('/orders',
+      final data = await context.read<BarrioApi>().get('/orders?as=comprador',
           token: context.read<AppState>().accessToken) as List<dynamic>;
       if (mounted) setState(() => _orders = data);
-    } on BarrioApiException catch (e) {
-      if (mounted) setState(() => _message = e.message);
+    } catch (e) {
+      if (mounted) setState(() => _message = mensajeDe(e));
     }
   }
 
@@ -76,7 +76,7 @@ class _OrderCard extends StatelessWidget {
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: BarrioColors.marino)),
-                  Text(_copy(order['estado']?.toString()),
+                  Text(statusCopy[order['estado']] ?? '',
                       style: const TextStyle(color: BarrioColors.gris))
                 ])),
             Text(formatMoney(order['total_minor']),
@@ -84,15 +84,3 @@ class _OrderCard extends StatelessWidget {
                     fontWeight: FontWeight.w800, color: BarrioColors.marino))
           ]))));
 }
-
-String _copy(String? state) =>
-    const {
-      'pendiente': 'Esperando al negocio',
-      'aceptada': 'El negocio aceptó tu pedido',
-      'cobrada': 'Aprueba el cobro en tu banco',
-      'pagada': '✅ ¡Pagado!',
-      'lista': 'Tu pedido ya está listo',
-      'vencida': 'Este cobro ya venció'
-    }[state] ??
-    state ??
-    '';

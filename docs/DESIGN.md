@@ -201,7 +201,7 @@ La landing (`web/index.html`, `landing.css`, `landing.js`) es un cartel de calle
 
 - **Titulares de la landing** en Archivo 800, ancho 125, en minúsculas, como la versión corta del logo. Dos líneas como máximo en cualquier ancho. La interfaz de la app sigue en mayúscula inicial.
 - **Secciones**, en orden: portada; la barra de etapas del pedido, con anchos que siguen el tiempo real (la espera del negocio, hasta 8 minutos, es la más larga); "arma tu cuenta", donde el titular es un campo de texto que se vuelve ticket con total; el mosaico para negocios; las preguntas como fichas de archivero (una abierta a la vez, `<details name>`); el cierre con los tres pasos para registrar el negocio, que lleva a la app (`app.html`, con una sola cuenta para comprar o vender); y el pie con `barrio` construido como toldo.
-- **Sin fotos ni videos.** Todo lo visual se dibuja o se construye en código: el changarrito en 3D, el dibujo SVG de respaldo y fragmentos de interfaz (`data-ui`) con números que cuadran.
+- **Sin fotos ni videos de archivo.** Todo lo visual se dibuja o se construye en código: el changarrito en 3D, el dibujo SVG de respaldo y fragmentos de interfaz (`data-ui`). Las capturas de la sección «la app por dentro» son de la app real, con datos de muestra (`barrio_app_pey/tool/capturas_test.dart`).
 - **Precios de muestra** en "arma tu cuenta" (`web/cuenta.mjs`), marcados como tales en la página. En la app el total lo calcula el backend.
 
 ### Changarrito 3D
@@ -266,3 +266,7 @@ La guía completa está en `VOZ-DE-MARCA.md`.
 - Ninguna palabra de la lista de `VOZ-DE-MARCA.md` ni emoji fuera de ✅.
 - Revisada en 390 px y en 1280 px, sin desbordes ni texto cortado, y navegada solo con teclado.
 - Probada en un Android real, a pleno sol.
+
+## 13. Sellos de logros
+
+Estilo, tintas y reglas en [`LOGROS.md`](LOGROS.md). Son PNG de una tinta en `barrio_app_pey/assets/sellos/`, generados por `tool/sellos/generar.py`.

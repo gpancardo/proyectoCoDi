@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/barrio_api.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
+import '../../utils/money.dart';
 import '../shared/barrio_surface.dart';
 import 'business_screen.dart';
 
@@ -127,7 +128,7 @@ class _BusinessTile extends StatelessWidget {
     final products = business['productos'] as List<dynamic>? ?? const [];
     final from = products.isEmpty
         ? ''
-        : 'Desde \$${products.map((p) => p['precio'] as num).reduce((a, b) => a < b ? a : b).toStringAsFixed(0)}';
+        : 'Desde ${formatMoney((products.map((p) => p['precio'] as num).reduce((a, b) => a < b ? a : b) * 100).round())}';
     return SizedBox(
         width: 244,
         child: InkWell(

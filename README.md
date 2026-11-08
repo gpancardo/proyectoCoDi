@@ -40,9 +40,18 @@ confirmación de entrega ◄── código ◄── CoDi push ◄── pey + w
 - **Dos puertas de compra:** Buscar con Barrio, con dictado en español México, y Descubrir con categorías, buscador y carruseles.
 - **Pedido seguro:** cotización con vencimiento, confirmación explícita, idempotencia y total calculado exclusivamente en la API.
 - **Cobro realista:** CoDi por push con pey, webhook firmado, reconciliación y reintentos solo cuando el anterior vence.
-- **Operación para negocio:** abrir/cerrar, aceptar, rechazar, marcar listo, menú y códigos de descuento por porcentaje, monto o producto gratis.
+- **Operación para negocio:** alta en la app, panel con ventas del día, pedidos por atender, menú y promociones por porcentaje o producto gratis.
+- **Sellos de ciudad:** logros personalizados y uno temático por cada alcaldía, en bronce, plata y oro ([catálogo](docs/LOGROS.md)).
 - **Cierre humano:** código de recogida, confirmación de entrega y reporte de problema con contexto del pedido.
 - **IA responsable:** el modelo es opcional; la búsqueda determinista sigue funcionando sin llave ni modelo.
+
+## La app
+
+| Buscar | Descubrir | Cuenta | Sellos | Panel del negocio |
+|---|---|---|---|---|
+| ![Buscar](docs/capturas/04-resultados.png) | ![Descubrir](docs/capturas/05-descubrir.png) | ![Cuenta](docs/capturas/07-cuenta.png) | ![Sellos](docs/capturas/14-sellos-ciudad.png) | ![Panel](docs/capturas/17-panel-resumen.png) |
+
+Todas las pantallas están en [`docs/capturas/`](docs/capturas/), con datos de muestra. Lo que falta está en [`pendientes/`](pendientes/README.md); los guiones de los videos, en [`docs/VIDEOS.md`](docs/VIDEOS.md).
 
 ## Arquitectura
 

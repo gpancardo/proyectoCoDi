@@ -1,186 +1,127 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../i18n.dart';
-import '../../models/achievement.dart';
+import '../../services/barrio_api.dart';
+import '../../state/app_state.dart';
 import '../../theme.dart';
-import '../shared/barrio_icon.dart';
+import '../../utils/money.dart';
+import '../shared/app_button.dart';
 import '../shared/barrio_surface.dart';
+import 'business_screen.dart';
 
-enum _AchievementFilter { all, earned, pending }
-
+/// Sellos del comprador. Los calcula la API con sus pedidos pagados.
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
-
   @override
   State<AchievementsScreen> createState() => _AchievementsScreenState();
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
-  static final _achievements = DemoAchievements.build();
-  _AchievementFilter _filter = _AchievementFilter.all;
-  String? _alcaldia;
-  double _scrollOffset = 0;
+  Map<String, dynamic>? _profile;
+  String? _problem;
 
-  int get _earnedCount => _achievements.where((item) => item.unlocked).length;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  List<Achievement> get _visibleAchievements => _achievements.where((item) {
-        final statusMatches = switch (_filter) {
-          _AchievementFilter.all => true,
-          _AchievementFilter.earned => item.unlocked,
-          _AchievementFilter.pending => !item.unlocked,
-        };
-        final boroughMatches = _alcaldia == null || item.alcaldia == _alcaldia;
-        return statusMatches && boroughMatches;
-      }).toList(growable: false);
-
-  void _updateParallax(ScrollNotification notification) {
-    if (notification is! ScrollUpdateNotification ||
-        MediaQuery.of(context).disableAnimations) {
-      return;
-    }
-    final nextOffset =
-        (notification.metrics.pixels * .07).clamp(0, 18).toDouble();
-    if ((nextOffset - _scrollOffset).abs() >= 1.5) {
-      setState(() => _scrollOffset = nextOffset);
+  Future<void> _load() async {
+    try {
+      final data = await context.read<BarrioApi>().get('/me/profile',
+          token: context.read<AppState>().accessToken) as Map<String, dynamic>;
+      if (mounted) {
+        setState(() {
+          _profile = data;
+          _problem = null;
+        });
+      }
+    } catch (error) {
+      if (mounted) setState(() => _problem = mensajeDe(error));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final unlocked = _earnedCount;
-    final total = _achievements.length;
+    if (_problem != null && _profile == null) {
+      return Scaffold(body: BarrioProblema(message: _problem!, onRetry: _load));
+    }
+    final profile = _profile;
+    if (profile == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final seals = (profile['insignias'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>();
+    final bought = (profile['pedidos_pagados'] as num? ?? 0).toInt();
+    final reward = profile['premio'] as Map<String, dynamic>?;
+    final cityAll = profile['cdmx'] as Map<String, dynamic>?;
+    final city = (profile['alcaldias'] as List<dynamic>?)
+        ?.whereType<Map<String, dynamic>>()
+        .toList()
+      ?..sort((a, b) =>
+          (a['nivel'] == null ? 1 : 0) - (b['nivel'] == null ? 1 : 0));
     return Scaffold(
-      backgroundColor: BarrioColors.crema,
-      body: SafeArea(
-        child: BarrioBackdrop(
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              _updateParallax(notification);
-              return false;
-            },
+      body: BarrioBackdrop(
+        child: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: _load,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
               children: [
-                Transform.translate(
-                  offset: Offset(0, -_scrollOffset),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                const Text('Tus sellos',
+                    style: TextStyle(
+                        color: BarrioColors.marino,
+                        fontSize: 30,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                Text(
+                    bought == 0
+                        ? 'Se ganan comprando en tu barrio.'
+                        : bought == 1
+                            ? 'Llevas 1 compra en tu barrio.'
+                            : 'Llevas $bought compras en tu barrio.',
+                    style: const TextStyle(
+                        color: BarrioColors.gris, fontSize: 16)),
+                const SizedBox(height: 16),
+                const Divider(
+                    color: BarrioColors.marino, thickness: 2, height: 2),
+                for (final seal in seals) ...[
+                  _SealRow(seal: seal),
+                  if (seal['nivel'] == 'primera' &&
+                      seal['obtenida'] == true &&
+                      reward != null)
+                    _Reward(reward: reward),
+                  const Divider(
+                      color: BarrioColors.marino, thickness: 2, height: 2),
+                ],
+                if (city != null && cityAll != null) ...[
+                  const SizedBox(height: 28),
+                  const Text('Tu ciudad',
+                      style: TextStyle(
+                          color: BarrioColors.marino,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  const Text(
+                      'Un sello por alcaldía. Bronce con 1 compra, plata con 3, oro con 5.',
+                      style: TextStyle(color: BarrioColors.gris, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  _CityTotal(data: cityAll),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: .68,
                     children: [
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Logros del barrio',
-                                style: TextStyle(
-                                    color: BarrioColors.marino,
-                                    fontSize: 29,
-                                    height: 1.08,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -.5)),
-                            SizedBox(height: 6),
-                            Text('Cada vuelta cuenta.',
-                                style: TextStyle(
-                                    color: BarrioColors.gris, fontSize: 16)),
-                          ],
-                        ),
-                      ),
-                      Transform.rotate(
-                        angle: _scrollOffset / 300,
-                        child: const BarrioIcon(asset: 'medal-gold', size: 70),
-                      ),
+                      for (final place in city) _CityCell(place: place),
                     ],
                   ),
-                ),
-                const SizedBox(height: 18),
-                _Dashboard(unlocked: unlocked, total: total),
-                const SizedBox(height: 24),
-                const _FilterLabel(title: 'Ver'),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _StatusChip(
-                      label: 'Todos (${_achievements.length})',
-                      selected: _filter == _AchievementFilter.all,
-                      onTap: () =>
-                          setState(() => _filter = _AchievementFilter.all),
-                    ),
-                    _StatusChip(
-                      label: 'Conseguidos ($unlocked)',
-                      selected: _filter == _AchievementFilter.earned,
-                      onTap: () =>
-                          setState(() => _filter = _AchievementFilter.earned),
-                    ),
-                    _StatusChip(
-                      label: 'Por lograr (${total - unlocked})',
-                      selected: _filter == _AchievementFilter.pending,
-                      onTap: () =>
-                          setState(() => _filter = _AchievementFilter.pending),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
-                const _FilterLabel(title: 'Filtrar por alcaldía'),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 48,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _StatusChip(
-                        label: 'Todas',
-                        selected: _alcaldia == null,
-                        onTap: () => setState(() => _alcaldia = null),
-                      ),
-                      for (final alcaldia in I18n.alcaldiasCdmx)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: _StatusChip(
-                            label: alcaldia,
-                            selected: _alcaldia == alcaldia,
-                            onTap: () => setState(() => _alcaldia = alcaldia),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text('Tu lista',
-                          style: TextStyle(
-                              color: BarrioColors.marino,
-                              fontSize: 21,
-                              fontWeight: FontWeight.w800)),
-                    ),
-                    Text('${_visibleAchievements.length} logros',
-                        style: const TextStyle(
-                            color: BarrioColors.gris, fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                if (_visibleAchievements.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 28),
-                    child: Text('No hay logros en este filtro.',
-                        style: TextStyle(color: BarrioColors.gris)),
-                  )
-                else
-                  for (var index = 0;
-                      index < _visibleAchievements.length;
-                      index++) ...[
-                    if (index == 0)
-                      const Divider(
-                          color: BarrioColors.marino, thickness: 2, height: 2),
-                    _AchievementRow(
-                      achievement: _visibleAchievements[index],
-                      onTap: () => _showCoupon(_visibleAchievements[index]),
-                    ),
-                    const Divider(
-                        color: BarrioColors.marino, thickness: 2, height: 2),
-                  ],
+                ],
               ],
             ),
           ),
@@ -188,327 +129,246 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       ),
     );
   }
-
-  void _showCoupon(Achievement achievement) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => _CouponSheet(achievement: achievement),
-    );
-  }
 }
 
-class _Dashboard extends StatelessWidget {
-  const _Dashboard({required this.unlocked, required this.total});
-  final int unlocked;
-  final int total;
+String _cityAsset(Map<String, dynamic> place) {
+  final level = place['nivel']?.toString() ?? 'bronce';
+  return place['id'] == 'cdmx'
+      ? 'cdmx-$level'
+      : 'alcaldia-${place['id']}-$level';
+}
+
+String _levelName(Object? level) => _labels[level] ?? 'Sin sello';
+
+void _openCity(BuildContext context, Map<String, dynamic> place) {
+  final isCity = place['id'] == 'cdmx';
+  final count = (place['avance'] as num? ?? 0).toInt();
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: BarrioColors.crema,
+    builder: (_) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _SealImage(
+              name: _cityAsset(place),
+              earned: place['nivel'] != null,
+              size: 168),
+          const SizedBox(height: 12),
+          Text(place['nombre'].toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  color: BarrioColors.marino,
+                  fontSize: 24,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800)),
+          Text(
+              isCity ? 'Las 16 alcaldías de la CDMX' : place['zona'].toString(),
+              style: const TextStyle(color: BarrioColors.gris, fontSize: 16)),
+          const SizedBox(height: 12),
+          Text(
+              isCity
+                  ? 'Vale lo que tu alcaldía con menos compras. Llevas $count de 16 rumbo al siguiente nivel.'
+                  : count == 1
+                      ? 'Llevas 1 compra aquí.'
+                      : 'Llevas $count compras aquí.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: BarrioColors.tinta, fontSize: 17)),
+          const SizedBox(height: 4),
+          Text(_levelName(place['nivel']),
+              style: const TextStyle(
+                  color: BarrioColors.teal,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700)),
+        ]),
+      ),
+    ),
+  );
+}
+
+class _SealImage extends StatelessWidget {
+  const _SealImage(
+      {required this.name, required this.earned, required this.size});
+  final String name;
+  final bool earned;
+  final double size;
+
+  static const _gray = ColorFilter.matrix(<double>[
+    .2126, .7152, .0722, 0, 0, //
+    .2126, .7152, .0722, 0, 0, //
+    .2126, .7152, .0722, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]);
 
   @override
   Widget build(BuildContext context) {
-    final fraction = total == 0 ? 0.0 : unlocked / total;
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: BarrioColors.blanco,
-        border: Border.all(color: BarrioColors.marino, width: 2),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('$unlocked',
+    final image = Image.asset('assets/sellos/$name.png',
+        width: size, height: size, excludeFromSemantics: true);
+    return earned
+        ? image
+        : Opacity(
+            opacity: .45,
+            child: ColorFiltered(colorFilter: _gray, child: image));
+  }
+}
+
+class _CityTotal extends StatelessWidget {
+  const _CityTotal({required this.data});
+  final Map<String, dynamic> data;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: () => _openCity(context, data),
+        child: Row(children: [
+          _SealImage(
+              name: _cityAsset(data), earned: data['nivel'] != null, size: 88),
+          const SizedBox(width: 14),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_levelName(data['nivel']),
+                  style: const TextStyle(
+                      color: BarrioColors.gris,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500)),
+              Text(data['nombre'].toString(),
                   style: const TextStyle(
                       color: BarrioColors.marino,
-                      fontSize: 42,
-                      height: 1,
-                      fontWeight: FontWeight.w800)),
-              Padding(
-                padding: const EdgeInsets.only(left: 7, bottom: 3),
-                child: Text('de $total logros',
-                    style: const TextStyle(
-                        color: BarrioColors.gris,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600)),
-              ),
-              const Spacer(),
-              const BarrioIcon(asset: 'achievements', size: 36),
-            ],
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700)),
+              const Text('Las 16 alcaldías en un mismo nivel.',
+                  style: TextStyle(color: BarrioColors.tinta, fontSize: 16)),
+            ]),
           ),
-          const SizedBox(height: 13),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: 10,
-              backgroundColor: BarrioColors.niebla,
-              valueColor: const AlwaysStoppedAnimation(BarrioColors.mango),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text('${total - unlocked} por lograr · descuentos de muestra',
-              style: const TextStyle(color: BarrioColors.gris, fontSize: 14)),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterLabel extends StatelessWidget {
-  const _FilterLabel({required this.title});
-  final String title;
-  @override
-  Widget build(BuildContext context) => Text(title,
-      style: const TextStyle(
-          color: BarrioColors.marino,
-          fontSize: 16,
-          fontWeight: FontWeight.w700));
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip(
-      {required this.label, required this.selected, required this.onTap});
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-        button: true,
-        selected: selected,
-        label: label,
-        child: Material(
-          color: selected ? BarrioColors.marino : BarrioColors.crema,
-          child: InkWell(
-            onTap: onTap,
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-              decoration: BoxDecoration(
-                color: selected ? BarrioColors.marino : BarrioColors.crema,
-                border: Border.all(color: BarrioColors.marino, width: 1.5),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                selected ? '✓ $label' : label,
-                style: TextStyle(
-                  color: selected ? BarrioColors.crema : BarrioColors.marino,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-        ),
+        ]),
       );
 }
 
-class _AchievementRow extends StatelessWidget {
-  const _AchievementRow({required this.achievement, required this.onTap});
-  final Achievement achievement;
-  final VoidCallback onTap;
-
-  static const _grayMatrix = <double>[
-    .2126,
-    .7152,
-    .0722,
-    0,
-    0,
-    .2126,
-    .7152,
-    .0722,
-    0,
-    0,
-    .2126,
-    .7152,
-    .0722,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-  ];
+class _CityCell extends StatelessWidget {
+  const _CityCell({required this.place});
+  final Map<String, dynamic> place;
 
   @override
   Widget build(BuildContext context) {
-    final isUnlocked = achievement.unlocked;
-    final icon = BarrioIcon(asset: achievement.tier.iconAsset, size: 52);
+    final earned = place['nivel'] != null;
     return Semantics(
       button: true,
-      label: '${achievement.tier.label}: ${achievement.title}. '
-          '${isUnlocked ? 'Conseguido' : 'Por lograr'}. Abre cupón de muestra.',
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isUnlocked)
-                icon
-              else
-                Opacity(
-                  opacity: .6,
-                  child: ColorFiltered(
-                    colorFilter: const ColorFilter.matrix(_grayMatrix),
-                    child: icon,
-                  ),
-                ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        '${achievement.tier.label.toUpperCase()} · ${achievement.title}',
-                        style: TextStyle(
-                            color: isUnlocked
-                                ? BarrioColors.marino
-                                : BarrioColors.gris,
-                            fontSize: 16,
-                            height: 1.2,
-                            fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 5),
-                    Text(achievement.description,
-                        style: TextStyle(
-                            color: isUnlocked
-                                ? BarrioColors.tinta
-                                : BarrioColors.gris,
-                            fontSize: 14,
-                            height: 1.35)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(2),
-                            child: LinearProgressIndicator(
-                              value: achievement.fraction,
-                              minHeight: 5,
-                              backgroundColor: BarrioColors.niebla,
-                              valueColor: AlwaysStoppedAnimation(isUnlocked
-                                  ? BarrioColors.mango
-                                  : BarrioColors.gris),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 9),
-                        Text('${achievement.progress}/${achievement.target}',
-                            style: TextStyle(
-                                color: isUnlocked
-                                    ? BarrioColors.marino
-                                    : BarrioColors.gris,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const BarrioIcon(asset: 'chevron-right', size: 23),
-            ],
-          ),
+      label:
+          '${place['zona']}, ${place['nombre']}, ${_levelName(place['nivel'])}',
+      child: ExcludeSemantics(
+        child: InkWell(
+          onTap: () => _openCity(context, place),
+          child: Column(children: [
+            AspectRatio(
+                aspectRatio: 1,
+                child: LayoutBuilder(
+                    builder: (_, box) => _SealImage(
+                        name: _cityAsset(place),
+                        earned: earned,
+                        size: box.maxWidth))),
+            const SizedBox(height: 4),
+            Text(place['zona'].toString(),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: earned ? BarrioColors.marino : BarrioColors.gris,
+                    fontSize: 14,
+                    height: 1.15,
+                    fontWeight: FontWeight.w700)),
+          ]),
         ),
       ),
     );
   }
 }
 
-class _CouponSheet extends StatelessWidget {
-  const _CouponSheet({required this.achievement});
-  final Achievement achievement;
+const _labels = {
+  'primera': 'Para empezar',
+  'bronce': 'Bronce',
+  'plata': 'Plata',
+  'oro': 'Oro',
+};
+
+class _SealRow extends StatelessWidget {
+  const _SealRow({required this.seal});
+  final Map<String, dynamic> seal;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
-          decoration: const BoxDecoration(
-            color: BarrioColors.crema,
-            border:
-                Border(top: BorderSide(color: BarrioColors.marino, width: 3)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  BarrioIcon(asset: achievement.tier.iconAsset, size: 54),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            achievement.unlocked
-                                ? 'Logro conseguido'
-                                : 'Sigue la ruta',
-                            style: const TextStyle(
-                                color: BarrioColors.gris,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600)),
-                        Text(achievement.title,
-                            style: const TextStyle(
-                                color: BarrioColors.marino,
-                                fontSize: 21,
-                                fontWeight: FontWeight.w800)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: BarrioColors.blanco,
-                  border: Border.all(color: BarrioColors.marino, width: 2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    const BarrioIcon(asset: 'coupon', size: 44),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${achievement.discountPercent}% de descuento',
-                              style: const TextStyle(
-                                  color: BarrioColors.marino,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800)),
-                          Text('Lo asigna ${achievement.couponBusiness}',
-                              style: const TextStyle(
-                                  color: BarrioColors.tinta, fontSize: 14)),
-                          const SizedBox(height: 8),
-                          SelectableText(achievement.couponCode,
-                              style: const TextStyle(
-                                  color: BarrioColors.marino,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                achievement.unlocked
-                    ? 'Cupón de muestra. No se puede canjear todavía.'
-                    : 'Desbloquea el logro para conseguir este cupón de muestra.',
-                style: const TextStyle(color: BarrioColors.gris, fontSize: 14),
-              ),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final level = seal['nivel']?.toString() ?? 'bronce';
+    final earned = seal['obtenida'] == true;
+    final progress = seal['avance'] ?? seal['pedidos_pagados'] ?? 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _SealImage(name: level, earned: earned, size: 72),
+        const SizedBox(width: 14),
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_labels[level] ?? level,
+                style: const TextStyle(
+                    color: BarrioColors.gris,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500)),
+            Text(seal['nombre'].toString(),
+                style: const TextStyle(
+                    color: BarrioColors.marino,
+                    fontSize: 19,
+                    height: 1.2,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text(seal['detalle']?.toString() ?? '',
+                style:
+                    const TextStyle(color: BarrioColors.tinta, fontSize: 16)),
+            const SizedBox(height: 6),
+            Text(earned ? 'Conseguido' : '$progress de ${seal['meta']}',
+                style: TextStyle(
+                    color: earned ? BarrioColors.teal : BarrioColors.gris,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700)),
+          ]),
         ),
-      );
+      ]),
+    );
+  }
+}
+
+/// El premio es un objeto real: por eso aquí sí va como ticket.
+class _Reward extends StatelessWidget {
+  const _Reward({required this.reward});
+  final Map<String, dynamic> reward;
+
+  @override
+  Widget build(BuildContext context) {
+    final minimum = (reward['min_compra_minor'] as num? ?? 0);
+    final business = reward['negocio']?.toString() ?? 'ese negocio';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: BarrioPanel(
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(reward['titulo'].toString(),
+              style: const TextStyle(
+                  color: BarrioColors.marino,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text(
+              minimum > 0
+                  ? 'En $business, con compra de ${formatMoney(minimum)} o más. Se descuenta solo.'
+                  : 'En $business. Se descuenta solo.',
+              style: const TextStyle(color: BarrioColors.tinta, fontSize: 16)),
+          const SizedBox(height: 12),
+          AppButton(
+              label: 'Pedir otra vez',
+              iconAsset: 'chevron-right',
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => BusinessScreen(
+                      businessId: (reward['negocio_id'] as num).toInt())))),
+        ]),
+      ),
+    );
+  }
 }

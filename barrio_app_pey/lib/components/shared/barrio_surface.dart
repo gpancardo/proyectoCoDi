@@ -10,8 +10,9 @@ class BarrioBackdrop extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
-        color: BarrioColors.crema,
+  Widget build(BuildContext context) => Material(
+        color: BarrioColors
+            .crema, // Material y no ColoredBox: deja ver el toque en filas y switches
         child: child,
       );
 }
