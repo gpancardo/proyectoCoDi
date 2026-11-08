@@ -53,34 +53,76 @@ export async function montarChangarrito(lienzo, { quieto = false } = {}) {
   // Caja del puesto: marino con el frente en mango y el rótulo pintado
   const caja = new THREE.BoxGeometry(2.4, 1.05, 1.1)
   pieza(caja, M.marino, { y: 0.95 })
-  await Promise.all([document.fonts.load('800 120px Archivo'), document.fonts.load('700 60px Archivo')]).catch(() => {})
+  await document.fonts.load('800 120px Archivo').catch(() => {})
+  // Rótulo pintado a mano, como los de las fondas y puestos de CDMX: tablero blanco, letra alta y apretada con bandas de color,
+  // contorno blanco y marino, sombra pintada, un dibujo del producto y una estrella roja con el precio.
   const rotulo = document.createElement('canvas')
   rotulo.width = 2048; rotulo.height = 800
   const g = rotulo.getContext('2d')
-  g.fillStyle = '#F5A524'; g.fillRect(0, 0, 2048, 800)
-  // doble filete de rotulista: marino grueso y uno delgado por dentro
-  g.strokeStyle = '#0B2545'; g.lineWidth = 26; g.strokeRect(34, 34, 1980, 732)
-  g.lineWidth = 8; g.strokeRect(72, 72, 1904, 656)
-  g.textBaseline = 'alphabetic'; g.lineJoin = 'round'
-  // nombre: letra expandida como los titulares, blanca con contorno marino y sombra pintada
-  g.fontStretch = 'expanded'
-  g.font = '800 330px Archivo, sans-serif'
-  const nombre = 'doña lupe'
-  g.fillStyle = '#0B2545'; g.fillText(nombre, 150 + 14, 410 + 14)
-  g.strokeStyle = '#0B2545'; g.lineWidth = 22; g.strokeText(nombre, 150, 410)
-  g.fillStyle = '#FFFFFF'; g.fillText(nombre, 150, 410)
-  // renglón de abajo: mayúsculas de rótulo, con subrayado
-  g.font = '800 120px Archivo, sans-serif'
-  g.fillStyle = '#0B2545'
-  g.fillText('TACOS DE CANASTA', 150, 620)
-  g.fillRect(150, 650, 1130, 14)
-  // precio en medallón
-  g.beginPath(); g.arc(1700, 520, 170, 0, Math.PI * 2)
-  g.fillStyle = '#FFFFFF'; g.fill(); g.lineWidth = 16; g.strokeStyle = '#0B2545'; g.stroke()
-  g.fillStyle = '#0B2545'; g.textAlign = 'center'
-  g.font = '800 170px Archivo, sans-serif'; g.fillText('$12', 1700, 575)
-  g.font = '700 54px Archivo, sans-serif'; g.fillText('cada uno', 1700, 640)
-  g.textAlign = 'left'
+  let semillaR = 11
+  const azarR = () => ((semillaR = (semillaR * 9301 + 49297) % 233280) / 233280 - 0.5)
+  const MARINO = '#0B2545', MANGO = '#F5A524', OSCURO = '#DB8E12', ROJO = '#C2392B', BLANCO = '#FFFFFF'
+  g.fillStyle = BLANCO; g.fillRect(0, 0, 2048, 800)
+  g.strokeStyle = MARINO; g.lineWidth = 24; g.strokeRect(26, 26, 1996, 748)
+
+  // Letra rotulada: cada letra con su pequeña inclinación, como pintada a pulso
+  function rotular(texto, x, y, alto, { bandas = null, relleno = MARINO, cond = 0.78, grosor = 0.15, sombra = true, giro = 0 } = {}) {
+    g.save(); g.translate(x, y); g.rotate(giro); g.scale(cond, 1)
+    g.font = `800 ${alto}px Archivo, sans-serif`; g.textBaseline = 'alphabetic'; g.lineJoin = 'round'
+    let cx = 0
+    for (const c of texto) {
+      const w = g.measureText(c).width
+      g.save(); g.translate(cx + w / 2, azarR() * alto * 0.05); g.rotate(azarR() * 0.06); g.translate(-w / 2, 0)
+      if (sombra) { g.fillStyle = MARINO; g.fillText(c, alto * 0.05, alto * 0.06) }
+      g.strokeStyle = MARINO; g.lineWidth = alto * grosor; g.strokeText(c, 0, 0)
+      g.strokeStyle = BLANCO; g.lineWidth = alto * grosor * 0.5; g.strokeText(c, 0, 0)
+      if (bandas) {
+        const gr = g.createLinearGradient(0, -alto * 0.75, 0, 0)
+        bandas.forEach(([p, col]) => { gr.addColorStop(p[0], col); gr.addColorStop(p[1], col) })
+        g.fillStyle = gr
+      } else g.fillStyle = relleno
+      g.fillText(c, 0, 0)
+      g.restore()
+      cx += w + alto * 0.02
+    }
+    g.restore()
+  }
+  // Destello de cuatro puntas, de los que dibujan los rotulistas para dar brillo
+  const brillo = (x, y, r) => {
+    g.save(); g.translate(x, y); g.fillStyle = BLANCO; g.strokeStyle = MARINO; g.lineWidth = 6; g.beginPath()
+    for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * 0.22 : r; const t = (i * Math.PI) / 4; g.lineTo(Math.cos(t) * rr, Math.sin(t) * rr) }
+    g.closePath(); g.fill(); g.stroke(); g.restore()
+  }
+
+  // 1. nombre del negocio, en cursiva roja arriba
+  g.save(); g.transform(1, 0, -0.18, 1, 0, 0)
+  rotular('doña lupe', 150, 190, 140, { relleno: ROJO, cond: 0.9, grosor: 0.12, giro: -0.02 })
+  g.restore()
+  // 2. palabra grande con bandas de fuego: mango, oscuro y rojo
+  rotular('TACOS', 78, 470, 310, { bandas: [[[0, 0.34], MANGO], [[0.34, 0.66], OSCURO], [[0.66, 1], ROJO]], cond: 0.74, grosor: 0.12 })
+  // 3. renglón de abajo
+  rotular('DE CANASTA', 96, 590, 112, { relleno: MARINO, cond: 0.8, grosor: 0.10, sombra: false })
+  brillo(1010, 130, 50); brillo(1130, 330, 34); brillo(520, 235, 26)
+
+  // 4. dibujo: canasta con manta y tacos asomando
+  const trazo = (relleno) => { g.fillStyle = relleno; g.fill(); g.lineWidth = 14; g.strokeStyle = MARINO; g.lineJoin = 'round'; g.stroke() }
+  g.beginPath(); g.moveTo(1300, 470); g.lineTo(1860, 470); g.lineTo(1790, 700); g.lineTo(1370, 700); g.closePath(); trazo(OSCURO)
+  g.lineWidth = 8; g.strokeStyle = MARINO
+  for (let i = 1; i < 6; i++) { g.beginPath(); g.moveTo(1300 + i * 93 - 10 + (i < 3 ? 12 : 0), 478); g.lineTo(1372 + i * 70, 694); g.stroke() }
+  for (const [cx, rot] of [[1450, -0.25], [1640, 0.05], [1790, 0.3]]) {         // tacos: medias lunas de mango con relleno
+    g.save(); g.translate(cx, 440); g.rotate(rot)
+    g.beginPath(); g.arc(0, 0, 110, Math.PI, 0); g.closePath(); trazo(MANGO)
+    g.fillStyle = '#0F7C75'; for (const dx of [-60, -20, 25, 62]) { g.beginPath(); g.arc(dx, -22 - Math.abs(dx) * 0.12, 13, 0, Math.PI * 2); g.fill() }
+    g.fillStyle = ROJO; for (const dx of [-35, 40]) { g.beginPath(); g.arc(dx, -52, 11, 0, Math.PI * 2); g.fill() }
+    g.restore()
+  }
+  g.beginPath(); g.moveTo(1270, 520); g.quadraticCurveTo(1580, 400, 1890, 520); g.lineTo(1880, 560); g.quadraticCurveTo(1580, 470, 1280, 560); g.closePath(); trazo(BLANCO)   // manta
+  // 5. estrella roja con el precio
+  g.save(); g.translate(1780, 205); g.beginPath()
+  for (let i = 0; i < 24; i++) { const rr = i % 2 ? 108 : 168; const t = (i * Math.PI) / 12 - Math.PI / 2; g.lineTo(Math.cos(t) * rr, Math.sin(t) * rr) }
+  g.closePath(); g.fillStyle = ROJO; g.fill(); g.lineWidth = 12; g.strokeStyle = MARINO; g.lineJoin = 'round'; g.stroke()
+  g.fillStyle = BLANCO; g.textAlign = 'center'; g.font = '800 130px Archivo, sans-serif'; g.fillText('$12', 0, 38)
+  g.restore()
   const texRotulo = new THREE.CanvasTexture(rotulo)
   texRotulo.colorSpace = THREE.SRGBColorSpace
   texRotulo.anisotropy = 8
