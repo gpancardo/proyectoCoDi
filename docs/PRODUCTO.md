@@ -184,7 +184,7 @@ intentos_cobro (id, orden_id, via[push|link|qr], pey_ref, monto_minor, vence, es
 eventos_webhook (id)                                         cupones / cupon_canjes / notificaciones
 ```
 
-Las insignias no tienen tabla: se calculan de los pedidos pagados. `ordenes.pey_ref`/`pey_via` y `wa_*` son heredados del bot y ya no se usan.
+Las insignias no tienen tabla: se calculan de los pedidos pagados. Del canal de WhatsApp solo queda `wa_jid` como identificador heredado; el resto se eliminó en `20261107060000_limpiar_legado.sql`.
 
 ## 9. Superficies
 
