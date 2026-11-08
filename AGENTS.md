@@ -52,12 +52,11 @@ feature/<área>-<cambio> → dev → stg → main
 | Ruta | Estado |
 |---|---|
 | `backend/` | API en producción como Edge Function (`edge/api.js` + `src/`); pruebas en `test/`, recorrido real en `scripts/e2e-live.mjs` |
-| `supabase/` | migraciones (hasta `20261107050000`), seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
+| `supabase/` | migraciones (hasta `20261107060000`; producción va en `050000`), seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
 | `web/` | landing y registro heredados + app web (`app.html`/`app.js`); la publicación de la web la hace otro integrante |
 | `barrio_app_pey/` | app Flutter en construcción (otro integrante) |
-| `bot/` | código heredado de WhatsApp; referencia, no interfaz del producto |
 | `docs/` | producto, contrato y estado del backend, pey, diseño y voz |
 
 ## Comprobaciones
 
-El CI corre tres trabajos: `backend` (`npm run check` y `npm test`), `supabase` (migraciones + `supabase/tests/schema_smoke.sql` en Postgres con pgvector) y `bot` (heredado). Reglas nuevas de dinero/estado/parseo llevan pruebas en `backend/test/`; las de esquema, en `supabase/tests/`. La API vive en la Edge Function `api`: tras cambiar `backend/src/`, ejecuta `npm run build:edge` y vuelve a desplegar. No despliegues la web en GitHub Pages desde sesiones de agente: eso lo hace el responsable de la web.
+El CI corre dos trabajos: `backend` (`npm run check` y `npm test`) y `supabase` (migraciones + `supabase/tests/schema_smoke.sql` en Postgres con pgvector). Reglas nuevas de dinero/estado/parseo llevan pruebas en `backend/test/`; las de esquema, en `supabase/tests/`. La API vive en la Edge Function `api`: tras cambiar `backend/src/`, ejecuta `npm run build:edge` y vuelve a desplegar. No despliegues la web en GitHub Pages desde sesiones de agente: eso lo hace el responsable de la web.
