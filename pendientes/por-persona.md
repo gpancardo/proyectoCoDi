@@ -2,6 +2,20 @@
 
 Roles de `docs/PRODUCTO.md` §10. Donde no hay nombre, la persona que lo tome lo anota aquí. Antes de empezar: `git pull --rebase` y rama `feature/<área>-<cambio>` desde `dev`.
 
+## APK final y enlace de descarga (Raz)
+
+Lo hace Raz, con el teléfono de la demo a la mano. Orden:
+
+- [ ] `git pull --rebase` en `main` y entrar a `barrio_app_pey/`.
+- [ ] Comprobar: `flutter analyze` sin avisos y `flutter test` en verde.
+- [ ] Generar el APK: `flutter build apk --release`. Sale en `build/app/outputs/flutter-apk/app-release.apk` (unos 58 MB).
+- [ ] Instalarlo en un teléfono Android y recorrer la demo completa (comprador y negocio) antes de compartirlo.
+- [ ] Subirlo a la carpeta de Drive con el nombre `barrio-demo.apk`, reemplazando el anterior, con acceso «cualquiera con el enlace».
+- [ ] **Cambiar el enlace de descarga** si la carpeta es otra: es un solo lugar, el botón de `web/descargar/index.html` (`<a class="btn" href="…">`). Ahí mismo, el texto del paso 1 nombra el archivo.
+- [ ] PR a `dev` con ese cambio, y promover `dev` → `stg` → `main` con CI en verde (`AGENTS.md`). Revisar en la web publicada que `/descargar/` abra el enlace nuevo.
+
+Si falla `flutter build apk`: hace falta el SDK de Android 36 y JDK 17 o 21; la configuración de Gradle ya está en el repositorio.
+
 ## Producto y pitch (Alejandro)
 
 - [ ] Verificar las cifras 🟡 de `docs/PRODUCTO.md` y quedarse solo con las que tengan fuente.
@@ -11,9 +25,10 @@ Roles de `docs/PRODUCTO.md` §10. Donde no hay nombre, la persona que lo tome lo
 
 ## Web (quien publica `web/`)
 
-- [ ] Publicar la landing en Netlify desde `main` y confirmar que la URL coincide con `jade-paprenjak-a98b06.netlify.app` (canonical y sitemap la usan). Si es otra, cambiarla en `web/index.html`, `web/blog/`, `web/descargar/`, `web/sitemap.xml` y `web/robots.txt`.
+- [x] Landing publicada el 8 nov 2026 en `https://jade-paprenjak-a98b06.netlify.app`. El sitio es de arrastrar y soltar (Netlify Drop) y **no se publica solo desde `main`**: cada cambio en `web/` se vuelve a subir en Netlify → Deploys, con un zip de `web/` (`git ls-files web | grep -v test | zip landing.zip -@` desde `web/`).
+- [ ] Si algún día la URL cambia, actualizarla en `web/index.html`, `web/blog/`, `web/descargar/`, `web/sitemap.xml` y `web/robots.txt`.
 - [ ] Verificar en Supabase → Auth que Site URL y redirects apunten a esa URL.
-- [ ] Confirmar que la carpeta de Drive del APK tiene acceso público.
+- [ ] Confirmar que el enlace de `/descargar/` abre sin pedir permiso (lo cambia Raz, arriba).
 
 ## Backend
 
