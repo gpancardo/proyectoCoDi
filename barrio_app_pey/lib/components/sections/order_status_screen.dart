@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -53,7 +51,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> with WidgetsBindi
       }
       if (!mounted) return;
       setState(() { _order = order; _payment = payment; _problem = null; _loading = false; });
-      if (const {'lista', 'rechazada', 'expirada', 'cancelada'}.contains(order['estado'])) _poller?.cancel();
+      if (const {'lista', 'entregada', 'rechazada', 'expirada', 'cancelada'}.contains(order['estado'])) _poller?.cancel();
     } on BarrioApiException catch (error) { if (mounted) setState(() { _problem = error.message; _loading = false; }); }
   }
 
@@ -70,7 +68,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> with WidgetsBindi
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: BarrioColors.marino)));
     if (_problem != null) return Scaffold(body: BarrioBackdrop(child: Center(child: Padding(padding: const EdgeInsets.all(24), child: BarrioPanel(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_problem!), const SizedBox(height: 16), AppButton(label: 'Intentar de nuevo', onPressed: _refresh)]))))));
     final order = _order!; final state = order['estado'].toString();
-    if (state == 'pagada' || state == 'lista') return _PaidOrder(order: order, ready: state == 'lista');
+    if (state == 'lista') return _DeliveryConfirm(order: order, onReceived: () async { await context.read<BarrioApi>().post('/orders/${widget.orderId}/received', {}, token: context.read<AppState>().accessToken); await _refresh(); });
+    if (state == 'pagada' || state == 'entregada') return _PaidOrder(order: order, ready: state == 'entregada');
     return Scaffold(appBar: AppBar(title: const Text('Tu pedido')), body: BarrioBackdrop(child: ListView(padding: const EdgeInsets.all(16), children: [
       BarrioPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(_statusCopy[state] ?? state, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: BarrioColors.marino)),
@@ -90,14 +89,26 @@ class _PaymentInstructions extends StatelessWidget {
   @override Widget build(BuildContext context) {
     if (payment == null) return const BarrioPanel(child: Text('Preparando tu cobro…'));
     final via = payment!['via']?.toString(); final amount = payment!['monto_minor'] ?? payment!['amount_minor'];
-    final qr = payment!['qr_image']?.toString(); final link = payment!['link']?.toString();
     return BarrioPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(via == 'push' ? 'Abre la app de tu banco' : via == 'qr' ? 'Escanea con CoDi' : 'Paga con CoDi', style: const TextStyle(fontSize: 21,fontWeight: FontWeight.w700,color: BarrioColors.marino)),
+      Text('Abre la app de tu banco', style: const TextStyle(fontSize: 21,fontWeight: FontWeight.w700,color: BarrioColors.marino)),
       const SizedBox(height: 8), Text(via == 'push' ? 'Te llegó un cobro por ${formatMoney(amount)}. Apruébalo desde tu banco.' : 'Cuando pagues, esta pantalla se actualiza sola.'),
-      if (link != null && link.startsWith('https://')) Padding(padding: const EdgeInsets.only(top: 16), child: AppButton(label: 'Ir a pagar', onPressed: () => launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication))),
-      if (qr != null) Padding(padding: const EdgeInsets.only(top: 16), child: Center(child: Image.memory(base64Decode(qr), width: 260, semanticLabel: 'Código QR para pagar con CoDi'))),
     ]));
   }
+}
+
+class _DeliveryConfirm extends StatelessWidget {
+  const _DeliveryConfirm({required this.order, required this.onReceived});
+  final Map<String, dynamic> order;
+  final Future<void> Function() onReceived;
+  Future<void> _report() {
+    final subject = Uri.encodeComponent('Problema con pedido ${order['id']}');
+    final body = Uri.encodeComponent('Hola, necesito ayuda con mi pedido.\n\nPedido: ${order['id']}\nVendedor: ${order['negocio_id']}\nTotal: ${formatMoney(order['total_minor'])}\n\nQué pasó: ');
+    return launchUrl(Uri.parse('mailto:ghpancardo@gmail.com?subject=$subject&body=$body'));
+  }
+  @override Widget build(BuildContext context) => Scaffold(backgroundColor: BarrioColors.teal, body: SafeArea(child: Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    const Text('Tu pedido está listo', style: TextStyle(fontSize: 34,fontWeight: FontWeight.w800,color: BarrioColors.blanco), textAlign: TextAlign.center), const SizedBox(height: 12), const Text('Cuando lo recibas, confírmalo aquí.', style: TextStyle(fontSize: 18,color: BarrioColors.blanco), textAlign: TextAlign.center), const SizedBox(height: 28),
+    BarrioPanel(child: Column(children: [Text('Código ${order['codigo'] ?? '—'}', style: const TextStyle(fontSize: 34,fontWeight: FontWeight.w800,color: BarrioColors.marino)), const SizedBox(height: 16), AppButton(label: 'Confirmar que lo recibí', onPressed: () => onReceived()), TextButton(onPressed: _report, child: const Text('Reportar un problema'))])),
+  ]))));
 }
 
 class _PaidOrder extends StatelessWidget {
