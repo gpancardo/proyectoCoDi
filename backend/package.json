@@ -7,7 +7,8 @@
     "test": "node --test",
     "check": "node --check src/*.js",
     "index:catalog": "node src/index-catalog.js",
-    "e2e:live": "node scripts/e2e-live.mjs"
+    "e2e:live": "node scripts/e2e-live.mjs",
+    "build:edge": "npx --yes esbuild@0.25.0 edge/api.js --bundle --format=esm --external:node:* --outfile=../supabase/functions/api/index.ts"
   },
   "engines": {
     "node": ">=22"
