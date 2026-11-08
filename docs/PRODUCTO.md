@@ -119,21 +119,21 @@ Negocio marca "Listo" → la app muestra el estado a Lupita
 ## 7. Arquitectura
 
 ```
-App standalone ──HTTPS──► Backend Barrio [backend/]
+Web (web/app.html) y app Flutter ──HTTPS──► API Barrio = Supabase Edge Function `api`   [backend/]
                                     ├─ Descubrir: categorías/ranking determinista (siempre)
-                                    ├─ Buscar con Barrio: RAG + agente → filtros tipados validados
-                                    ├─ pedidos y pagos: reglas de dominio + SQL
+                                    ├─ Buscar con Barrio: modelo opcional → filtros tipados validados (+ RAG si hay llave)
+                                    ├─ pedidos, cupones, insignias: reglas de dominio + Postgres
                                     └─ cobro ──► pey POST /codi/pn (respaldos: /payment-link/create, /codi/qr)
                                                           │
                        banco del comprador: aprobar ◄─────┘
                                 │
-              pey ──webhook firmado──► Backend / Edge Function             [supabase/functions/]
-                                         └─ ordenes.estado = 'pagada'
-                                                    │ API / canal autenticado
-                              App ◄─────────────────┘  muestra el estado
+              pey ──webhook firmado──► POST /webhooks/pey (misma función)
+                                         └─ intentos_cobro 'pagado' → ordenes.estado = 'pagada'
+                                                    │ la app consulta el pedido (polling)
+                              Web/App ◄─────────────┘  muestra "¡Pagado!" y el código
 
-Supabase: Postgres + funciones de búsqueda/webhook                           [supabase/]
-Landing y registro de negocios: GitHub Pages (HTML estático)                [web/]
+Supabase: Postgres + Auth + pg_cron (barrido_sql) + Realtime de avisos + bucket de imágenes   [supabase/]
+Web estática: publicada por otro integrante                                                    [web/]
 ```
 
 El backend expone una API HTTPS autenticada. El cliente no usa credenciales de servidor ni escribe directamente en tablas. El webhook y la reconciliación mantienen el estado de pago; la app consulta el pedido o recibe cambios por un canal autenticado.
@@ -159,38 +159,38 @@ Referencia: **docs.pey.mx** (OpenAPI en `docs.pey.mx/openapi.json`, versión 202
 
 > **Riesgo #1.** Si no hay API key a tiempo, el backend debe usar un adaptador de pagos simulado en desarrollo; nunca presentar una simulación como pago real. Para pruebas locales, aislar esos datos del proyecto de producción.
 
-### 7.2 Uso de OpenAI
+### 7.2 Uso del modelo (OpenAI u OpenRouter)
 
 | Tarea | Modelo | Entrada → salida |
 |---|---|---|
-| Interpretación y explicación de búsqueda | Modelo del backend, por configurar | consulta libre + candidatos recuperados → filtros/categorías tipados y explicación breve |
-| Recuperación semántica | Modelo de embeddings del backend | documento de catálogo → vector; consulta → candidatos de catálogo |
+| Interpretación y explicación de búsqueda | `OPENAI_MODEL` (por defecto `gpt-4o-mini`; en OpenRouter `openai/gpt-4o-mini`) | consulta libre + candidatos recuperados → filtros/categorías tipados y explicación breve |
+| Recuperación semántica | `OPENAI_EMBEDDING_MODEL` (`text-embedding-3-small`, 1536 dimensiones) | documento de catálogo → vector; consulta → candidatos de catálogo |
 
 El agente no confirma pedidos, accede a secretos, altera estados ni calcula importes. Tampoco escribe el perfil: el backend registra señales tipadas y construye afinidades por categoría. El backend ejecuta toda consulta validada y las operaciones de dominio.
 
 ## 8. Modelo de datos
 
-Definido en `supabase/migrations/`. Resumen:
+Definido en `supabase/migrations/` (detalle de columnas y restricciones en [`BACKEND.md`](BACKEND.md)). Resumen:
 
 ```
-compradores (id, sujeto_auth, nombre, zona)
-perfiles_descubrimiento (comprador_id, categorias{}, actualizado)
-eventos_descubrimiento (comprador_id, negocio_id, tipo[search|view|save|order], categoria, consulta)
-negocios    (id, nombre, contacto, verificado, zona, direccion, categoria,
-             productos[{nombre, precio}], auto_aceptar, abierto, pey_bank_account_id, embedding)
-catalogo_documentos (negocio_id, contenido, embedding)
-ordenes     (id, comprador_id, negocio_id, items[], notas, monto, codigo,
-             estado[pendiente|aceptada|cobrada|pagada|lista|rechazada|expirada|vencida|cancelada],
-             pey_ref, rastreo, creado, pagada_en)
+compradores (id, sujeto_auth→auth.users, nombre, telefono, zona, colonia, latitud, longitud)
+negocios    (id, sujeto_auth, nombre, descripcion, imagen_url, zona, colonia, direccion, latitud, longitud, categoria,
+             productos[{nombre, precio}], auto_aceptar, abierto, verificado, pey_bank_account_id)
+catalogo_documentos (negocio_id, contenido, embedding)      perfiles_descubrimiento / eventos_descubrimiento
+cotizaciones (id, comprador_id, negocio_id, items[], subtotal_minor, descuento_minor, total_minor, canje_id, expira)
+ordenes     (id, comprador_id, negocio_id, items[], monto, descuento_minor, codigo, cotizacion_id, idempotency_key, canje_id,
+             estado[pendiente|aceptada|cobrada|pagada|lista|rechazada|expirada|vencida|cancelada], pagada_en)
+intentos_cobro (id, orden_id, via[push|link|qr], pey_ref, monto_minor, vence, estado[vigente|pagado|vencido|fallido|revision], instrucciones)
+eventos_webhook (id)                                         cupones / cupon_canjes / notificaciones
 ```
 
-El modelo actual de Supabase conserva campos heredados de WhatsApp. La migración al contrato nuevo debe sustituirlos por identidad de aplicación y permisos por rol sin debilitar las restricciones de precio, monto o verificación del negocio.
+Las insignias no tienen tabla: se calculan de los pedidos pagados. `ordenes.pey_ref`/`pey_via` y `wa_*` son heredados del bot y ya no se usan.
 
 ## 9. Superficies
 
-1. **App standalone:** búsqueda, catálogo, cotización, pedidos y estado de pago; gestión para negocios.
-2. **Landing** (`web/index.html`): prototipo legado; requiere actualización para explicar y enlazar la app.
-3. **Registro de negocios** (`web/registro.html`): prototipo legado; debe enviar el alta al backend antes de volver a usarse.
+1. **Web de la app** (`web/app.html`): comprador (descubrir, buscar, cuenta, pedido, pago, avisos, perfil con insignias) y negocio (pedidos, promociones, menú, abrir/cerrar). Un solo archivo JS sin build.
+2. **App Flutter** (`barrio_app_pey/`): en construcción por otro integrante; aún no consume la API.
+3. **Landing** (`web/index.html`) y **registro heredado** (`web/registro.html`): prototipos del flujo de WhatsApp; el registro vigente es el de `app.html`.
 
 **Criterios de diseño:** botones grandes, una sola acción principal por pantalla, alto contraste, cero jerga financiera (ver `VOZ-DE-MARCA.md`), funciona en Android de gama media y con señal débil.
 
@@ -254,11 +254,14 @@ El modelo actual de Supabase conserva campos heredados de WhatsApp. La migració
 - Búsqueda: RAG y agente para encontrar y explicar matches del catálogo; filtros deterministas como autoridad y fallback.
 - Datos: Supabase/Postgres; pey para cobros. El servidor es dueño de las credenciales y reglas de pedidos.
 - App y backend son tareas separadas que se coordinan mediante `BACKEND.md`.
+- Sesión y roles: Supabase Auth; comprador automático, negocio por registro. Sin verificación manual de negocios.
+- Promociones: cupones del negocio autoaplicados al cobro tras aceptarlos; insignias por colonia, alcaldía o negocio.
+- Hosting: API y base en Supabase (Edge Function); web estática publicada por otro integrante.
 - Fuera del MVP: alta de menú por foto.
 
 **Abiertas** 🟡
-1. Proveedor de identidad y modelo de sesión/roles para comprador y negocio.
-2. Ubicación: zona, coordenadas, permiso y fallback manual.
-3. Pesos y explicación del orden de resultados; campos disponibles del catálogo.
-4. API key de pey, cuenta CoDi de demo y responsable de probar $0.01.
-5. Responsable de migrar el registro web legado al backend.
+1. Ubicación por distancia en el ranking (las coordenadas ya se guardan) y pesos finales.
+2. Cuenta CoDi propia por negocio (`pey_bank_account_id`) y registro de una CLABE de prueba en el portal de pey.
+3. Webhook de pey registrado en `/webhooks/pey` y retiro de la función `pey-webhook` anterior.
+4. Llave de modelo (OpenRouter u OpenAI) y primer `index:catalog`.
+5. Integración de la app Flutter y publicación de la web.
