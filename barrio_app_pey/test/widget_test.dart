@@ -12,6 +12,7 @@ import 'package:barrio_app_pey/components/sections/seller_screen.dart';
 import 'package:barrio_app_pey/components/sections/seller_setup.dart';
 import 'package:barrio_app_pey/services/barrio_api.dart';
 import 'package:barrio_app_pey/state/app_state.dart';
+import 'package:barrio_app_pey/utils/money.dart';
 
 Widget _app(AppState state) => MultiProvider(
       providers: [
@@ -93,6 +94,13 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  test('dinero: centavos reales y miles', () {
+    expect(formatMoney(1), r'$0.01');
+    expect(formatMoney(5500), r'$55');
+    expect(formatMoney(124000), r'$1,240');
+    expect(formatMoney(123456789), r'$1,234,567.89');
+  });
+
   test('precio del menú', () {
     expect(parsePrecio('12.5'), 12.5);
     expect(parsePrecio('12,5'), 12.5);
@@ -115,6 +123,8 @@ void main() {
           '{"data":[{"id":5,"estado":"pendiente","total_minor":800,"items":[{"cantidad":1,"nombre":"Pluma"}],"comprador_logros":[{"nombre":"Primera compra"}]}]}',
     });
     expect(find.text('Pedidos (1)'), findsOneWidget);
+    await tester.tap(find.text('Pedidos (1)'));
+    await tester.pumpAndSettle();
     expect(find.text('Aceptar pedido'), findsOneWidget);
     expect(find.text('Sellos de tu cliente: Primera compra'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
@@ -124,10 +134,12 @@ void main() {
       (tester) async {
     await pumpWith(tester, const AchievementsScreen(), {
       '/me/profile':
-          '{"data":{"pedidos_pagados":1,"premio":{"negocio_id":7,"negocio":"La Espiga","titulo":"10% en tu siguiente compra","min_compra_minor":5000},"insignias":[{"nivel":"primera","nombre":"Primera compra","detalle":"La hiciste en La Espiga.","avance":1,"meta":1,"obtenida":true},{"nivel":"oro","nombre":"De todo en tu barrio","detalle":"Cuatro tipos.","avance":1,"meta":4,"obtenida":false}]}}',
+          '{"data":{"pedidos_pagados":1,"premio":{"negocio_id":7,"negocio":"La Espiga","titulo":"10% en tu siguiente compra","min_compra_minor":5000},"insignias":[{"nivel":"primera","nombre":"Primera compra","detalle":"La hiciste en La Espiga.","avance":1,"meta":1,"obtenida":true},{"nivel":"oro","nombre":"De todo en tu barrio","detalle":"Cuatro tipos.","avance":1,"meta":4,"obtenida":false}],"cdmx":{"id":"cdmx","nombre":"Toda la ciudad","nivel":null,"avance":1,"meta":16},"alcaldias":[{"id":"coyoacan","zona":"Coyoacán","nombre":"Lugar de coyotes","nivel":"plata","avance":3,"meta":5}]}}',
     });
     expect(find.text('Llevas 1 compra en tu barrio.'), findsOneWidget);
     expect(find.text('10% en tu siguiente compra'), findsOneWidget);
     expect(find.text('1 de 4'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Coyoacán'), 200);
+    expect(find.text('Coyoacán'), findsOneWidget);
   });
 }

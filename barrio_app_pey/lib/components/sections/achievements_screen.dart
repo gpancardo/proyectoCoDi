@@ -6,7 +6,6 @@ import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../../utils/money.dart';
 import '../shared/app_button.dart';
-import '../shared/barrio_icon.dart';
 import '../shared/barrio_surface.dart';
 import 'business_screen.dart';
 
@@ -55,6 +54,12 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         .whereType<Map<String, dynamic>>();
     final bought = (profile['pedidos_pagados'] as num? ?? 0).toInt();
     final reward = profile['premio'] as Map<String, dynamic>?;
+    final cityAll = profile['cdmx'] as Map<String, dynamic>?;
+    final city = (profile['alcaldias'] as List<dynamic>?)
+        ?.whereType<Map<String, dynamic>>()
+        .toList()
+      ?..sort((a, b) =>
+          (a['nivel'] == null ? 1 : 0) - (b['nivel'] == null ? 1 : 0));
     return Scaffold(
       body: BarrioBackdrop(
         child: SafeArea(
@@ -91,9 +96,187 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   const Divider(
                       color: BarrioColors.marino, thickness: 2, height: 2),
                 ],
+                if (city != null && cityAll != null) ...[
+                  const SizedBox(height: 28),
+                  const Text('Tu ciudad',
+                      style: TextStyle(
+                          color: BarrioColors.marino,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  const Text(
+                      'Un sello por alcaldía. Bronce con 1 compra, plata con 3, oro con 5.',
+                      style: TextStyle(color: BarrioColors.gris, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  _CityTotal(data: cityAll),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: .68,
+                    children: [
+                      for (final place in city) _CityCell(place: place),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+String _cityAsset(Map<String, dynamic> place) {
+  final level = place['nivel']?.toString() ?? 'bronce';
+  return place['id'] == 'cdmx'
+      ? 'cdmx-$level'
+      : 'alcaldia-${place['id']}-$level';
+}
+
+String _levelName(Object? level) => _labels[level] ?? 'Sin sello';
+
+void _openCity(BuildContext context, Map<String, dynamic> place) {
+  final isCity = place['id'] == 'cdmx';
+  final count = (place['avance'] as num? ?? 0).toInt();
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: BarrioColors.crema,
+    builder: (_) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _SealImage(
+              name: _cityAsset(place),
+              earned: place['nivel'] != null,
+              size: 168),
+          const SizedBox(height: 12),
+          Text(place['nombre'].toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  color: BarrioColors.marino,
+                  fontSize: 24,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800)),
+          Text(
+              isCity ? 'Las 16 alcaldías de la CDMX' : place['zona'].toString(),
+              style: const TextStyle(color: BarrioColors.gris, fontSize: 16)),
+          const SizedBox(height: 12),
+          Text(
+              isCity
+                  ? 'Vale lo que tu alcaldía con menos compras. Llevas $count de 16 rumbo al siguiente nivel.'
+                  : count == 1
+                      ? 'Llevas 1 compra aquí.'
+                      : 'Llevas $count compras aquí.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: BarrioColors.tinta, fontSize: 17)),
+          const SizedBox(height: 4),
+          Text(_levelName(place['nivel']),
+              style: const TextStyle(
+                  color: BarrioColors.teal,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700)),
+        ]),
+      ),
+    ),
+  );
+}
+
+class _SealImage extends StatelessWidget {
+  const _SealImage(
+      {required this.name, required this.earned, required this.size});
+  final String name;
+  final bool earned;
+  final double size;
+
+  static const _gray = ColorFilter.matrix(<double>[
+    .2126, .7152, .0722, 0, 0, //
+    .2126, .7152, .0722, 0, 0, //
+    .2126, .7152, .0722, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]);
+
+  @override
+  Widget build(BuildContext context) {
+    final image = Image.asset('assets/sellos/$name.png',
+        width: size, height: size, excludeFromSemantics: true);
+    return earned
+        ? image
+        : Opacity(
+            opacity: .45,
+            child: ColorFiltered(colorFilter: _gray, child: image));
+  }
+}
+
+class _CityTotal extends StatelessWidget {
+  const _CityTotal({required this.data});
+  final Map<String, dynamic> data;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: () => _openCity(context, data),
+        child: Row(children: [
+          _SealImage(
+              name: _cityAsset(data), earned: data['nivel'] != null, size: 88),
+          const SizedBox(width: 14),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_levelName(data['nivel']),
+                  style: const TextStyle(
+                      color: BarrioColors.gris,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500)),
+              Text(data['nombre'].toString(),
+                  style: const TextStyle(
+                      color: BarrioColors.marino,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700)),
+              const Text('Las 16 alcaldías en un mismo nivel.',
+                  style: TextStyle(color: BarrioColors.tinta, fontSize: 16)),
+            ]),
+          ),
+        ]),
+      );
+}
+
+class _CityCell extends StatelessWidget {
+  const _CityCell({required this.place});
+  final Map<String, dynamic> place;
+
+  @override
+  Widget build(BuildContext context) {
+    final earned = place['nivel'] != null;
+    return Semantics(
+      button: true,
+      label:
+          '${place['zona']}, ${place['nombre']}, ${_levelName(place['nivel'])}',
+      child: ExcludeSemantics(
+        child: InkWell(
+          onTap: () => _openCity(context, place),
+          child: Column(children: [
+            AspectRatio(
+                aspectRatio: 1,
+                child: LayoutBuilder(
+                    builder: (_, box) => _SealImage(
+                        name: _cityAsset(place),
+                        earned: earned,
+                        size: box.maxWidth))),
+            const SizedBox(height: 4),
+            Text(place['zona'].toString(),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: earned ? BarrioColors.marino : BarrioColors.gris,
+                    fontSize: 14,
+                    height: 1.15,
+                    fontWeight: FontWeight.w700)),
+          ]),
         ),
       ),
     );
@@ -106,38 +289,20 @@ const _labels = {
   'plata': 'Plata',
   'oro': 'Oro',
 };
-const _assets = {
-  'primera': 'medal-first',
-  'bronce': 'medal-bronze',
-  'plata': 'medal-silver',
-  'oro': 'medal-gold',
-};
 
 class _SealRow extends StatelessWidget {
   const _SealRow({required this.seal});
   final Map<String, dynamic> seal;
 
-  static const _gray = ColorFilter.matrix(<double>[
-    .2126, .7152, .0722, 0, 0, //
-    .2126, .7152, .0722, 0, 0, //
-    .2126, .7152, .0722, 0, 0, //
-    0, 0, 0, 1, 0, //
-  ]);
-
   @override
   Widget build(BuildContext context) {
     final level = seal['nivel']?.toString() ?? 'bronce';
     final earned = seal['obtenida'] == true;
-    final icon = BarrioIcon(asset: _assets[level] ?? 'medal-bronze', size: 72);
     final progress = seal['avance'] ?? seal['pedidos_pagados'] ?? 0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        earned
-            ? icon
-            : Opacity(
-                opacity: .55,
-                child: ColorFiltered(colorFilter: _gray, child: icon)),
+        _SealImage(name: level, earned: earned, size: 72),
         const SizedBox(width: 14),
         Expanded(
           child:

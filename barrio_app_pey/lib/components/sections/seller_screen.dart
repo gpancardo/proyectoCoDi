@@ -25,6 +25,7 @@ class _SellerScreenState extends State<SellerScreen> {
   Map<String, dynamic>? _business;
   List<dynamic> _orders = const [];
   List<dynamic> _coupons = const [];
+  Map<String, dynamic>? _dashboard;
   final _busy = <int>{};
   Timer? _poller;
 
@@ -66,9 +67,15 @@ class _SellerScreenState extends State<SellerScreen> {
       final orders = await api.get('/orders', token: token) as List<dynamic>;
       final coupons =
           await api.get('/business/coupons', token: token) as List<dynamic>;
+      Map<String, dynamic>? dashboard;
+      try {
+        dashboard = await api.get('/business/dashboard', token: token)
+            as Map<String, dynamic>;
+      } catch (_) {/* el panel se queda con el dato anterior */}
       if (mounted) {
         setState(() {
           _needsSetup = false;
+          _dashboard = dashboard ?? _dashboard;
           _business = business;
           _orders = orders;
           _coupons = coupons;
@@ -193,7 +200,7 @@ class _SellerScreenState extends State<SellerScreen> {
         .map((p) => Map<String, dynamic>.from(p as Map))
         .toList();
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -214,6 +221,7 @@ class _SellerScreenState extends State<SellerScreen> {
           ),
         ),
         TabBar(
+          labelPadding: EdgeInsets.zero,
           labelColor: BarrioColors.marino,
           unselectedLabelColor: BarrioColors.gris,
           indicatorColor: BarrioColors.marino,
@@ -221,14 +229,19 @@ class _SellerScreenState extends State<SellerScreen> {
           labelStyle: const TextStyle(
               fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Archivo'),
           tabs: [
+            const Tab(text: 'Resumen'),
             Tab(text: pending > 0 ? 'Pedidos ($pending)' : 'Pedidos'),
             const Tab(text: 'Menú'),
-            const Tab(text: 'Promociones'),
+            const Tab(text: 'Promos'),
           ],
         ),
         const Divider(height: 2, thickness: 2, color: BarrioColors.marino),
         Expanded(
           child: TabBarView(children: [
+            RefreshIndicator(
+              onRefresh: () => _load(quiet: true),
+              child: _DashboardTab(data: _dashboard),
+            ),
             RefreshIndicator(
               onRefresh: () => _load(quiet: true),
               child: _OrdersTab(
@@ -267,6 +280,199 @@ class _SellerScreenState extends State<SellerScreen> {
           ]),
         ),
       ]),
+    );
+  }
+}
+
+class _DashboardTab extends StatelessWidget {
+  const _DashboardTab({required this.data});
+  final Map<String, dynamic>? data;
+
+  static const _letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+  static const _section = TextStyle(
+      fontSize: 20, fontWeight: FontWeight.w700, color: BarrioColors.marino);
+
+  int _int(Object? value) => (value as num? ?? 0).toInt();
+
+  @override
+  Widget build(BuildContext context) {
+    final d = data;
+    if (d == null) {
+      return ListView(padding: const EdgeInsets.all(24), children: const [
+        Text(
+            'Aún no podemos mostrar tu resumen. Desliza hacia abajo para intentar de nuevo.',
+            style: TextStyle(fontSize: 17, color: BarrioColors.tinta)),
+      ]);
+    }
+    final today = d['hoy'] as Map<String, dynamic>;
+    final sold = _int(today['ventas_minor']);
+    final count = _int(today['cobros']);
+    final diff = sold - _int(d['ayer_minor']);
+    final pending = d['por_atender'] as Map<String, dynamic>;
+    final week = (d['semana'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final peak = week.fold<int>(
+        1, (m, x) => x['ventas_minor'] > m ? _int(x['ventas_minor']) : m);
+    final products =
+        (d['productos'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final clients = d['clientes'] as Map<String, dynamic>;
+    final month = d['mes'] as Map<String, dynamic>;
+    final monthSold = _int(month['ventas_minor']);
+    final tab = DefaultTabController.of(context);
+    Widget stat(String label, Object? n) => Expanded(
+          child: Semantics(
+            button: true,
+            child: InkWell(
+              onTap: () => tab.animateTo(1),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Column(children: [
+                  Text('${_int(n)}',
+                      style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: BarrioColors.marino)),
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 14, color: BarrioColors.tinta)),
+                ]),
+              ),
+            ),
+          ),
+        );
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+      children: [
+        const Text('Hoy vendiste',
+            style: TextStyle(fontSize: 17, color: BarrioColors.tinta)),
+        Text(formatMoney(sold),
+            style: const TextStyle(
+                fontSize: 56,
+                height: 1.05,
+                fontWeight: FontWeight.w800,
+                color: BarrioColors.marino)),
+        Text(
+            count == 0
+                ? 'Todavía sin cobros hoy.'
+                : '${count == 1 ? '1 cobro' : '$count cobros'} · promedio ${formatMoney(_int(today['ticket_minor']))}',
+            style: const TextStyle(fontSize: 16, color: BarrioColors.gris)),
+        if (diff != 0)
+          Text(
+              '${formatMoney(diff.abs())} ${diff > 0 ? 'más' : 'menos'} que ayer',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: diff > 0 ? BarrioColors.teal : BarrioColors.gris)),
+        const SizedBox(height: 16),
+        const Divider(height: 2, thickness: 2, color: BarrioColors.marino),
+        Row(children: [
+          stat('Por responder', pending['responder']),
+          stat('Por preparar', pending['preparar']),
+          stat('Por recoger', pending['recoger']),
+        ]),
+        const Divider(height: 2, thickness: 2, color: BarrioColors.marino),
+        const SizedBox(height: 20),
+        const Text('Tus últimos 7 días', style: _section),
+        const SizedBox(height: 12),
+        Semantics(
+          label: week
+              .map(
+                  (x) => '${x['dia']}: ${formatMoney(_int(x['ventas_minor']))}')
+              .join(', '),
+          child: ExcludeSemantics(
+            child: SizedBox(
+              height: 148,
+              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                for (var i = 0; i < week.length; i++)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Container(
+                              height: 4 +
+                                  112 * _int(week[i]['ventas_minor']) / peak,
+                              decoration: BoxDecoration(
+                                color: i == week.length - 1
+                                    ? BarrioColors.mango
+                                    : BarrioColors.marino,
+                                border: i == week.length - 1
+                                    ? Border.all(
+                                        color: BarrioColors.marino, width: 2)
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                                _letters[
+                                    DateTime.parse(week[i]['dia'].toString())
+                                            .weekday -
+                                        1],
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: i == week.length - 1
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: BarrioColors.tinta)),
+                          ]),
+                    ),
+                  ),
+              ]),
+            ),
+          ),
+        ),
+        if (products.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          const Text('Lo que más sale', style: _section),
+          const SizedBox(height: 4),
+          for (final item in products)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: const BoxDecoration(
+                  border: Border(
+                      bottom:
+                          BorderSide(color: BarrioColors.marino, width: 2))),
+              child: Row(children: [
+                Expanded(
+                    child: Text(item['nombre'].toString(),
+                        style: const TextStyle(
+                            fontSize: 17, color: BarrioColors.tinta))),
+                Text('${_int(item['cantidad'])}',
+                    style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: BarrioColors.marino)),
+              ]),
+            ),
+        ],
+        const SizedBox(height: 24),
+        const Text('Tus últimos 30 días', style: _section),
+        const SizedBox(height: 6),
+        Text(
+            '${formatMoney(monthSold)} en ${_int(month['cobros'])} cobros, sin comisión.',
+            style: const TextStyle(fontSize: 17, color: BarrioColors.tinta)),
+        if (_int(clients['total']) > 0)
+          Text(
+              '${_int(clients['total'])} clientes, ${_int(clients['regresan'])} regresaron.',
+              style: const TextStyle(fontSize: 17, color: BarrioColors.tinta)),
+        if (_int(month['descuentos_minor']) > 0)
+          Text(
+              'Diste ${formatMoney(_int(month['descuentos_minor']))} en promociones.',
+              style: const TextStyle(fontSize: 17, color: BarrioColors.tinta)),
+        if (monthSold > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+                // ponytail: 3.5% es una comisión de ejemplo, solo para comparar; no toca ningún cobro.
+                'Con una terminal al 3.5% habrías dejado ${formatMoney((monthSold * .035).round())}.',
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: BarrioColors.teal)),
+          ),
+      ],
     );
   }
 }
