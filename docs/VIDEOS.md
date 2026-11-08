@@ -1,6 +1,6 @@
 # Guiones de video
 
-Pitch y datos permitidos: [`PITCH.md`](PITCH.md). Paquete y correo: [`ENTREGA.md`](ENTREGA.md).
+Guion, datos permitidos, paquete y correo: [`preparacion-equipo.md`](../pendientes/preparacion-equipo.md).
 
 Quién evalúa: AI Builders, pey, SEDECO y OpenAI (`README.md`). Lo que cada quien quiere ver:
 
