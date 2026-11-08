@@ -34,3 +34,9 @@
 .progreso span { display: block; height: 100%; background: var(--mango); }
 @media (max-width: 600px) { .buscador { grid-template-columns: 1fr; } }
 .btn-texto { background: none; border: 0; min-height: 48px; font: 700 1rem inherit; font-family: inherit; color: var(--marino); text-decoration: underline; cursor: pointer; padding: 0 8px; justify-self: start; }
+/* Textos largos (nombres, direcciones, notas) cortan renglón en vez de desbordar */
+.tarjeta, .linea > :first-child, .chip, .mensaje, .aviso { min-width: 0; overflow-wrap: anywhere; }
+.chip { max-width: 100%; }
+html:has(#app) { scrollbar-color: var(--marino) var(--crema); }
+::selection { background: var(--mango); color: var(--marino); }
+.btn:active { transform: translateY(1px); }

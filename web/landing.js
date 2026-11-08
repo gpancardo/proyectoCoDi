@@ -3,12 +3,8 @@ import { armarCuenta } from './cuenta.mjs'
 const $ = (s) => document.querySelector(s)
 const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// Enlace a la app, solo si existe
-if (window.BARRIO?.APP_URL) {
-  const app = $('#app')
-  app.href = window.BARRIO.APP_URL
-  app.hidden = false
-}
+// El botón principal lleva a la app configurada (app.html por defecto)
+if (window.BARRIO?.APP_URL) $('#app').href = window.BARRIO.APP_URL
 
 // Arma tu cuenta: lo que escribes se vuelve ticket con total
 const entrada = $('#pedido')
@@ -53,12 +49,29 @@ function pintar() {
   }
 }
 
+// El titular-campo crece hasta dos renglones y luego achica la letra: nunca recorta lo que escribes.
+function ajustar() {
+  entrada.style.fontSize = ''
+  entrada.style.height = 'auto'
+  const max = parseFloat(getComputedStyle(entrada).fontSize)
+  const min = Math.min(28, max)
+  let t = max
+  while (t > min && entrada.scrollHeight > t * 2.3) { t -= 2; entrada.style.fontSize = `${t}px` }
+  entrada.style.height = `${entrada.scrollHeight}px`
+}
+
 if (entrada) {
-  entrada.addEventListener('input', pintar)
+  entrada.addEventListener('input', () => {
+    if (entrada.value.includes('\n')) entrada.value = entrada.value.replace(/\s*\n\s*/g, ' ') // pegado con saltos
+    ajustar(); pintar()
+  })
+  entrada.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); entrada.blur() } })
   for (const b of document.querySelectorAll('[data-ejemplo]')) {
-    b.addEventListener('click', () => { entrada.value = b.dataset.ejemplo; pintar(); entrada.focus() })
+    b.addEventListener('click', () => { entrada.value = b.dataset.ejemplo; ajustar(); pintar(); entrada.focus() })
   }
-  pintar()
+  addEventListener('resize', ajustar)
+  document.fonts?.ready.then(ajustar)
+  ajustar(); pintar()
 }
 
 // El changarrito 3D: se carga después de pintar la página y solo si hay WebGL
