@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { contextoConversacion, embeddingConsulta, interpretarConsulta, limpiarHistorial, preguntaDeSeguimiento } from '../src/agent.js';
+import { contextoConversacion, embeddingConsulta, interpretarConsulta, limpiarHistorial, preguntaDeSeguimiento, respuestaSegura } from '../src/agent.js';
 
 // Simula el proveedor: comprueba que OpenAI y OpenRouter reciben el mismo contrato con distinta URL base.
 test('el agente usa chat/completions y la URL base configurada', async () => {
@@ -46,4 +46,17 @@ test('pregunta según los resultados, sin repetir y con tope', () => {
   assert.equal(preguntaDeSeguimiento({ ...base, historial: ['¿a?', '¿b?', '¿c?'].map((text) => ({ role: 'assistant', text })) }), null);
   const conModelo = preguntaDeSeguimiento({ ...base, interpretacion: { follow_up_question: '¿Para cuántos?', follow_up_options: ['Dos', 'Dos', 'Cinco', 'x'.repeat(90)] } });
   assert.deepEqual(conModelo.options, ['Dos', 'Cinco', 'x'.repeat(40)]);
+});
+
+test('no pregunta con un solo resultado y la zona solo sale de datos reales', () => {
+  const base = { matches, filtros: {}, historial: [], negocios };
+  assert.equal(preguntaDeSeguimiento({ ...base, matches: matches.slice(0, 1), interpretacion: { follow_up_question: '¿Cuántos?', follow_up_options: [] } }), null);
+  const p = preguntaDeSeguimiento({ ...base, interpretacion: { follow_up_question: '¿En qué zona estás?', follow_up_options: ['No sé'] } });
+  assert.deepEqual(p.options, ['Coyoacán', 'Tlalpan', 'En toda la ciudad']);
+});
+
+test('no deja pasar una zona que nadie pidió', () => {
+  assert.equal(respuestaSegura('Buscaré tacos en Coyoacán.', null), 'Esto encontré para ti.');
+  assert.equal(respuestaSegura('Buscaré tacos en Coyoacán.', 'Coyoacán'), 'Buscaré tacos en Coyoacán.');
+  assert.equal(respuestaSegura('Buscaré tacos.', null), 'Buscaré tacos.');
 });

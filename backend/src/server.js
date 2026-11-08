@@ -4,7 +4,7 @@ import { buscarDeterminista, buscarHibrido, seccionesDescubrimiento } from './se
 import { indexarPendientes } from './indexar.js';
 import { manejar, Fallo } from './rutas.js';
 import { barrido, recibirWebhook } from './pagos.js';
-import { combinarFiltros, contextoConversacion, embeddingConsulta, explicarCandidatos, interpretarConsulta, limpiarHistorial, preguntaDeSeguimiento } from './agent.js';
+import { combinarFiltros, contextoConversacion, embeddingConsulta, explicarCandidatos, interpretarConsulta, limpiarHistorial, preguntaDeSeguimiento, respuestaSegura } from './agent.js';
 
 const env = process.env;
 const port = Number(env.PORT ?? 3000);
@@ -59,7 +59,7 @@ const manejarPeticion = async (req, res) => {
       const modelo = env.OPENAI_MODEL ?? 'gpt-4o-mini'; const modeloEmb = env.OPENAI_EMBEDDING_MODEL ?? 'text-embedding-3-small';
       let interpretacion = null;
       let similitudes = new Map();
-      try { interpretacion = await interpretarConsulta({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta, historial }); } catch { /* el fallback es parte del contrato */ }
+      try { interpretacion = await interpretarConsulta({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta, historial, categoriasDisponibles: [...new Set(negocios.filter((n) => n.verificado).map((n) => n.categoria))] }); } catch { /* el fallback es parte del contrato */ }
       try {
         await indexarPendientes(db, { apiKey: env.OPENAI_API_KEY, model: modeloEmb, limite: 3 }).catch(() => {}); // catálogo cambiado → vector al día
         const embedding = await embeddingConsulta({ apiKey: env.OPENAI_API_KEY, model: modeloEmb, query: interpretacion?.q || turno.q || consulta });
@@ -77,7 +77,7 @@ const manejarPeticion = async (req, res) => {
         matches = [...matches].sort((a, b) => (posiciones.get(Number(a.negocio.id)) ?? 99) - (posiciones.get(Number(b.negocio.id)) ?? 99));
       }
       const modo = interpretacion && similitudes.size ? 'agent_rag' : interpretacion ? 'agent' : similitudes.size ? 'rag' : 'deterministic_fallback';
-      return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: modo, retrieved: similitudes.size, filters: search, answer: matches.length ? (explicacion?.answer ?? interpretacion?.answer ?? 'Esto encontré para ti.') : 'No encontré algo abierto con eso.', follow_up: preguntaDeSeguimiento({ interpretacion, matches, filtros: search, historial, negocios }) } });
+      return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: modo, retrieved: similitudes.size, filters: search, answer: matches.length ? respuestaSegura(explicacion?.answer ?? interpretacion?.answer, search.zone) : 'No encontré algo abierto con eso.', follow_up: preguntaDeSeguimiento({ interpretacion, matches, filtros: search, historial, negocios }) } });
     }
     if (req.method === 'POST' && url.pathname === '/api/v1/discovery/events') {
       const auth = await persona(req); if (!auth?.comprador) return fallo(res, 401, 'UNAUTHENTICATED', 'Inicia sesión para guardar tus preferencias.');
