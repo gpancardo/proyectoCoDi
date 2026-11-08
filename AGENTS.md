@@ -1,6 +1,6 @@
 # Guía de trabajo
 
-Lee primero [`docs/HANDOFF.md`](docs/HANDOFF.md), luego [`docs/PRODUCTO.md`](docs/PRODUCTO.md) y [`docs/BACKEND.md`](docs/BACKEND.md). Producto es la fuente de verdad; arquitectura concreta del servidor está en BACKEND.
+Lee primero [`docs/PRODUCTO.md`](docs/PRODUCTO.md) y luego [`docs/BACKEND.md`](docs/BACKEND.md) (incluye estado desplegado y pendientes). Producto es la fuente de verdad; arquitectura concreta del servidor está en BACKEND.
 
 ## Producto y arquitectura
 
@@ -55,7 +55,7 @@ feature/<área>-<cambio> → dev → stg → main
 | `supabase/` | esquema, webhook de pey, seed y migraciones |
 | `web/` | landing/registro existentes; requieren adaptación al nuevo backend |
 | `bot/` | código heredado acoplado a WhatsApp; referencia temporal para reglas e integración, no interfaz del producto |
-| `docs/` | producto, contrato backend, diseño, voz y handoff |
+| `docs/` | producto, contrato y estado del backend, pey, diseño y voz |
 
 ## Comprobaciones existentes
 
