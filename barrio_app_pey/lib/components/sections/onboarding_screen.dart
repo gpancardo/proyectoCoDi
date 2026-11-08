@@ -8,6 +8,7 @@ import '../../i18n.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../shared/app_button.dart';
+import '../shared/barrio_icon.dart';
 import '../shared/barrio_surface.dart';
 import '../shared/profile_form_fields.dart';
 
@@ -94,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   style: TextStyle(color: BarrioColors.gris, fontSize: 16),
                 ),
                 const SizedBox(height: 22),
-                BarrioGlassPanel(
+                BarrioPanel(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -111,8 +112,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     ? null
                                     : FileImage(File(_photoPath!)),
                                 child: _photoPath == null
-                                    ? const Icon(Icons.add_a_photo_outlined,
-                                        size: 28, color: BarrioColors.marino)
+                                    ? const BarrioIcon(
+                                        asset: 'camera', size: 28)
                                     : null,
                               ),
                               const SizedBox(height: 8),

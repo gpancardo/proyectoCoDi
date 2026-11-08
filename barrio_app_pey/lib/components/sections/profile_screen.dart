@@ -8,6 +8,7 @@ import '../../i18n.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../shared/app_button.dart';
+import '../shared/barrio_icon.dart';
 import '../shared/barrio_surface.dart';
 import '../shared/profile_form_fields.dart';
 
@@ -93,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   children: [
                     _RoundAction(
-                      icon: Icons.arrow_back_rounded,
+                      icon: 'back',
                       label: 'Regresar',
                       onTap: () => Navigator.of(context).pop(),
                     ),
@@ -103,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 22),
-                BarrioGlassPanel(
+                BarrioPanel(
                   child: Column(
                     children: [
                       GestureDetector(
@@ -140,8 +141,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 border: Border.all(
                                     color: BarrioColors.crema, width: 2),
                               ),
-                              child: const Icon(Icons.photo_camera_outlined,
-                                  size: 17, color: BarrioColors.marino),
+                              child:
+                                  const BarrioIcon(asset: 'camera', size: 17),
                             ),
                           ],
                         ),
@@ -159,14 +160,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                BarrioGlassPanel(
+                BarrioPanel(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const _SectionHeading(
                         eyebrow: 'TUS DATOS',
                         title: '¿Cómo te encontramos?',
-                        icon: Icons.storefront_outlined,
+                        icon: 'marketplace',
                       ),
                       const SizedBox(height: 20),
                       ProfileFormFields.text(
@@ -187,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const _SectionHeading(
                         eyebrow: 'TU DIRECCIÓN',
                         title: 'Tu zona de siempre',
-                        icon: Icons.location_on_outlined,
+                        icon: 'location',
                       ),
                       const SizedBox(height: 14),
                       ProfileFormFields.zone(
@@ -216,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 AppButton(
                   label: _saving ? 'Guardando…' : 'Guardar cambios',
                   onPressed: _saving ? null : _save,
-                  icon: Icons.check_rounded,
+                  iconAsset: 'check',
                 ),
                 const SizedBox(height: 12),
                 const Text(
@@ -238,20 +239,12 @@ class _SectionHeading extends StatelessWidget {
       {required this.eyebrow, required this.title, required this.icon});
   final String eyebrow;
   final String title;
-  final IconData icon;
+  final String icon;
 
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: BarrioColors.crema,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: BarrioColors.marino),
-          ),
+          BarrioIcon(asset: icon, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -295,19 +288,19 @@ class _AdvancedPromptState extends State<_AdvancedPrompt> {
       'datos personales. answer es una frase breve en español de México que explique qué buscarás.';
 
   @override
-  Widget build(BuildContext context) => BarrioGlassPanel(
+  Widget build(BuildContext context) => BarrioPanel(
         padding: EdgeInsets.zero,
         child: Column(
           children: [
             InkWell(
               onTap: () => setState(() => _expanded = !_expanded),
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(6),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
                 child: Row(
                   children: [
-                    const Icon(Icons.tune_rounded, color: BarrioColors.marino),
+                    const BarrioIcon(asset: 'tune', size: 24),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Column(
@@ -319,14 +312,17 @@ class _AdvancedPromptState extends State<_AdvancedPrompt> {
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700)),
                           SizedBox(height: 3),
-                          Text('Cómo te ayudo a buscar',
+                          Text('Prompt de búsqueda',
                               style: TextStyle(
                                   color: BarrioColors.gris, fontSize: 14)),
                         ],
                       ),
                     ),
-                    Icon(_expanded ? Icons.expand_less : Icons.expand_more,
-                        color: BarrioColors.marino),
+                    BarrioIcon(
+                      asset: 'chevron-down',
+                      size: 22,
+                      rotation: _expanded ? 3.14159 : 0,
+                    ),
                   ],
                 ),
               ),
@@ -350,8 +346,8 @@ class _AdvancedPromptState extends State<_AdvancedPrompt> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: BarrioColors.crema.withOpacity(.82),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: BarrioColors.borde),
+                        border:
+                            Border.all(color: BarrioColors.marino, width: 1.5),
                       ),
                       child: const SelectableText(
                         _prompt,
@@ -383,7 +379,7 @@ class _AdvancedPromptState extends State<_AdvancedPrompt> {
 class _RoundAction extends StatelessWidget {
   const _RoundAction(
       {required this.icon, required this.label, required this.onTap});
-  final IconData icon;
+  final String icon;
   final String label;
   final VoidCallback onTap;
 
@@ -392,14 +388,14 @@ class _RoundAction extends StatelessWidget {
         button: true,
         label: label,
         child: Material(
-          color: BarrioColors.blanco.withOpacity(.78),
+          color: BarrioColors.blanco,
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onTap,
             child: SizedBox.square(
               dimension: 48,
-              child: Icon(icon, color: BarrioColors.marino),
+              child: BarrioIcon(asset: icon, size: 24),
             ),
           ),
         ),

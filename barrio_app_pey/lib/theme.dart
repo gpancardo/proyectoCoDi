@@ -54,13 +54,15 @@ abstract final class BarrioTheme {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: BarrioColors.borde, width: 2)),
+            borderRadius: BorderRadius.circular(6),
+            borderSide:
+                const BorderSide(color: BarrioColors.borde, width: 1.5)),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: BarrioColors.borde, width: 2)),
+            borderRadius: BorderRadius.circular(6),
+            borderSide:
+                const BorderSide(color: BarrioColors.borde, width: 1.5)),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(6),
             borderSide: const BorderSide(color: BarrioColors.marino, width: 2)),
         hintStyle: const TextStyle(color: BarrioColors.gris),
       ),
@@ -70,14 +72,17 @@ abstract final class BarrioTheme {
           foregroundColor: BarrioColors.marino,
           minimumSize: const Size.fromHeight(64),
           textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          side: const BorderSide(color: BarrioColors.marino, width: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       cardTheme: CardTheme(
         color: BarrioColors.blanco,
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: BarrioColors.marino, width: 2),
+          borderRadius: BorderRadius.circular(6),
+        ),
         margin: EdgeInsets.zero,
       ),
     );

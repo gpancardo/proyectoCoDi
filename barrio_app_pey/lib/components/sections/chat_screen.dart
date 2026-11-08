@@ -7,6 +7,7 @@ import '../../i18n.dart';
 import '../../services/openai_service.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
+import '../shared/barrio_icon.dart';
 import '../shared/barrio_surface.dart';
 import 'profile_screen.dart';
 
@@ -165,15 +166,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     if (_answer == null) ...[
                       const SizedBox(height: 24),
-                      BarrioGlassPanel(
+                      BarrioPanel(
                         padding: const EdgeInsets.all(18),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Row(
                               children: [
-                                Icon(Icons.wb_sunny_outlined,
-                                    color: BarrioColors.marino, size: 21),
+                                BarrioIcon(asset: 'sun', size: 21),
                                 SizedBox(width: 8),
                                 Text('¿Qué se te antoja?',
                                     style: TextStyle(
@@ -205,7 +205,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                child: BarrioGlassPanel(
+                child: BarrioPanel(
                   padding: const EdgeInsets.all(9),
                   child: Row(
                     children: [
@@ -243,7 +243,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 8),
                       _ComposerButton(
-                        icon: Icons.mic_none_rounded,
+                        icon: 'microphone',
                         color: BarrioColors.mango,
                         label: 'Dictar búsqueda',
                         onTap: () => ScaffoldMessenger.of(context).showSnackBar(
@@ -252,11 +252,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 7),
                       _ComposerButton(
-                        icon: _loading
-                            ? Icons.hourglass_top_rounded
-                            : Icons.arrow_upward_rounded,
+                        icon: _loading ? 'loading' : 'send',
                         color: BarrioColors.marino,
-                        foreground: BarrioColors.blanco,
                         label: 'Buscar',
                         onTap: _loading ? null : _search,
                       ),
@@ -296,14 +293,12 @@ class _SuggestionChip extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                const Icon(Icons.search_rounded,
-                    size: 19, color: BarrioColors.marino),
+                const BarrioIcon(asset: 'search', size: 20),
                 const SizedBox(width: 9),
                 Expanded(
                     child: Text(label,
                         style: const TextStyle(color: BarrioColors.tinta))),
-                const Icon(Icons.arrow_outward_rounded,
-                    size: 17, color: BarrioColors.gris),
+                const BarrioIcon(asset: 'chevron-right', size: 17),
               ],
             ),
           ),
@@ -316,7 +311,7 @@ class _MessageCard extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => BarrioGlassPanel(
+  Widget build(BuildContext context) => BarrioPanel(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -342,7 +337,7 @@ class _BusinessCard extends StatelessWidget {
     final neighborhood = business['colonia'] ?? '';
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: BarrioGlassPanel(
+      child: BarrioPanel(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
@@ -352,8 +347,7 @@ class _BusinessCard extends StatelessWidget {
               decoration: BoxDecoration(
                   color: BarrioColors.crema,
                   borderRadius: BorderRadius.circular(16)),
-              child: const Icon(Icons.storefront_outlined,
-                  color: BarrioColors.marino, size: 27),
+              child: const BarrioIcon(asset: 'marketplace', size: 31),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -374,7 +368,7 @@ class _BusinessCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: BarrioColors.marino),
+            const BarrioIcon(asset: 'chevron-right', size: 23),
           ],
         ),
       ),
@@ -388,11 +382,9 @@ class _ComposerButton extends StatelessWidget {
     required this.color,
     required this.label,
     required this.onTap,
-    this.foreground = BarrioColors.marino,
   });
-  final IconData icon;
+  final String icon;
   final Color color;
-  final Color foreground;
   final String label;
   final VoidCallback? onTap;
 
@@ -408,7 +400,7 @@ class _ComposerButton extends StatelessWidget {
             onTap: onTap,
             child: SizedBox.square(
               dimension: 48,
-              child: Icon(icon, color: foreground),
+              child: BarrioIcon(asset: icon, size: 25),
             ),
           ),
         ),
