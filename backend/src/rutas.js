@@ -1,5 +1,6 @@
 import { calcularInsignias, cotizar, mejorCupon, MINUTOS, puede } from './pedidos.js';
-import { iniciarCobro, liberarCupon } from './pagos.js';
+import { iniciarCobro, liberarCupon, reconciliar } from './pagos.js';
+import { ZONAS } from './text.js';
 
 class Fallo extends Error { constructor(status, code, message, field) { super(message); Object.assign(this, { status, code, field }); } }
 const q = encodeURIComponent;
@@ -35,6 +36,17 @@ function coords(b) {
   return { latitud: lat, longitud: lng };
 }
 
+function productosValidos(p) {
+  exigir(Array.isArray(p) && p.length >= 1 && p.length <= 60, 422, 'INVALID_PRODUCTS', 'Agrega de 1 a 60 productos.', 'productos');
+  return p.map((x) => {
+    const nombre = String(x?.nombre ?? '').trim(); const precio = Number(x?.precio);
+    exigir(nombre.length >= 1 && nombre.length <= 60 && precio > 0 && precio <= 100000, 422, 'INVALID_PRODUCTS', 'Cada producto necesita nombre y un precio mayor a 0.', 'productos');
+    return { nombre, precio: Math.round(precio * 100) / 100 };
+  });
+}
+const sinSecretos = 'id,nombre,descripcion,imagen_url,zona,colonia,direccion,latitud,longitud,categoria,productos,abierto,verificado';
+const cuerpoInvalido = (e) => { if (e.status === 409) throw new Fallo(409, 'BUSINESS_EXISTS', 'Ese celular o esta cuenta ya tiene un negocio.'); if (e.status === 400) throw new Fallo(422, 'INVALID_BUSINESS', 'Revisa los datos del negocio.'); throw e; };
+
 // Devuelve true si atendió la ruta. `auth` = { comprador?, negocio? } o null.
 export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   const m = req.method; const ruta = url.pathname.replace('/api/v1', '');
@@ -43,6 +55,39 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   const ok = (status, data) => { enviar(res, status, { data }); return true; };
   let p;
 
+  if (m === 'GET' && (p = ruta.match(/^\/businesses\/(\d+)$/))) { // perfil público: sin teléfono ni datos de cobro
+    const [n] = await db.get('negocios', `id=eq.${p[1]}&verificado=eq.true&select=${sinSecretos}&limit=1`);
+    exigir(n, 404, 'NOT_FOUND', 'No encontramos ese negocio.');
+    return ok(200, n);
+  }
+  if (m === 'GET' && ruta === '/me') {
+    exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
+    return ok(200, { comprador: auth.comprador, negocio: auth.negocio });
+  }
+  if (m === 'POST' && ruta === '/businesses') { // alta de negocio de esta sesión; nace sin verificar
+    exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
+    const b = await cuerpo(); const tel = String(b.telefono ?? '').replace(/\D/g, '');
+    exigir(String(b.nombre ?? '').trim().length >= 2, 422, 'INVALID_BUSINESS', 'Escribe el nombre de tu negocio.', 'nombre');
+    exigir(tel.length === 10, 422, 'INVALID_PHONE', 'Tu celular debe tener 10 números, sin +52.', 'telefono');
+    exigir(ZONAS.includes(b.zona), 422, 'INVALID_BUSINESS', 'Elige tu alcaldía.', 'zona');
+    exigir(String(b.direccion ?? '').trim().length >= 5, 422, 'INVALID_BUSINESS', 'Escribe la dirección donde te recogen.', 'direccion');
+    exigir(String(b.categoria ?? '').trim().length >= 2, 422, 'INVALID_BUSINESS', 'Dinos qué tipo de negocio es.', 'categoria');
+    const productos = productosValidos(b.productos);
+    try {
+      const [n] = await db.insertar('negocios', { nombre: b.nombre.trim().slice(0, 60), telefono: tel, zona: b.zona, colonia: b.colonia ? String(b.colonia).trim().slice(0, 80) : null, direccion: b.direccion.trim().slice(0, 200),
+        categoria: b.categoria.trim().slice(0, 60), descripcion: b.descripcion ? String(b.descripcion).trim().slice(0, 300) : null, productos, auto_aceptar: !!b.auto_aceptar, sujeto_auth: auth.session.id });
+      return ok(201, { id: n.id, nombre: n.nombre, verificado: n.verificado });
+    } catch (e) { cuerpoInvalido(e); }
+  }
+  if (m === 'PATCH' && ruta === '/business') { // abrir/cerrar, aceptar en automático, menú y descripción
+    const n = neg(); const b = await cuerpo(); const cambios = {};
+    if ('abierto' in b) cambios.abierto = !!b.abierto;
+    if ('auto_aceptar' in b) cambios.auto_aceptar = !!b.auto_aceptar;
+    if ('descripcion' in b) cambios.descripcion = b.descripcion ? String(b.descripcion).trim().slice(0, 300) : null;
+    if ('productos' in b) cambios.productos = productosValidos(b.productos);
+    exigir(Object.keys(cambios).length, 422, 'NOTHING_TO_UPDATE', 'No hay cambios.');
+    try { const [nuevo] = await db.actualizar('negocios', `id=eq.${n.id}`, cambios); return ok(200, nuevo); } catch (e) { cuerpoInvalido(e); }
+  }
   if (m === 'POST' && ruta === '/me') { // alta/actualización del comprador de esta sesión
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
     const b = await cuerpo();
@@ -140,7 +185,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
       exigir(['aceptada', 'vencida', 'cobrada'].includes(o.estado), 409, 'INVALID_STATE', 'Ese pedido no está listo para cobrar.');
       const r = await cobrarPedido(db, o);
       exigir(r.intento, 503, 'PAYMENT_UNAVAILABLE', r.error);
-      const i = r.intento; return ok(r.repetido ? 200 : 201, { payment_id: i.id, via: i.via, estado: i.estado, vence: i.vence, link: r.url ?? null, qr_image: r.qr_image ?? null, amount_minor: i.monto_minor });
+      const i = r.intento; return ok(r.repetido ? 200 : 201, { payment_id: i.id, via: i.via, estado: i.estado, vence: i.vence, link: r.url ?? i.instrucciones?.link ?? null, qr_image: r.qr_image ?? i.instrucciones?.qr_image ?? null, amount_minor: i.monto_minor });
     }
     exigir(!esComprador, 403, 'FORBIDDEN', 'Solo el negocio del pedido puede hacer esto.');
     if (accion === 'accept') { const nueva = await mover(db, o, 'aceptada'); await cobrarPedido(db, nueva); return ok(200, publica((await db.get('ordenes', `id=eq.${o.id}`))[0], false)); }
@@ -149,10 +194,13 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
   }
   if (m === 'GET' && (p = ruta.match(/^\/orders\/(\d+)\/payments\/current$/))) {
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
-    const { o } = await pedidoDe(db, Number(p[1]), auth);
-    const [i] = await db.get('intentos_cobro', `orden_id=eq.${o.id}&order=id.desc&limit=1&select=id,via,estado,vence,monto_minor`);
+    const { o, esComprador } = await pedidoDe(db, Number(p[1]), auth);
+    const [i] = await db.get('intentos_cobro', `orden_id=eq.${o.id}&order=id.desc&limit=1&select=id,orden_id,via,pey_ref,estado,vence,monto_minor,instrucciones`);
     exigir(i, 404, 'NOT_FOUND', 'Todavía no hay cobro.');
-    return ok(200, i);
+    if (await reconciliar(db, i)) i.estado = 'pagado'; // respaldo del webhook, solo para este intento
+    delete i.pey_ref; delete i.orden_id;
+    const { instrucciones, ...resto } = i; // link y QR son para quien paga, no para el negocio
+    return ok(200, esComprador ? { ...resto, link: instrucciones?.link ?? null, qr_image: instrucciones?.qr_image ?? null } : resto);
   }
 
   // ----- promociones del negocio -----
