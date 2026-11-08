@@ -113,8 +113,8 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 ## Estado desplegado y pendientes
 
 - **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
-- **Base:** migraciones hasta `20261107060000` aplicadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
-- **Cambios listos para publicar:** `20261108010000_entrega_y_codigos.sql` añade `entregada`, códigos únicos y producto gratis; requiere aplicar la migración y desplegar el bundle de backend correspondiente. Hasta entonces no está en producción.
+- **Base:** migraciones hasta `20261108010000` aplicadas y verificadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
+- **Entrega y códigos:** `20261108010000_entrega_y_codigos.sql` ya habilitó `entregada`, códigos únicos y producto gratis. El bundle de backend correspondiente ya está publicado en la Edge Function `api`; el 8 nov 2026 respondió `200 {"ok":true}` en producción después del despliegue.
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
 - **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
@@ -125,12 +125,11 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 2. Cargar `OPENAI_API_KEY` (OpenRouter o OpenAI) en Edge Function Secrets y ejecutar `index:catalog`.
 3. Registrar una CLABE de [`PEY.md`](PEY.md) en el portal de pey y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
 4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
-5. Aplicar `20261108010000_entrega_y_codigos.sql`, ejecutar `npm run build:edge` y desplegar la función `api` de forma controlada.
-6. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.
+5. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.
 
 ## App Flutter: estado de validación (8 nov 2026)
 
 - Cliente: errores de red/API con mensaje y reintento en todas las pantallas; dictado con `speech_to_text` en es_MX (con respaldo a otro español), permiso `RECORD_AUDIO` declarado, errores por código y búsqueda automática al terminar el dictado.
 - Vendedor puede crear códigos de descuento: porcentaje en toda la compra o un producto gratis. No hay descuento de monto fijo en la app; porcentaje por artículo requiere soporte nuevo en `POST /business/coupons`.
-- Pendiente de despliegue por separado: migración `20261108010000_entrega_y_codigos.sql` y backend (`/orders/:id/received`).
+- El esquema de entrega/códigos y el backend que expone `/orders/:id/received` ya están publicados; falta validación de punta a punta autenticada en producción.
 - Sin emulador Android en esta máquina: la voz solo se validó por código y análisis; falta probarla en un teléfono. La fuente Archivo no está empaquetada en la app (cae a la del sistema).

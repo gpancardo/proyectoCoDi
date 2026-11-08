@@ -42,7 +42,9 @@ class _AccessScreenState extends State<AccessScreen> {
         throw const BarrioApiException(
             'Revisa tu correo y confirma tu cuenta antes de entrar.');
       }
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       await context.read<AppState>().saveSession(token, refresh);
     } on BarrioApiException catch (error) {
       if (mounted) {
