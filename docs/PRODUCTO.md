@@ -261,4 +261,4 @@ Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `wa_j
 2. Cuenta CoDi propia por negocio (`pey_bank_account_id`) y registro de una CLABE de prueba en el portal de pey.
 3. Webhook de pey registrado en `/webhooks/pey` y retiro de la función `pey-webhook` anterior.
 4. Llave de modelo (OpenRouter u OpenAI) y primer `index:catalog`.
-5. Despliegue controlado de la migración de entrega/códigos y del bundle de la API; prueba nativa de voz en Android.
+5. Despliegue controlado del bundle de la API para entrega/códigos; prueba nativa de voz en Android.

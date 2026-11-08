@@ -42,7 +42,7 @@ confirmación de entrega ◄── código ◄── CoDi push ◄── pey + w
 - **Cierre humano:** código de recogida, confirmación de entrega y reporte de problema con contexto del pedido.
 - **IA responsable:** el modelo es opcional; la búsqueda determinista sigue funcionando sin llave ni modelo.
 
-> **Estado honesto, 8 nov 2026:** la API desplegada y el catálogo de demo ya funcionan. La migración `20261108010000_entrega_y_codigos.sql` y su bundle de Edge Function están preparados en esta rama, pero todavía requieren aplicación/despliegue controlado en Supabase. No se presenta como funcionalidad ya publicada.
+> **Estado honesto, 8 nov 2026:** la API desplegada y el catálogo de demo ya funcionan. La migración `20261108010000_entrega_y_codigos.sql` ya se aplicó y verificó en Supabase. El bundle correspondiente de la Edge Function está generado desde `main` y queda pendiente de publicación en la función `api`; no se presenta como funcionalidad publicada hasta completar ese paso.
 
 ## Arquitectura
 
