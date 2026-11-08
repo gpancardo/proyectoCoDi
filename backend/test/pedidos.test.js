@@ -21,6 +21,8 @@ test('cupones: porcentaje, monto, mínimo, vencimiento y total nunca en cero', (
   assert.equal(descuentoCupon({ ...pct, tipo: 'monto', valor: 99999, min_compra_minor: 0 }, 1200), 1100); // deja mínimo $1
   assert.equal(mejorCupon([pct, { ...pct, tipo: 'monto', valor: 3000 }], 15700).descuento_minor, 3000);
   assert.equal(mejorCupon([], 15700), null);
+  const gratis = { activo: true, tipo: 'producto_gratis', valor: 1, producto_regalo: 'Refresco', min_compra_minor: 0, vence: futuro };
+  assert.equal(descuentoCupon(gratis, 15700, [{ nombre: 'Refresco', precio_minor: 1850, cantidad: 2 }]), 1850);
 });
 
 test('insignias por colonia, alcaldía y negocio', () => {
@@ -33,7 +35,7 @@ test('insignias por colonia, alcaldía y negocio', () => {
 });
 
 test('máquina de estados', () => {
-  assert.ok(puede('pendiente', 'aceptada') && puede('vencida', 'cobrada') && puede('pagada', 'lista'));
+  assert.ok(puede('pendiente', 'aceptada') && puede('vencida', 'cobrada') && puede('pagada', 'lista') && puede('lista', 'entregada'));
   assert.ok(!puede('pagada', 'cancelada') && !puede('lista', 'pendiente') && !puede('cobrada', 'cancelada'));
 });
 

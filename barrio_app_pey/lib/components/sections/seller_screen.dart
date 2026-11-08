@@ -88,6 +88,7 @@ class _OrderRow extends StatelessWidget {
       Text('Pedido $id · \$$total', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: BarrioColors.marino)),
       const SizedBox(height: 4), Text(state == 'pendiente' ? 'Esperando tu respuesta' : state),
       for (final item in (order['items'] as List<dynamic>? ?? const [])) Text('${item['cantidad']} × ${item['nombre']}'),
+      if ((order['comprador_logros'] as List<dynamic>? ?? const []).isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text('Logros de tu cliente: ${(order['comprador_logros'] as List<dynamic>).map((b) => b['nombre']).join(' · ')}', style: const TextStyle(color: BarrioColors.teal, fontWeight: FontWeight.w700))),
       const SizedBox(height: 12),
       if (state == 'pendiente') Row(children: [Expanded(child: AppButton(label: 'Aceptar', iconAsset: 'check', onPressed: () => onAction(id, 'accept'))), const SizedBox(width: 8), Expanded(child: OutlinedButton(onPressed: () => onAction(id, 'reject'), child: const Text('Rechazar')))]),
       if (state == 'pagada') AppButton(label: 'Marcar listo', iconAsset: 'check', onPressed: () => onAction(id, 'ready')),
