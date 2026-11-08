@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buscarDeterminista, seccionesDescubrimiento, validarFiltros } from '../src/search.js';
+import { buscarConPista, buscarDeterminista, seccionesDescubrimiento, validarFiltros } from '../src/search.js';
 import { combinarFiltros } from '../src/agent.js';
 
 const negocios = [
@@ -21,4 +21,11 @@ test('rechaza rangos de precio invertidos', () => assert.throws(() => validarFil
 test('descubrimiento ordena primero afinidades explícitas', () => {
   const r = seccionesDescubrimiento(negocios, { categorias: { comida: 4 } });
   assert.equal(r.sections[0].id, 'comida');
+});
+
+test('la categoría del modelo es una pista; la de la app es estricta', () => {
+  const taqueria = [{ id: 7, nombre: 'Tacos Doña Lupe', zona: 'Coyoacán', categoria: 'Taquería', verificado: true, abierto: true, productos: [{ nombre: 'Taco de canasta', precio: 12 }] }];
+  assert.equal(buscarDeterminista(taqueria, { q: 'tacos', category: 'antojitos' }).length, 0);
+  assert.equal(buscarConPista(taqueria, { q: 'tacos', category: 'antojitos' }, null, {}).length, 1);
+  assert.equal(buscarConPista(taqueria, { q: 'tacos', category: 'antojitos' }, null, { category: 'antojitos' }).length, 0);
 });

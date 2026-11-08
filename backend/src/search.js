@@ -50,6 +50,14 @@ export function buscarDeterminista(negocios, entrada, perfil = null) {
     .sort((a, b) => b.score - a.score || Number(a.negocio.id) - Number(b.negocio.id));
 }
 
+// La categoría que infiere el modelo es una pista, no una regla: los negocios guardan categorías libres ("Taquería") y el modelo
+// elige de una lista corta ("antojitos"). Si con ella no hay resultados, se reintenta sin ella; la que manda la app sí es estricta.
+export function buscarConPista(negocios, filtros, perfil, explicitos = {}) {
+  const r = buscarDeterminista(negocios, filtros, perfil);
+  if (r.length || !filtros.category || explicitos.category) return r;
+  return buscarDeterminista(negocios, { ...filtros, category: null }, perfil);
+}
+
 export function seccionesDescubrimiento(negocios, perfil) {
   const abiertos = negocios.filter((n) => n.verificado && n.abierto);
   const porCategoria = new Map();
