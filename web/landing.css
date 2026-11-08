@@ -53,27 +53,19 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
 @keyframes cortina { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes asienta { from { transform: scale(1.12); } }
 
-/* Etapas: la barra de avance del pedido, con anchos que siguen el tiempo real */
-.etapas { padding: var(--s-seccion) var(--m); }
-.etapas h2 { font-size: clamp(44px, 6.4vw, 104px); margin-bottom: var(--s-titulo); color: var(--marino); }
-.barra-etapas { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.barra-etapas li { flex: 0 0 calc(var(--ancho) - 6px); min-width: 0; }
-.barra-etapas li:nth-child(1) { --bg: var(--marino); --fg: var(--crema); }
-.barra-etapas li:nth-child(2) { --bg: var(--blanco); --fg: var(--marino); }
-.barra-etapas li:nth-child(2) .dura { box-shadow: inset 0 0 0 2px var(--marino); }
-.barra-etapas li:nth-child(3) { --bg: var(--mango); --fg: var(--marino); }
-.barra-etapas li:nth-child(4) { --bg: var(--teal); --fg: var(--blanco); }
-.dura { display: block; height: clamp(120px, 16vh, 160px); padding: 20px; background: var(--bg); color: var(--fg);
-  font-size: clamp(20px, 2vw, 30px); font-weight: 700; line-height: 1.1; transform-origin: left; }
-.barra-etapas p { margin: 16px 0 0; padding-right: 12px; font-size: 18px; line-height: 1.45; max-width: 26ch; color: var(--tinta); }
-
-/* Arma tu cuenta: el titular es un campo de texto */
+/* Arma tu cuenta: opción múltiple; el titular muestra lo elegido */
 .cuenta-viva { background: var(--marino); color: var(--crema); padding: var(--s-seccion) var(--m); }
-.linea { display: block; width: 100%; margin: 0; padding: 0 0 .08em; border: 0; border-radius: 0; background: transparent;
-  color: var(--crema); caret-color: var(--mango); font: 800 clamp(44px, 8vw, 132px)/1 'Archivo', sans-serif; font-stretch: 112%;
-  letter-spacing: -0.03em; min-height: 0; resize: none; overflow: hidden; overflow-wrap: anywhere; }
-.linea:focus { outline: none; box-shadow: none; } /* taste-skill-ignore: quita la sombra de foco de estilo.css */
-.linea:focus-visible { outline: 3px solid var(--mango); outline-offset: 10px; }
+.linea { margin: 0; color: var(--crema); font: 800 clamp(36px, 5.4vw, 88px)/1 'Archivo', sans-serif; font-stretch: 112%;
+  letter-spacing: -0.03em; text-wrap: balance; min-height: 2em; display: flex; align-items: flex-end; }
+.opciones { display: flex; flex-wrap: wrap; gap: 10px; margin: var(--s-titulo) 0 0; padding: 0; border: 0; }
+.opciones legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.opciones label { display: block; }
+.opciones input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.opciones span { display: inline-flex; align-items: center; min-height: 52px; padding: 0 20px; border: 2px solid var(--crema); border-radius: 6px;
+  font-size: 17px; font-weight: 700; color: var(--crema); cursor: pointer; transition: background-color .15s, color .15s; }
+.opciones label:hover span { background: var(--marino-2); }
+.opciones input:checked + span { background: var(--mango); border-color: var(--mango); color: var(--marino); }
+.opciones input:focus-visible + span { outline: 3px solid var(--crema); outline-offset: 3px; }
 .respuesta { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: var(--s-bloque) clamp(40px, 5vw, 72px); margin-top: var(--s-titulo); align-items: start; }
 #tickets { display: grid; gap: 16px; }
 .ticket { background: var(--blanco); color: var(--tinta); border-radius: 6px; padding: 24px 26px 20px; }
@@ -88,71 +80,58 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
 .sin-match { font-size: 20px; margin: 0; }
 .lado { display: grid; gap: var(--s-bloque); align-content: start; }
 .nota-viva { margin: 0; font-size: 18px; line-height: 1.5; max-width: 44ch; color: var(--crema); }
-.ejemplos { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.ejemplos button { min-height: 44px; padding: 0; border: 0; background: none; color: var(--crema); font: 500 17px/1.3 'Archivo', sans-serif;
-  text-align: left; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
-.ejemplos button:hover { color: var(--mango); text-decoration-thickness: 2px; }
 .cuenta-viva :focus-visible { outline-color: var(--crema); }
 
 
-/* Así se compra: una pantalla recorre los cinco pasos en 15 s (3 s por paso); la lista de la izquierda los marca */
+/* Así se compra: los cinco pasos con su duración y una pantalla que los recorre (15 s, 3 s por paso, solo fundido) */
 .compra { background: var(--mango); color: var(--marino); padding: var(--s-seccion) var(--m); }
 .compra h2 { font-size: clamp(44px, 6.4vw, 104px); margin-bottom: var(--s-titulo); }
-.compra-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: var(--s-bloque) clamp(40px, 6vw, 96px); align-items: center; }
-.compra-pasos { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.compra-pasos li { display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 0 20px; border: 2px solid var(--marino); border-radius: 6px;
-  font-size: clamp(18px, 1.7vw, 24px); font-weight: 700; }
-.compra-pasos b { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; border: 2px solid currentColor; font-stretch: 112%; font-weight: 800; }
-.pantalla { position: relative; height: 380px; background: var(--blanco); color: var(--tinta); border: 2px solid var(--marino); border-radius: 6px; overflow: hidden; }
-.esc { position: absolute; inset: 0; display: grid; align-content: center; gap: 12px; padding: 28px; opacity: 0; }
+.compra-cuerpo { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--s-bloque) clamp(32px, 5vw, 80px); align-items: stretch; }
+.compra-pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-rows: repeat(5, 1fr); gap: 8px; }
+.compra-pasos li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 14px 20px; border: 2px solid var(--marino); border-radius: 6px; }
+.compra-pasos b { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid currentColor; font-stretch: 112%; font-weight: 800; }
+.compra-pasos strong { display: block; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.2; }
+.compra-pasos span { display: block; font-size: 15px; font-weight: 500; line-height: 1.35; margin-top: 2px; }
+.compra-pasos em { font-style: normal; font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 999px; border: 2px solid currentColor; white-space: nowrap; }
+.pantalla { position: relative; min-height: 420px; background: var(--blanco); color: var(--tinta); border: 2px solid var(--marino); border-radius: 6px; overflow: hidden; }
+.esc { position: absolute; inset: 0; display: grid; align-content: center; gap: 14px; padding: 32px; opacity: 0; }
 .esc p { margin: 0; }
 .busca { display: flex; align-items: center; min-height: 56px; padding: 0 16px; border: 1.5px solid var(--trazo); border-radius: 6px; font-size: 20px; color: var(--marino); }
-.tecleo { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; border-right: 2px solid var(--marino); }
 .res { display: grid; gap: 2px; padding: 14px 16px; border: 2px solid var(--marino); border-radius: 6px; }
 .res strong { color: var(--marino); font-size: 1.1rem; }
 .res small, .cobro small { font-size: 14px; font-weight: 500; color: var(--gris); }
-.tot { display: flex; justify-content: space-between; align-items: baseline; margin: 0; padding: 4px 4px 0; font-weight: 800; font-stretch: 112%; font-size: 1.8rem; color: var(--marino); }
+.tot { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 4px 0; font-weight: 800; font-stretch: 112%; font-size: 1.8rem; color: var(--marino); }
 .bt { display: grid; place-items: center; min-height: 60px; border: 2px solid var(--marino); border-radius: 8px; background: var(--mango); color: var(--marino); font-weight: 700; font-size: 1.15rem; }
-.espera { height: 14px; background: var(--niebla); border-radius: 7px; overflow: hidden; }
-.espera span { display: block; height: 100%; background: var(--marino); transform-origin: left; transform: scaleX(0); }
-.ok-neg { font-weight: 700; color: var(--teal); font-size: 1.15rem; opacity: 0; }
+.ok-neg { font-weight: 700; color: var(--teal); font-size: 1.3rem; }
 .esc-banco { background: var(--marino); color: var(--crema); }
 .banco { font-weight: 800; font-stretch: 112%; font-size: 1.3rem; color: var(--mango); }
 .cobro { display: grid; gap: 4px; padding: 18px; border-radius: 6px; background: var(--blanco); color: var(--marino); }
 .cobro strong { font-size: 2.6rem; font-weight: 800; font-stretch: 112%; line-height: 1; }
-.esc-banco .bt { background: var(--mango); }
 .esc-pagado { background: var(--teal); color: var(--blanco); text-align: center; justify-items: center; }
 .pag { font-size: 2rem; font-weight: 800; font-stretch: 112%; }
 .pag-m { font-size: 3.4rem; font-weight: 800; font-stretch: 125%; line-height: 1; }
-.cod { display: grid; gap: 4px; font-weight: 500; }
+.cod { display: grid; gap: 6px; font-weight: 500; }
 .cod strong { font-size: 3rem; font-weight: 800; font-stretch: 125%; letter-spacing: .12em; color: var(--blanco); }
 .compra :focus-visible { outline-color: var(--marino); }
-
 @media (prefers-reduced-motion: no-preference) {
   .esc { animation: escena 15s linear infinite; animation-delay: calc(var(--i) * 3s); }
   .compra-pasos li { animation: paso 15s linear infinite; animation-delay: calc(var(--i) * 3s); }
-  .tecleo { animation: teclear 15s linear infinite; }
-  .esc:nth-child(2) .bt { animation: aprieta1 15s linear infinite; }
-  .espera span { animation: llena 15s linear infinite; }
-  .ok-neg { animation: acepta 15s linear infinite; }
-  .esc-banco .bt { animation: aprieta2 15s linear infinite; }
+  .compra-cuerpo:hover * { animation-play-state: paused; } /* quien lee, la detiene con el cursor */
 }
 @media (prefers-reduced-motion: reduce) {
   .esc-pagado { opacity: 1; }
   .compra-pasos li:last-child { background: var(--marino); color: var(--crema); }
 }
-@keyframes escena { 0% { opacity: 0 } 1%, 19% { opacity: 1 } 20%, 100% { opacity: 0 } }
-@keyframes paso { 0% { background: var(--marino); color: var(--crema) } 19% { background: var(--marino); color: var(--crema) } 20%, 100% { background: transparent; color: var(--marino) } }
-@keyframes teclear { 0%, 1% { width: 0 } 10% { width: 16ch } 100% { width: 16ch } }
-@keyframes aprieta1 { 0%, 31.5% { transform: none; background: var(--mango) } 33%, 36% { transform: translateY(2px); background: var(--mango-presionado) } 38%, 100% { transform: none; background: var(--mango) } }
-@keyframes llena { 0%, 40% { transform: scaleX(0) } 55%, 100% { transform: scaleX(1) } }
-@keyframes acepta { 0%, 55% { opacity: 0 } 58%, 100% { opacity: 1 } }
-@keyframes aprieta2 { 0%, 71.5% { transform: none; background: var(--mango) } 73%, 76% { transform: translateY(2px); background: var(--mango-presionado) } 78%, 100% { transform: none; background: var(--mango) } }
+@keyframes escena { 0% { opacity: 0 } 3%, 19% { opacity: 1 } 22%, 100% { opacity: 0 } }
+@keyframes paso { 0% { background: var(--marino); color: var(--crema) } 19% { background: var(--marino); color: var(--crema) } 22%, 100% { background: transparent; color: var(--marino) } }
+@media (max-width: 560px) {
+  .compra-pasos li { grid-template-columns: 40px minmax(0, 1fr); }
+  .compra-pasos em { grid-column: 2; justify-self: start; margin-top: 6px; }
+}
 @media (max-width: 900px) {
   .compra-cuerpo { grid-template-columns: 1fr; }
-  .compra-pasos { order: 2; }
-  .compra h2 { font-size: 11vw; }
-  .pantalla { height: 360px; }
+  .compra-pasos { grid-template-rows: none; }
+  .pantalla { min-height: 380px; order: -1; }
 }
 
 /* Para tu negocio: mosaico de losetas distintas */
@@ -260,15 +239,11 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
 /* Movimiento ligado al scroll: solo transform y opacidad, y solo donde el navegador lo hace en el compositor */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .etapas h2, .respuesta > *, .loseta, .fichero, .cierre-texto, .dialogo, .dudas-l h2 {
+    .respuesta > *, .loseta, .fichero, .cierre-texto, .dialogo, .dudas-l h2 {
       animation: entra linear both; animation-timeline: view(); animation-range: entry 0% entry 75%; }
     .loseta:nth-child(2n) { animation-range: entry 10% entry 85%; }
     .loseta:nth-child(3n) { animation-range: entry 20% entry 95%; }
     .dialogo { animation-range: entry 15% entry 90%; }
-    .dura { animation: crece linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
-    .barra-etapas li:nth-child(2) .dura { animation-range: entry 10% entry 80%; }
-    .barra-etapas li:nth-child(3) .dura { animation-range: entry 20% entry 90%; }
-    .barra-etapas li:nth-child(4) .dura { animation-range: entry 30% entry 100%; }
     /* parallax: el titular de la portada se queda atrás, el changarrito se adelanta */
     .portada h1 { animation: sube .9s var(--sale) both, atras linear both; animation-timeline: auto, scroll(root); animation-range: normal, 0 100svh; }
     .l-panel .panel { animation: flota linear both; animation-timeline: view(); }
@@ -277,7 +252,6 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
   }
 }
 @keyframes entra { from { opacity: 0; transform: translateY(28px); } }
-@keyframes crece { from { transform: scaleX(.04); } }
 @keyframes atras { to { transform: translateY(18vh); } }
 @keyframes flota { from { transform: translateY(40px); } to { transform: translateY(-40px); } }
 @keyframes alza { from { transform: translateY(30%); } }
@@ -288,16 +262,11 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
   .portada { min-height: 0; }
   .campo { padding-top: 8vh; min-height: 0; }
   .campo::after { display: none; }
+  .portada h1 { z-index: 3; margin-bottom: 12px; }
   .escena::before { content: ''; position: absolute; z-index: -1; left: calc(var(--m) * -1); right: calc(var(--m) * -1); top: 0; bottom: 24%; background: var(--blanco); }
   .escena { position: relative; right: auto; top: auto; bottom: auto; width: 100%; height: min(92vw, 64svh); margin: 8px 0 calc(min(92vw, 64svh) * -.24); }
   .banda { padding-top: calc(min(92vw, 64svh) * .3); flex-direction: column; align-items: stretch; }
   .banda-acciones { flex-direction: column; align-items: stretch; }
-  .barra-etapas { flex-direction: column; }
-  .barra-etapas li { flex: none; min-height: max(72px, calc(var(--n) * .3svh)); padding: 16px; background: var(--bg); color: var(--fg); }
-  .barra-etapas li:nth-child(2) { box-shadow: inset 0 0 0 2px var(--marino); }
-  .barra-etapas li:nth-child(2) .dura { box-shadow: none; }
-  .dura { height: auto; padding: 0; background: none; font-size: 22px; }
-  .barra-etapas p { margin-top: 6px; font-size: 16px; max-width: none; }
   .respuesta { grid-template-columns: 1fr; gap: 28px; margin-top: 28px; }
   .cierre { grid-template-columns: 1fr; gap: var(--s-titulo); }
   .cierre-texto, .dialogo { grid-column: 1; }
@@ -309,15 +278,13 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
   .portada h1 { font-size: 15vw; font-stretch: 112%; max-width: none; }
   .banda .btn { width: 100%; }
 
-  .etapas h2 { font-size: 11vw; }
 
-  .linea { font-size: 11vw; font-stretch: 100%; }
-  .ejemplos { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-  .ejemplos button { background: var(--marino-2); padding: 0 14px; text-decoration: none; border-radius: 6px; }
+  .linea { font-size: 10vw; font-stretch: 100%; min-height: 2.1em; }
 
   .mosaico { grid-template-columns: 1fr 1fr; grid-auto-rows: auto; gap: 6px; }
   .loseta { grid-column: auto / span 2 !important; grid-row: auto !important; }
-  .l-cifra, .l-lista, .l-renta, .l-hoy { grid-column: auto / span 1 !important; min-height: 190px; }
+  .l-cifra, .l-lista { grid-column: auto / span 1 !important; min-height: 190px; }
+  .l-renta, .l-hoy { grid-column: auto / span 1 !important; min-height: 112px; }
   .l-titulo { min-height: 0; }
   .l-panel { padding: 20px 12px; }
   .l-cupon p, .l-renta p, .l-hoy p { font-size: 20px; }
@@ -337,4 +304,12 @@ html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
   .marca-grande span { font-size: 17vw; }
   .pie-cols { grid-template-columns: 1fr; }
   .pie-cols nav, .pie-cols p { grid-column: 1; }
+}
+
+.txt-corto { display: none; }
+@media (max-width: 560px) {
+  .barra-l { gap: 12px; }
+  .barra-l .btn-chico { padding: 0 14px; white-space: nowrap; }
+  .txt-largo { display: none; }
+  .txt-corto { display: inline; }
 }
