@@ -27,12 +27,12 @@
     <span class="marimba marimba-mango" aria-hidden="true"><span style="--h:100%">b</span><span style="--h:80%">a</span><span style="--h:92%">r</span><span style="--h:72%">r</span><span style="--h:88%">i</span><span style="--h:76%">o</span></span>
   </a>
   <nav aria-label="Principal">
-    <a href="#como">Cómo se pide</a>
+    <a href="#compra">Así se compra</a>
     <a href="#cuenta">Arma tu cuenta</a>
     <a href="#negocios">Negocios</a>
     <a href="#dudas">Preguntas</a>
   </nav>
-  <a class="btn btn-chico btn-marino" href="app.html">Registra tu negocio</a>
+  <a class="btn btn-chico btn-marino" href="app.html"><span class="txt-largo">Registra tu negocio</span><span class="txt-corto">Mi negocio</span></a>
 </header>
 
 <main id="contenido">
@@ -69,46 +69,35 @@
     </div>
   </section>
 
-  <section class="etapas" id="como" aria-labelledby="como-t">
-    <h2 id="como-t">así llega tu pedido</h2>
-    <ol class="barra-etapas" data-ui>
-      <li style="--ancho: 17%; --n: 17"><span class="dura">un minuto</span><p>Primero buscas y comparas negocios abiertos en tu zona.</p></li>
-      <li style="--ancho: 13%; --n: 13"><span class="dura">segundos</span><p>Luego revisas la cuenta: el total ya viene calculado.</p></li>
-      <li style="--ancho: 56%; --n: 56"><span class="dura">hasta 8 minutos</span><p>El negocio acepta. Si no contesta, se cancela y no pagas.</p></li>
-      <li style="--ancho: 14%; --n: 14"><span class="dura">un toque</span><p>Apruebas el cobro en tu banco y recibes tu código.</p></li>
-    </ol>
-  </section>
-
   <section class="compra" id="compra" aria-labelledby="compra-t">
     <h2 id="compra-t">así se compra</h2>
     <div class="compra-cuerpo">
       <ol class="compra-pasos">
-        <li style="--i:0"><b>1</b> Buscas lo que se te antoja</li>
-        <li style="--i:1"><b>2</b> Armas la cuenta</li>
-        <li style="--i:2"><b>3</b> Confirmas y el negocio acepta</li>
-        <li style="--i:3"><b>4</b> Apruebas el cobro en tu banco</li>
-        <li style="--i:4"><b>5</b> Recoges con tu código</li>
+        <li style="--i:0"><b>1</b><div><strong>Buscas lo que se te antoja</strong><span>Negocios abiertos en tu zona, con precios a la vista.</span></div><em>un minuto</em></li>
+        <li style="--i:1"><b>2</b><div><strong>Armas la cuenta</strong><span>El total ya viene calculado antes de confirmar.</span></div><em>segundos</em></li>
+        <li style="--i:2"><b>3</b><div><strong>El negocio acepta</strong><span>Si no contesta, se cancela y no pagas.</span></div><em>hasta 8 min</em></li>
+        <li style="--i:3"><b>4</b><div><strong>Apruebas el cobro</strong><span>Te llega a la app de tu banco.</span></div><em>un toque</em></li>
+        <li style="--i:4"><b>5</b><div><strong>Recoges con tu código</strong><span>Aparece cuando el pago queda confirmado.</span></div><em>tu código</em></li>
       </ol>
       <div class="pantalla" aria-hidden="true" data-ui>
         <div class="esc" style="--i:0">
-          <p class="busca"><span class="tecleo">tacos de canasta</span></p>
+          <p class="busca">tacos de canasta</p>
           <p class="res"><strong>Tacos Doña Lupe</strong><small>Abierto · 350 m</small></p>
           <p class="res"><strong>Tacos El Güero</strong><small>Abierto · 700 m</small></p>
         </div>
         <div class="esc" style="--i:1">
           <p class="res"><strong>Tacos Doña Lupe</strong><small>10 × $12</small></p>
           <p class="tot"><span>Total</span><span class="monto">$120</span></p>
-          <p class="bt bt-confirma">Confirmar pedido</p>
+          <p class="bt">Confirmar pedido</p>
         </div>
         <div class="esc" style="--i:2">
-          <p class="res"><strong>Tacos Doña Lupe</strong><small>Revisando tu pedido</small></p>
-          <p class="espera"><span></span></p>
+          <p class="res"><strong>Tacos Doña Lupe</strong><small>10 × $12 · $120</small></p>
           <p class="ok-neg">Aceptó tu pedido</p>
         </div>
         <div class="esc esc-banco" style="--i:3">
           <p class="banco">Tu banco</p>
           <p class="cobro"><small>Cobro de Tacos Doña Lupe</small><strong class="monto">$120</strong></p>
-          <p class="bt bt-aprueba">Aprobar</p>
+          <p class="bt">Aprobar</p>
         </div>
         <div class="esc esc-pagado" style="--i:4">
           <p class="pag">✅ ¡Pagado!</p>
@@ -121,8 +110,15 @@
 
   <section class="cuenta-viva" id="cuenta" aria-labelledby="cuenta-t">
     <h2 id="cuenta-t" class="oculto">Arma tu cuenta</h2>
-    <label class="oculto" for="pedido">Escribe lo que se te antoja</label>
-    <textarea id="pedido" class="linea" data-ui rows="1" maxlength="90" autocomplete="off" spellcheck="false" enterkeyhint="done">10 tacos de canasta</textarea>
+    <p class="linea" id="titular" data-ui>10 tacos de canasta</p>
+    <fieldset class="opciones">
+      <legend>Elige qué se te antoja</legend>
+      <label><input type="radio" name="pedido" value="10 tacos de canasta" checked><span>10 tacos de canasta</span></label>
+      <label><input type="radio" name="pedido" value="2 aguas de horchata y 6 tacos"><span>2 aguas de horchata y 6 tacos</span></label>
+      <label><input type="radio" name="pedido" value="un kilo de tortillas"><span>Un kilo de tortillas</span></label>
+      <label><input type="radio" name="pedido" value="3 tamales de rajas y un atole"><span>3 tamales de rajas y un atole</span></label>
+      <label><input type="radio" name="pedido" value="2 tacos y 1 refresco"><span>2 tacos y 1 refresco (dos negocios)</span></label>
+    </fieldset>
     <div class="respuesta">
       <div id="tickets" aria-live="polite">
         <article class="ticket" data-ui>
@@ -132,12 +128,7 @@
         </article>
       </div>
       <div class="lado">
-        <p class="nota-viva">Escribe lo que se te antoja, como se lo pedirías a un vecino. Precios de muestra: en la app, el total sale del menú vigente de cada negocio.</p>
-        <div class="ejemplos" aria-label="Ejemplos">
-          <button type="button" data-ejemplo="2 aguas de horchata y 6 tacos">2 aguas de horchata y 6 tacos</button>
-          <button type="button" data-ejemplo="un kilo de tortillas">un kilo de tortillas</button>
-          <button type="button" data-ejemplo="3 tamales de rajas y un atole">3 tamales de rajas y un atole</button>
-        </div>
+        <p class="nota-viva">Cada negocio te arma su propia cuenta. Precios de muestra: en la app, el total sale del menú vigente de cada negocio.</p>
       </div>
     </div>
   </section>
@@ -195,7 +186,7 @@
     <span style="--h:100%">b</span><span style="--h:78%">a</span><span style="--h:90%">r</span><span style="--h:68%">r</span><span style="--h:86%">i</span><span style="--h:74%">o</span>
   </p>
   <div class="pie-cols">
-    <nav aria-label="Pie"><a href="#como">Cómo se pide</a><a href="#cuenta">Arma tu cuenta</a><a href="#negocios">Para tu negocio</a><a href="#dudas">Preguntas</a></nav>
+    <nav aria-label="Pie"><a href="#compra">Así se compra</a><a href="#cuenta">Arma tu cuenta</a><a href="#negocios">Para tu negocio</a><a href="#dudas">Preguntas</a></nav>
     <p>Hecho en CDMX para el DevDay Exchange Community Hackathon.<br>Cobros con <a href="https://pey.mx">pey</a> y CoDi.</p>
   </div>
   <div class="pie-fin"><span>© 2026 Barrio</span><a class="btn btn-chico" href="app.html">Registra tu negocio</a></div>
