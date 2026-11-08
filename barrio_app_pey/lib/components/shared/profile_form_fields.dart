@@ -33,14 +33,17 @@ class ProfileFormFields {
     required ProfileField field,
     required TextEditingController controller,
     required String? Function(String?) validator,
-  }) => TextFormField(
+  }) =>
+      TextFormField(
         controller: controller,
         keyboardType: field.keyboard,
         maxLength: field.maxLength,
-        textCapitalization: field == ProfileField.name || field == ProfileField.neighborhood
-            ? TextCapitalization.words
-            : TextCapitalization.none,
-        decoration: InputDecoration(labelText: field.label, hintText: field.hint),
+        textCapitalization:
+            field == ProfileField.name || field == ProfileField.neighborhood
+                ? TextCapitalization.words
+                : TextCapitalization.none,
+        decoration:
+            InputDecoration(labelText: field.label, hintText: field.hint),
         validator: validator,
       );
 
@@ -48,10 +51,13 @@ class ProfileFormFields {
     required String? value,
     required ValueChanged<String?> onChanged,
     required List<String> options,
-  }) => DropdownButtonFormField<String>(
+  }) =>
+      DropdownButtonFormField<String>(
         value: value,
         decoration: const InputDecoration(labelText: 'Alcaldía'),
-        items: options.map((zone) => DropdownMenuItem(value: zone, child: Text(zone))).toList(),
+        items: options
+            .map((zone) => DropdownMenuItem(value: zone, child: Text(zone)))
+            .toList(),
         onChanged: onChanged,
         validator: (value) => value == null ? 'Elige tu alcaldía.' : null,
       );

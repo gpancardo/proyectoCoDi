@@ -24,13 +24,26 @@ abstract final class BarrioTheme {
       error: BarrioColors.rojo,
     );
     return ThemeData(
-      useMaterial3: true,
+      useMaterial3: false,
+      primaryColor: BarrioColors.marino,
       colorScheme: scheme,
       scaffoldBackgroundColor: BarrioColors.crema,
       fontFamily: 'sans-serif',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: BarrioColors.crema,
+        foregroundColor: BarrioColors.marino,
+        elevation: 0,
+        centerTitle: false,
+      ),
       textTheme: const TextTheme(
-        headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: BarrioColors.marino),
-        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: BarrioColors.marino),
+        headlineMedium: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: BarrioColors.marino),
+        titleLarge: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: BarrioColors.marino),
         bodyLarge: TextStyle(fontSize: 17, color: BarrioColors.tinta),
         bodyMedium: TextStyle(fontSize: 15, color: BarrioColors.tinta),
         labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
@@ -38,19 +51,27 @@ abstract final class BarrioTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: BarrioColors.blanco,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: BarrioColors.borde, width: 2)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: BarrioColors.borde, width: 2)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: BarrioColors.marino, width: 2)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: BarrioColors.borde, width: 2)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: BarrioColors.borde, width: 2)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: BarrioColors.marino, width: 2)),
         hintStyle: const TextStyle(color: BarrioColors.gris),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: BarrioColors.mango,
           foregroundColor: BarrioColors.marino,
-          minimumSize: const Size.fromHeight(60),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          minimumSize: const Size.fromHeight(64),
+          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
       cardTheme: CardTheme(

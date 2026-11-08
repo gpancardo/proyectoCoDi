@@ -13,10 +13,12 @@ class OpenAIService {
   Future<AgentSearchResult> search(String query, {required String zone}) async {
     final baseUrl = dotenv.env['API_BASE_URL']?.trim() ?? '';
     if (baseUrl.isEmpty) {
-      throw const OpenAIServiceException('Falta configurar la dirección de la API Barrio.');
+      throw const OpenAIServiceException(
+          'Falta configurar la dirección de la API Barrio.');
     }
 
-    final uri = Uri.parse('${baseUrl.replaceFirst(RegExp(r'/$'), '')}/search/agent');
+    final uri =
+        Uri.parse('${baseUrl.replaceFirst(RegExp(r'/$'), '')}/search/agent');
     final response = await _client
         .post(
           uri,
@@ -29,16 +31,19 @@ class OpenAIService {
         .timeout(_timeout);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw OpenAIServiceException('No pude buscar ahora. Inténtalo de nuevo. (${response.statusCode})');
+      throw OpenAIServiceException(
+          'No pude buscar ahora. Inténtalo de nuevo. (${response.statusCode})');
     }
 
-    final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final body =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     final data = (body['data'] as List<dynamic>? ?? const [])
         .whereType<Map<String, dynamic>>()
         .toList(growable: false);
     final meta = body['meta'] as Map<String, dynamic>? ?? const {};
     return AgentSearchResult(
-      answer: meta['answer'] as String? ?? 'Estas opciones coinciden con lo que buscas.',
+      answer: meta['answer'] as String? ??
+          'Estas opciones coinciden con lo que buscas.',
       businesses: data,
     );
   }

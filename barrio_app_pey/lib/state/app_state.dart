@@ -15,8 +15,10 @@ class AppState extends ChangeNotifier {
 
   bool get isFirstVisit => _isFirstVisit;
   String get name => _name;
+  String get phone => _preferences.getString('profile_phone') ?? '';
   String get zone => _preferences.getString('profile_zone') ?? '';
-  String get neighborhood => _preferences.getString('profile_neighborhood') ?? '';
+  String get neighborhood =>
+      _preferences.getString('profile_neighborhood') ?? '';
 
   Future<void> saveProfile({
     required String name,
@@ -29,10 +31,35 @@ class AppState extends ChangeNotifier {
     await _preferences.setString('profile_phone', phone.trim());
     await _preferences.setString('profile_zone', zone);
     await _preferences.setString('profile_neighborhood', neighborhood.trim());
-    if (photoPath.isNotEmpty) await _preferences.setString('profile_photo_path', photoPath);
+    if (photoPath.isNotEmpty) {
+      await _preferences.setString('profile_photo_path', photoPath);
+    }
     await _preferences.setBool(_hasProfileKey, true);
     _name = name.trim();
     _isFirstVisit = false;
+    notifyListeners();
+  }
+
+  Future<void> updateProfile({
+    required String name,
+    required String phone,
+    required String zone,
+    required String neighborhood,
+  }) async {
+    await _preferences.setString('profile_name', name.trim());
+    await _preferences.setString('profile_phone', phone.trim());
+    await _preferences.setString('profile_zone', zone);
+    await _preferences.setString('profile_neighborhood', neighborhood.trim());
+    _name = name.trim();
+    notifyListeners();
+  }
+
+  Future<void> updatePhoto(String path) async {
+    if (path.isEmpty) {
+      await _preferences.remove('profile_photo_path');
+    } else {
+      await _preferences.setString('profile_photo_path', path);
+    }
     notifyListeners();
   }
 }

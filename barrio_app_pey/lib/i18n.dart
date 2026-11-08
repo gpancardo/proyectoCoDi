@@ -2,7 +2,7 @@
 abstract final class I18n {
   static const appName = 'Barrio';
   static const welcome = 'Encuentra algo rico cerca';
-  static const onboardingTitle = 'Primero, cuéntanos de ti';
+  static const onboardingTitle = 'Lo bueno empieza cerca';
   static const onboardingSubtitle = 'Así buscamos opciones cerca de tu zona.';
   static const nameLabel = '¿Cómo te llamas?';
   static const phoneLabel = 'Tu celular';
@@ -16,9 +16,21 @@ abstract final class I18n {
   static const connectionHint = 'Estoy preparando opciones de tu zona.';
 
   static const alcaldiasCdmx = [
-    'Álvaro Obregón', 'Azcapotzalco', 'Benito Juárez', 'Coyoacán',
-    'Cuajimalpa de Morelos', 'Cuauhtémoc', 'Gustavo A. Madero', 'Iztacalco',
-    'Iztapalapa', 'La Magdalena Contreras', 'Miguel Hidalgo', 'Milpa Alta',
-    'Tláhuac', 'Tlalpan', 'Venustiano Carranza', 'Xochimilco',
+    'Álvaro Obregón',
+    'Azcapotzalco',
+    'Benito Juárez',
+    'Coyoacán',
+    'Cuajimalpa de Morelos',
+    'Cuauhtémoc',
+    'Gustavo A. Madero',
+    'Iztacalco',
+    'Iztapalapa',
+    'La Magdalena Contreras',
+    'Miguel Hidalgo',
+    'Milpa Alta',
+    'Tláhuac',
+    'Tlalpan',
+    'Venustiano Carranza',
+    'Xochimilco',
   ];
 }

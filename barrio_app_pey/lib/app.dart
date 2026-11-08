@@ -16,9 +16,8 @@ class BarrioApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: BarrioTheme.light,
       home: Consumer<AppState>(
-        builder: (context, state, _) => state.isFirstVisit
-            ? const OnboardingScreen()
-            : const ChatScreen(),
+        builder: (context, state, _) =>
+            state.isFirstVisit ? const OnboardingScreen() : const ChatScreen(),
       ),
     );
   }
