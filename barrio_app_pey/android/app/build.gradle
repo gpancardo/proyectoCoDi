@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.barrio_app_pey"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
