@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'services/avisos.dart';
 import 'services/barrio_api.dart';
 import 'state/app_state.dart';
 
@@ -31,7 +32,11 @@ Future<void> main() async {
 
   await renovar().timeout(const Duration(seconds: 5), onTimeout: () {});
   Timer.periodic(const Duration(minutes: 45), (_) => renovar());
-  AppLifecycleListener(onResume: renovar);
+  final avisos = AvisosPedidos(state, api);
+  AppLifecycleListener(onResume: () {
+    renovar();
+    avisos.revisar();
+  });
   runApp(
     MultiProvider(
       providers: [
@@ -41,4 +46,5 @@ Future<void> main() async {
       child: const BarrioApp(),
     ),
   );
+  avisos.iniciar();
 }
