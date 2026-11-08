@@ -6,7 +6,7 @@
 
 **Busca en tu barrio con tus palabras, ve el total antes de pedir y paga con CoDi desde la app de tu banco.**
 
-[Sitio](https://jade-paprenjak-a98b06.netlify.app) · [Descargar para Android](https://jade-paprenjak-a98b06.netlify.app/descargar/) · [Producto](docs/PRODUCTO.md) · [API y estado](docs/BACKEND.md)
+[Sitio](https://jade-paprenjak-a98b06.netlify.app) · [Descargar para Android](https://jade-paprenjak-a98b06.netlify.app/descargar/) · [Pitch](docs/PITCH.md) · [Pantallas](docs/capturas/README.md) · [Producto](docs/PRODUCTO.md) · [API y estado](docs/BACKEND.md)
 
 `DevDay Exchange Community Hackathon · CDMX · 7–8 nov 2026`
 
@@ -63,7 +63,7 @@ Para ver el lado del negocio, abre el menú lateral y entra a **Tu negocio**: al
 |---|---|---|---|---|
 | ![Buscar](docs/capturas/04-resultados.png) | ![Descubrir](docs/capturas/05-descubrir.png) | ![Cuenta](docs/capturas/07-cuenta.png) | ![Sellos](docs/capturas/14-sellos-ciudad.png) | ![Panel](docs/capturas/17-panel-resumen.png) |
 
-Estas capturas usan datos de muestra.
+Estas capturas usan datos de muestra. Están [todas las pantallas](docs/capturas/README.md) y las [capturas del pago real](docs/capturas/reales/README.md).
 
 ## Qué es real y qué es de demo
 
@@ -119,7 +119,7 @@ El CI corre los trabajos `backend`, `supabase` y `web` en cada PR. El flujo es `
 | [`backend/`](backend) | API: pedidos, pagos, búsqueda y conversación |
 | [`supabase/`](supabase) | Migraciones, datos de demo y pruebas del esquema |
 | [`web/`](web) | Landing, blog y página de descarga. `app.html` es un prototipo que ya no se enlaza |
-| [`docs/`](docs) | Producto, API, pey, diseño y voz de marca |
+| [`docs/`](docs) | Pitch, guía de entrega, producto, API, pey, diseño y voz de marca |
 | [`pendientes/`](pendientes/README.md) | Lo que falta, sin adornos |
 
 ## Correrlo localmente

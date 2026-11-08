@@ -1,5 +1,7 @@
 # Guiones de video
 
+Pitch y datos permitidos: [`PITCH.md`](PITCH.md). Paquete y correo: [`ENTREGA.md`](ENTREGA.md).
+
 Quién evalúa: AI Builders, pey, SEDECO y OpenAI (`README.md`). Lo que cada quien quiere ver:
 
 | Jurado | Tiene que salir de pantalla con esto |

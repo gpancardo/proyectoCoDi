@@ -24,7 +24,7 @@ final negocios = [
     'categoria': 'Papelería',
     'colonia': 'Narvarte',
     'direccion': 'Av. Universidad 340, Narvarte',
-    'match_reasons': ['Vende cuadernos', 'Abierto ahora', 'A 400 m'],
+    'match_reasons': ['Vende cuadernos', 'Abierto ahora'],
     'productos': [
       {'nombre': 'Cuaderno profesional', 'precio': 38},
       {'nombre': 'Copia', 'precio': 1},
@@ -246,7 +246,13 @@ Object? responde(http.BaseRequest r) {
       ]
     };
   }
-  if (ruta == '/search/agent') return negocios;
+  if (ruta == '/search/agent') {
+    final conHistorial =
+        (jsonDecode((r as http.Request).body)['history'] as List).isNotEmpty;
+    return conHistorial
+        ? negocios.where((n) => n['colonia'] == 'San Lucas').toList()
+        : negocios;
+  }
   if (ruta.startsWith('/businesses/')) return negocios[0];
   if (ruta == '/business/dashboard') return tablero;
   if (ruta == '/business/coupons') return cupones;
@@ -277,6 +283,21 @@ Object? responde(http.BaseRequest r) {
   }
   if (ruta.startsWith('/orders/')) return pedido;
   return <String, dynamic>{};
+}
+
+// Primera vuelta: Barrio pregunta. Con historial, ya no.
+Map<String, dynamic>? metaChat(http.BaseRequest r) {
+  if (!r.url.path.endsWith('/search/agent')) return null;
+  final historial = jsonDecode((r as http.Request).body)['history'] as List;
+  return historial.isEmpty
+      ? {
+          'answer': 'Busco papelerías abiertas para ti.',
+          'follow_up': {
+            'question': '¿Por qué zona te queda mejor?',
+            'options': ['Benito Juárez', 'Coyoacán', 'En toda la ciudad'],
+          }
+        }
+      : {'answer': 'Esto encontré por Coyoacán.', 'follow_up': null};
 }
 
 Future<void> fuentes() async {
@@ -321,7 +342,8 @@ Future<void> abrir(WidgetTester t, Map<String, Object> prefs) async {
     Provider(
         create: (_) => BarrioApi(
             client: MockClient((r) async => http.Response.bytes(
-                utf8.encode(jsonEncode({'data': responde(r)})), 200,
+                utf8.encode(jsonEncode({'data': responde(r), 'meta': metaChat(r)})),
+                200,
                 headers: {'content-type': 'application/json'})))),
   ], child: const BarrioApp()));
   await asentar(t);
@@ -367,6 +389,12 @@ void main() {
         find.byType(TextField).first, 'un cuaderno cerca de aquí');
     await t.testTextInput.receiveAction(TextInputAction.search);
     await foto(t, '04-resultados');
+    await t.tap(find.text('Coyoacán'));
+    await foto(t, '22-chat-seguimiento');
+    await t.tap(find.byTooltip('Open navigation menu'));
+    await foto(t, '23-menu');
+    t.state<NavigatorState>(find.byType(Navigator).last).pop();
+    await asentar(t);
     await seccion(t, 'Descubrir');
     await foto(t, '05-descubrir');
     await t.tap(find.text('Papelería Miranda').first);
