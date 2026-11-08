@@ -6,18 +6,19 @@ const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches
 // El botón principal lleva a la app configurada (app.html por defecto)
 if (window.BARRIO?.APP_URL) $('#app').href = window.BARRIO.APP_URL
 
-// Arma tu cuenta: lo que escribes se vuelve ticket con total
-const entrada = $('#pedido')
+// Arma tu cuenta: opción múltiple. El titular muestra lo elegido y debajo sale el ticket con total.
+const titular = $('#titular')
 const salida = $('#tickets')
 const pesos = (n) => '$' + n.toLocaleString('es-MX')
 
+const elegido = () => document.querySelector('input[name=pedido]:checked')?.value ?? ''
 function pintar() {
-  const { cuentas, sinMatch } = armarCuenta(entrada.value)
+  const { cuentas, sinMatch } = armarCuenta(elegido())
   salida.replaceChildren()
   if (!cuentas.length) {
     const p = document.createElement('p')
     p.className = 'sin-match'
-    p.textContent = entrada.value.trim() ? 'No encontré eso por tu zona. Prueba con otra palabra.' : 'Escribe lo que se te antoja.'
+    p.textContent = 'Ese pedido no está en el menú de muestra.'
     salida.append(p)
     return
   }
@@ -49,30 +50,10 @@ function pintar() {
   }
 }
 
-// El titular-campo crece hasta dos renglones y luego achica la letra: nunca recorta lo que escribes.
-function ajustar() {
-  entrada.style.fontSize = ''
-  entrada.style.height = 'auto'
-  const max = parseFloat(getComputedStyle(entrada).fontSize)
-  const min = Math.min(28, max)
-  let t = max
-  while (t > min && entrada.scrollHeight > t * 2.3) { t -= 2; entrada.style.fontSize = `${t}px` }
-  entrada.style.height = `${entrada.scrollHeight}px`
+for (const r of document.querySelectorAll('input[name=pedido]')) {
+  r.addEventListener('change', () => { titular.textContent = r.nextElementSibling.textContent.replace(/ \(.*\)$/, ''); pintar() })
 }
-
-if (entrada) {
-  entrada.addEventListener('input', () => {
-    if (entrada.value.includes('\n')) entrada.value = entrada.value.replace(/\s*\n\s*/g, ' ') // pegado con saltos
-    ajustar(); pintar()
-  })
-  entrada.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); entrada.blur() } })
-  for (const b of document.querySelectorAll('[data-ejemplo]')) {
-    b.addEventListener('click', () => { entrada.value = b.dataset.ejemplo; ajustar(); pintar(); entrada.focus() })
-  }
-  addEventListener('resize', ajustar)
-  document.fonts?.ready.then(ajustar)
-  ajustar(); pintar()
-}
+pintar()
 
 // El changarrito 3D: se carga después de pintar la página y solo si hay WebGL
 const lienzo = $('#changarrito')

@@ -53,27 +53,34 @@ export async function montarChangarrito(lienzo, { quieto = false } = {}) {
   // Caja del puesto: marino con el frente en mango y el rótulo pintado
   const caja = new THREE.BoxGeometry(2.4, 1.05, 1.1)
   pieza(caja, M.marino, { y: 0.95 })
-  await document.fonts.load('800 120px Archivo').catch(() => {})
-  // Rótulo: fondo marino y el nombre como la marca del pie (teclas mango y blancas de alturas distintas), una línea de apoyo
+  await Promise.all([document.fonts.load('800 120px Archivo'), document.fonts.load('700 60px Archivo')]).catch(() => {})
   const rotulo = document.createElement('canvas')
   rotulo.width = 2048; rotulo.height = 800
   const g = rotulo.getContext('2d')
-  g.fillStyle = '#0B2545'; g.fillRect(0, 0, 2048, 800)
-  const letras = [...'doña lupe'].filter((c) => c !== ' ')
-  const alturas = [1, .8, .92, .74, .9, .8, .96, .72]
-  const paso = 196, base = 590, x0 = (2048 - letras.length * paso - 14 * 8 - 60) / 2
-  g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fontStretch = 'expanded'
-  letras.forEach((c, i) => {
-    const x = x0 + i * (paso + 8) + (i >= 4 ? 60 : 0)           // espacio entre "doña" y "lupe"
-    const h = 430 * alturas[i]
-    g.fillStyle = i % 2 ? '#FFFFFF' : '#F5A524'
-    g.fillRect(x, base - h, paso, h)
-    g.fillStyle = '#0B2545'
-    g.font = '800 210px Archivo, sans-serif'
-    g.fillText(c, x + paso / 2, base - 26)
-  })
-  g.fillStyle = '#FFFFFF'; g.font = '700 84px Archivo, sans-serif'; g.fontStretch = 'normal'
-  g.fillText('tacos de canasta · $12', 1024, 722)
+  g.fillStyle = '#F5A524'; g.fillRect(0, 0, 2048, 800)
+  // doble filete de rotulista: marino grueso y uno delgado por dentro
+  g.strokeStyle = '#0B2545'; g.lineWidth = 26; g.strokeRect(34, 34, 1980, 732)
+  g.lineWidth = 8; g.strokeRect(72, 72, 1904, 656)
+  g.textBaseline = 'alphabetic'; g.lineJoin = 'round'
+  // nombre: letra expandida como los titulares, blanca con contorno marino y sombra pintada
+  g.fontStretch = 'expanded'
+  g.font = '800 330px Archivo, sans-serif'
+  const nombre = 'doña lupe'
+  g.fillStyle = '#0B2545'; g.fillText(nombre, 150 + 14, 410 + 14)
+  g.strokeStyle = '#0B2545'; g.lineWidth = 22; g.strokeText(nombre, 150, 410)
+  g.fillStyle = '#FFFFFF'; g.fillText(nombre, 150, 410)
+  // renglón de abajo: mayúsculas de rótulo, con subrayado
+  g.font = '800 120px Archivo, sans-serif'
+  g.fillStyle = '#0B2545'
+  g.fillText('TACOS DE CANASTA', 150, 620)
+  g.fillRect(150, 650, 1130, 14)
+  // precio en medallón
+  g.beginPath(); g.arc(1700, 520, 170, 0, Math.PI * 2)
+  g.fillStyle = '#FFFFFF'; g.fill(); g.lineWidth = 16; g.strokeStyle = '#0B2545'; g.stroke()
+  g.fillStyle = '#0B2545'; g.textAlign = 'center'
+  g.font = '800 170px Archivo, sans-serif'; g.fillText('$12', 1700, 575)
+  g.font = '700 54px Archivo, sans-serif'; g.fillText('cada uno', 1700, 640)
+  g.textAlign = 'left'
   const texRotulo = new THREE.CanvasTexture(rotulo)
   texRotulo.colorSpace = THREE.SRGBColorSpace
   texRotulo.anisotropy = 8
@@ -89,7 +96,13 @@ export async function montarChangarrito(lienzo, { quieto = false } = {}) {
   llanta.rotateX(Math.PI / 2)
   for (const z of [-0.62, 0.62]) {
     pieza(llanta, M.blanco, { x: -0.7, y: 0.37, z, borde: 0.03 })
-    pieza(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 20).rotateX(Math.PI / 2), M.mango, { x: -0.7, y: 0.37, z, borde: 0.02 })
+    pieza(new THREE.CylinderGeometry(0.13, 0.13, 0.17, 24).rotateX(Math.PI / 2), M.mango, { x: -0.7, y: 0.37, z, borde: 0.02 })
+    // aro del rin en marino (una sola línea, sin rayos)
+    for (const dz of [-0.067, 0.067]) {
+      const aro = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.018, 8, 40), contorno)
+      aro.position.set(-0.7, 0.37, z + dz)
+      carrito.add(aro)
+    }
   }
   pieza(new THREE.BoxGeometry(0.1, 0.42, 0.1), M.marino, { x: 1.0, y: 0.21, z: 0.4 })
   pieza(new THREE.BoxGeometry(0.1, 0.42, 0.1), M.marino, { x: 1.0, y: 0.21, z: -0.4 })
