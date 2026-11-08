@@ -51,12 +51,13 @@ feature/<área>-<cambio> → dev → stg → main
 
 | Ruta | Estado |
 |---|---|
-| `backend/` | API standalone pendiente de crear |
-| `supabase/` | esquema, webhook de pey, seed y migraciones |
-| `web/` | landing/registro existentes; requieren adaptación al nuevo backend |
-| `bot/` | código heredado acoplado a WhatsApp; referencia temporal para reglas e integración, no interfaz del producto |
+| `backend/` | API en producción como Edge Function (`edge/api.js` + `src/`); pruebas en `test/`, recorrido real en `scripts/e2e-live.mjs` |
+| `supabase/` | migraciones (hasta `20261107050000`), seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
+| `web/` | landing y registro heredados + app web (`app.html`/`app.js`); la publicación de la web la hace otro integrante |
+| `barrio_app_pey/` | app Flutter en construcción (otro integrante) |
+| `bot/` | código heredado de WhatsApp; referencia, no interfaz del producto |
 | `docs/` | producto, contrato y estado del backend, pey, diseño y voz |
 
-## Comprobaciones existentes
+## Comprobaciones
 
-El CI actual revisa el paquete heredado `bot/`. No agregues rutas al README como si la API ya existiera. Cuando se cree `backend/`, añade scripts de comprobación del servicio y ajústalos en `.github/workflows/ci.yml`.
+El CI corre tres trabajos: `backend` (`npm run check` y `npm test`), `supabase` (migraciones + `supabase/tests/schema_smoke.sql` en Postgres con pgvector) y `bot` (heredado). Reglas nuevas de dinero/estado/parseo llevan pruebas en `backend/test/`; las de esquema, en `supabase/tests/`. La API vive en la Edge Function `api`: tras cambiar `backend/src/`, ejecuta `npm run build:edge` y vuelve a desplegar. No despliegues la web en GitHub Pages desde sesiones de agente: eso lo hace el responsable de la web.

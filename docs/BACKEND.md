@@ -1,6 +1,6 @@
 # Backend de Barrio
 
-> Estado: contrato inicial para el backend y la app standalone. Aún no hay API HTTP desplegada. Antes de programar rutas, el responsable de la app y el del backend deben cerrar este contrato en una feature branch.
+> Estado: implementado y desplegado como Supabase Edge Function `api`. Este documento describe lo que existe; lo que falta está al final ("Estado desplegado y pendientes"). Base: `https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api` + `/api/v1/...`.
 
 ## Responsabilidades
 
@@ -11,7 +11,7 @@
 
 ```text
 App ──HTTPS + sesión──► API Barrio ──service credential──► Postgres
-                               ├──► OpenAI (solo interpretación asistida)
+                               ├──► OpenRouter u OpenAI (solo interpretación asistida)
                                └──► pey ──webhook firmado──► estado del pedido
 ```
 
@@ -33,33 +33,37 @@ El trigger invalida el vector al cambiar un catálogo; el proceso seguro `npm ru
 
 Cada resultado incluye `match_reasons`, distancia si existe, estado de apertura/disponibilidad y datos necesarios para decidir. Evitar personalización opaca en el MVP; hacer el orden explicable y reproducible.
 
-## Contrato HTTP inicial (v1)
+## Contrato HTTP (v1, implementado)
 
-Prefijo `/api/v1`; JSON UTF-8; errores con `{ "error": { "code": "...", "message": "...", "field": "..." } }`. IDs opacos, timestamps ISO 8601, importes enteros en centavos (`amount_minor`) para evitar redondeo. Paginación por cursor. Todas las escrituras sensibles requieren sesión y autorización del recurso.
+Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?" } }`. Importes enteros en centavos (`*_minor`). Sesión: cabecera `Authorization: Bearer <token de Supabase Auth>`. Roles: el comprador se crea solo al registrarse (trigger); el negocio se crea con `POST /businesses` y queda activo. CORS abierto por defecto (`ALLOWED_ORIGINS` lo restringe). Las rutas de pedido devuelven 404 si el recurso no es de la sesión.
 
-| Método y ruta | Uso |
-|---|---|
-| `GET /discovery` | Inicio tipo marketplace: categorías y carruseles deterministas, con afinidad ligera si hay sesión |
-| `GET /catalog/search?q=&zone=&open_now=&category=&cursor=` | Buscar comercios/productos; filtros, orden, motivos de coincidencia |
-| `POST /search/agent` | Buscar con Barrio: consulta libre + filtros opcionales; devuelve candidatos recuperados, matches y explicación |
-| `POST /discovery/events` | Registrar señal explícita `search`, `view`, `save` u `order` de la sesión; nunca acepta precio/estado |
-| `GET /businesses/{business_id}` | Perfil público y catálogo disponible |
-| `POST /orders/quotes` | Validar artículos/cantidades contra precios vigentes y devolver cotización con caducidad |
-| `POST /orders` | Crear pedido desde `quote_id` e idempotency key; exige confirmación explícita del resumen |
-| `GET /orders`, `GET /orders/{order_id}` | Pedidos propios (comprador) o del negocio; el código de recogida solo se ve al comprador desde `pagada` |
-| `POST /me`, `GET /me/profile` | Alta del comprador de la sesión (nombre, 10 dígitos para el push); perfil con insignias y avance |
-| `GET /me/notifications`, `POST /coupons/{id}/accept\|decline` | Avisos de cupones; al aceptar, se autoaplica en las cotizaciones de ese negocio |
-| `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | El negocio publica cupones (porcentaje o monto, mínimo, vencimiento); se avisa solo a quien ya pagó un pedido ahí |
-| `POST /orders/{order_id}/reject` | Rechazo del negocio asignado |
-| `POST /webhooks/pey` | Webhook de pey (firma Standard Webhooks, dedupe por `webhook-id`) |
-| `POST /internal/sweep` | Barrido con `CRON_SECRET`: reconciliación con pey, vencimientos, cancelación a 8 min |
-| `POST /orders/{order_id}/cancel` | Cancelar solo en estados permitidos, mediante transición atómica |
-| `POST /orders/{order_id}/accept` | Aceptación autenticada del negocio asignado |
-| `POST /orders/{order_id}/ready` | Marcar listo por el negocio asignado |
-| `POST /orders/{order_id}/payments` | Iniciar intento de cobro si no hay otro vigente; devolver instrucciones/link/QR |
-| `GET /orders/{order_id}/payments/current` | Consultar estado de cobro autorizado |
+| Método y ruta | Auth | Uso |
+|---|---|---|
+| `GET /health` | — | Estado del servicio |
+| `GET /discovery` | opcional | Categorías y carruseles deterministas; afinidad ligera si hay sesión |
+| `GET /catalog/search?q=&zone=&category=&open_now=&min_amount_minor=&max_amount_minor=` | opcional | Búsqueda determinista con `match_reasons` y `score` |
+| `POST /search/agent` | opcional | Buscar con Barrio: `{ query, filters? }`; usa modelo + RAG si hay llave, si no cae al modo determinista (`meta.mode`) |
+| `POST /discovery/events` | comprador | Señal `search`/`view`/`save`/`order` para el perfil |
+| `GET /businesses/{id}` | — | Perfil público y menú (sin teléfono ni datos de cobro) |
+| `GET /me`, `POST /me` | sesión | Comprador/negocio de la sesión; actualizar nombre, celular (10 dígitos, para el push), zona, colonia, ubicación |
+| `GET /me/profile` | comprador | Pedidos pagados e insignias (obtenidas y en progreso) |
+| `GET /me/notifications`, `POST /coupons/{id}/accept\|decline` | comprador | Avisos de cupones; aceptar los autoaplica |
+| `POST /businesses` | sesión | Alta del negocio de la sesión (activo al registrarse) |
+| `GET /business`, `PATCH /business` | negocio | Abrir/cerrar, aceptar en automático, descripción y menú |
+| `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | negocio | Cupones (porcentaje o monto, mínimo, vencimiento); se avisa a quien ya pagó ahí |
+| `POST /orders/quotes` | comprador | Cotiza desde el catálogo del servidor; autoaplica el mejor cupón aceptado; caduca a los 10 min |
+| `POST /orders` | comprador | Crea el pedido desde `quote_id` con `Idempotency-Key` y `confirmed_total_minor` igual al total cotizado |
+| `GET /orders`, `GET /orders/{id}` | sesión | Pedidos propios o del negocio; `codigo` de recogida solo al comprador desde `pagada` |
+| `POST /orders/{id}/cancel` | comprador | Solo en `pendiente`, `aceptada` o `vencida` |
+| `POST /orders/{id}/accept\|reject\|ready` | negocio | Aceptar (genera el cobro), rechazar, marcar listo |
+| `POST /orders/{id}/payments` | comprador | Nuevo intento de cobro; si hay uno vigente devuelve ese |
+| `GET /orders/{id}/payments/current` | sesión | Estado del cobro; al comprador le devuelve `link`/`qr_image` y reconcilia con pey si sigue vigente |
+| `POST /webhooks/pey` | firma | Webhook de pey (Standard Webhooks, dedupe por `webhook-id`) |
+| `POST /internal/sweep` | `CRON_SECRET` | Barrido manual; sirve el barrido local (`npm start`) |
 
-El endpoint de cotización calcula precios y total desde catálogo del servidor. La creación conserva una copia del nombre/precio/cantidad para auditoría. `POST /orders` nunca acepta como autoridad un total calculado por el cliente o el modelo. Las operaciones repetibles usan `Idempotency-Key` y devuelven el resultado original para la misma clave.
+**No implementado todavía:** paginación por cursor, rate limits propios, `tsvector`/trigramas (la búsqueda normaliza acentos y compara texto en memoria), ubicación por distancia en el ranking (las coordenadas se guardan, aún no ordenan).
+
+La cotización calcula precios y total desde el catálogo del servidor y conserva copia de nombre/precio/cantidad. `POST /orders` nunca acepta un total del cliente o del modelo como autoridad; la misma `Idempotency-Key` devuelve el pedido original.
 
 ### Estados y pagos
 
@@ -69,10 +73,10 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 ### Seguridad mínima
 
-- Elegir proveedor de identidad antes de implementar login; almacenar sujetos externos como ID de aplicación, no como teléfono implícitamente confiable.
+- Identidad: Supabase Auth; el sujeto externo se guarda como `sujeto_auth` (UUID), no como teléfono.
 - Roles comprador/negocio y autorización por objeto en cada ruta.
-- Límites de tamaño, validación de esquema, rate limits y logs sin credenciales ni datos de pago sensibles.
-- CORS limitado a los orígenes de la app/web publicados; TLS obligatorio; secretos solo en el entorno del servidor.
+- Límite de cuerpo (30 KB), validación de entradas y logs sin credenciales ni datos de pago. Rate limits: pendiente.
+- CORS: `*` por defecto (la sesión va en cabecera, no en cookies); `ALLOWED_ORIGINS` lo limita. TLS por Supabase. Secretos solo en Edge Function Secrets.
 - El webhook usa verificación criptográfica del cuerpo original y protección contra repetición.
 - El prompt declara que la entrada de la persona es dato, no instrucción. El agente solo recibe candidatos recuperados y no tiene herramientas de escritura ni acceso a pagos.
 
@@ -97,16 +101,13 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 - **Insignias:** derivadas de pedidos pagados, sin tabla: 3 en la misma colonia, 5 en la misma alcaldía o 3 en el mismo negocio (`REGLAS_INSIGNIAS` en `backend/src/pedidos.js`). `GET /me/profile` devuelve también las que van en progreso. Requiere `negocios.colonia`.
 - `negocios.sujeto_auth` liga la sesión de Supabase Auth con el negocio (rol negocio); `compradores.sujeto_auth`, con el comprador.
 
-## Entrega por etapas
+## Decisiones tomadas
 
-1. Acordar proveedor de sesión, forma de ubicación, estados visibles y payloads con el responsable de la app.
-2. Crear `backend/` como servicio separado y mover/adaptar la lógica de dominio reutilizable fuera del adaptador WhatsApp.
-3. Implementar primero Descubrir, búsqueda determinista, perfil y catálogo; después RAG/agente, cotización/pedido; luego aceptación del negocio y pagos.
-4. Migrar registro web a llamadas al backend, sin insertar directamente desde navegador con la llave pública.
-5. Agregar OpenAI como modo asistido y fallback probado; nunca bloquear búsqueda por el modelo.
-6. Desplegar `dev`, validar integración en `stg` y promover a `main` mediante PR.
-
-La primera versión del contrato no decide aún autenticación, geolocalización ni pesos del ranking. Esos acuerdos son bloqueos explícitos de implementación; no introducir decisiones silenciosas en la app.
+- **Sesión y roles:** Supabase Auth (correo y contraseña); comprador automático, negocio por `POST /businesses`. Sin verificación manual.
+- **Ubicación:** zona (alcaldía) y colonia obligatorias para negocios; coordenadas opcionales (ambas o ninguna). El ranking aún no las usa.
+- **Ranking:** pesos en `backend/src/search.js` (abierto +30, zona +20, categoría +25, texto +18 por término, afinidad ×2); desempate por id.
+- **Modelo de IA:** opcional; OpenRouter u OpenAI con el mismo código. La búsqueda nunca depende de él.
+- **Hosting:** API y base en Supabase; la web estática la publica otro integrante.
 
 ## Estado desplegado y pendientes
 
