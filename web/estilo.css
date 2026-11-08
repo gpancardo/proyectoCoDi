@@ -93,3 +93,12 @@ fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 14px; min-width
   .registro { grid-template-columns: 1fr; gap: 40px; }
   .intro { position: static; }
 }
+
+/* Marca "marimba": letras como teclas de colores y alturas distintas (la del pie, en tamaño de cabecera) */
+.marimba { --a: var(--mango); --b: var(--blanco); --ta: var(--marino); --tb: var(--marino);
+  display: inline-flex; align-items: flex-end; gap: 2px; height: 36px; line-height: 1; }
+.marimba span { display: grid; place-items: end center; width: 1.05em; height: var(--h); padding-bottom: 3px; overflow: hidden;
+  background: var(--a); color: var(--ta); font: 800 22px/1 'Archivo', sans-serif; font-stretch: 112%; letter-spacing: 0; }
+.marimba span:nth-child(even) { background: var(--b); color: var(--tb); }
+.marimba-mango { --a: var(--marino); --ta: var(--mango); --b: var(--blanco); --tb: var(--marino); }   /* sobre campo mango */
+.marimba-claro { --a: var(--mango); --ta: var(--marino); --b: var(--marino); --tb: var(--mango); }   /* sobre fondo claro */
