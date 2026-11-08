@@ -63,8 +63,8 @@
     <div class="banda">
       <p>Busca negocios abiertos cerca de ti, ve el total antes de confirmar y paga desde la app de tu banco. CoDi no cobra comisión.</p>
       <div class="banda-acciones">
-        <a class="btn" href="app.html">Registra tu negocio</a>
-        <a class="enlace-app" id="app" href="#" hidden>Abrir la app</a>
+        <a class="btn" id="app" href="app.html">Pedir en mi barrio</a>
+        <a class="enlace-app" href="#negocios">Tengo un negocio</a>
       </div>
     </div>
   </section>
@@ -82,7 +82,7 @@
   <section class="cuenta-viva" id="cuenta" aria-labelledby="cuenta-t">
     <h2 id="cuenta-t" class="oculto">Arma tu cuenta</h2>
     <label class="oculto" for="pedido">Escribe lo que se te antoja</label>
-    <input id="pedido" class="linea" data-ui value="10 tacos de canasta" autocomplete="off" spellcheck="false" enterkeyhint="done">
+    <textarea id="pedido" class="linea" data-ui rows="1" maxlength="90" autocomplete="off" spellcheck="false" enterkeyhint="done">10 tacos de canasta</textarea>
     <div class="respuesta">
       <div id="tickets" aria-live="polite">
         <article class="ticket" data-ui>
@@ -115,7 +115,7 @@
       <figcaption>Así se ve un pedido en tu panel.</figcaption>
     </figure>
     <div class="loseta l-cifra"><p class="cifra monto">$0</p><p>de comisión al cobrar con CoDi.</p></div>
-    <div class="loseta l-lista"><h3>Un toque</h3><ul><li>Aceptar</li><li>Rechazar</li><li>Marcar listo</li><li>Abrir o cerrar</li></ul></div>
+    <div class="loseta l-lista"><h3>Desde tu panel</h3><ul><li>Aceptar</li><li>Rechazar</li><li>Marcar listo</li><li>Abrir o cerrar</li></ul></div>
     <div class="loseta l-cupon"><p>Publicas un cupón y avisamos a quien ya te compró.</p></div>
     <div class="loseta l-renta"><p>Sin terminal ni renta.</p></div>
     <div class="loseta l-hoy"><p>Cada día ves cuánto vendiste.</p></div>

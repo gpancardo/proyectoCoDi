@@ -18,6 +18,16 @@ jobs:
       - run: npm run check
       - run: npm test
 
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check web/app.js && node --check web/landing.js && node --check web/changarrito.js
+      - run: node web/cuenta.test.mjs
+
   supabase:
     runs-on: ubuntu-latest
     services:

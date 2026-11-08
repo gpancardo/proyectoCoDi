@@ -14,5 +14,7 @@ assert.equal(armarCuenta('2 tacos y 1 refresco').cuentas.length, 2, 'una cuenta 
 assert.deepEqual(total('2 aguas'), [30], '"agua" sola es agua natural, no horchata')
 assert.deepEqual(armarCuenta('una pizza').sinMatch, ['una pizza'])
 assert.deepEqual(armarCuenta('500 tacos').sinMatch, ['500 tacos'], 'cantidad fuera de rango')
+assert.deepEqual(total('quiero 2 aguas de horchata'), [50], 'la cortesía no esconde la cantidad')
+assert.deepEqual(total('dame tres tamales de rajas por favor'), [54])
 assert.deepEqual(total(''), [])
 console.log('cuenta: ok')
