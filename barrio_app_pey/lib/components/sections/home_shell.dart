@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../state/app_state.dart';
 import '../../theme.dart';
@@ -95,9 +96,19 @@ class _HomeShellState extends State<HomeShell> {
                           }),
                       ListTile(
                           title: const Text('Salir de mi cuenta'),
-                          onTap: () {
+                          onTap: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final appState = context.read<AppState>();
                             Navigator.pop(context);
-                            context.read<AppState>().signOut();
+                            try {
+                              await Supabase.instance.client.auth.signOut();
+                              await appState.signOut();
+                            } on AuthException catch (error) {
+                              if (context.mounted) {
+                                messenger.showSnackBar(
+                                    SnackBar(content: Text(error.message)));
+                              }
+                            }
                           }),
                     ],
                   ))),

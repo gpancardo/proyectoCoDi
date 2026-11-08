@@ -47,7 +47,7 @@ class BarrioMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BarrioIcon(
-        asset: 'marketplace',
+        asset: 'brand',
         size: size,
         label: 'Toldo de Barrio',
       );

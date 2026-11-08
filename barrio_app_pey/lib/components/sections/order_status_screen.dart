@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../apis/models/api_models.dart';
 import '../../services/barrio_api.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
@@ -34,7 +35,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
     with WidgetsBindingObserver {
   Timer? _poller;
   Map<String, dynamic>? _order;
-  Map<String, dynamic>? _payment;
+  PaymentAttemptResponse? _payment;
   String? _problem;
   bool _loading = true;
 
@@ -65,11 +66,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
       final api = context.read<BarrioApi>();
       final order = await api.get('/orders/${widget.orderId}', token: token)
           as Map<String, dynamic>;
-      Map<String, dynamic>? payment;
+      PaymentAttemptResponse? payment;
       if (order['estado'] == 'cobrada') {
         try {
-          payment = await api.get('/orders/${widget.orderId}/payments/current',
-              token: token) as Map<String, dynamic>;
+          payment =
+              await api.currentPayment(orderId: widget.orderId, token: token);
         } on BarrioApiException {/* el siguiente ciclo vuelve a consultar */}
       }
       if (!mounted) return;
@@ -107,7 +108,19 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
   }
 
   Future<void> _cancel() => _act('/cancel');
-  Future<void> _retryPayment() => _act('/payments');
+  Future<void> _retryPayment() async {
+    try {
+      await context.read<BarrioApi>().createPayment(
+          orderId: widget.orderId,
+          token: context.read<AppState>().accessToken!);
+      await _refresh();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(mensajeDe(error))));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,14 +192,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
 
 class _PaymentInstructions extends StatelessWidget {
   const _PaymentInstructions({required this.payment});
-  final Map<String, dynamic>? payment;
+  final PaymentAttemptResponse? payment;
   @override
   Widget build(BuildContext context) {
     if (payment == null) {
       return const BarrioPanel(child: Text('Preparando tu cobro…'));
     }
-    final via = payment!['via']?.toString();
-    final amount = payment!['monto_minor'] ?? payment!['amount_minor'];
+    final via = payment!.via;
+    final amount = payment!.amountMinor;
     return BarrioPanel(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Abre la app de tu banco',

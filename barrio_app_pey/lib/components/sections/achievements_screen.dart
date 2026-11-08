@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/barrio_api.dart';
@@ -202,7 +203,7 @@ class _SealImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.asset('assets/sellos/$name.png',
+    final image = SvgPicture.asset('assets/sellos/$name.svg',
         width: size, height: size, excludeFromSemantics: true);
     return earned
         ? image

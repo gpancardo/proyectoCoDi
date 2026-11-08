@@ -775,7 +775,7 @@ class _CouponFormState extends State<_CouponForm> {
                     hintText: 'Ej. 10% en tu siguiente compra')),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-                initialValue: _type,
+                value: _type,
                 decoration: const InputDecoration(labelText: 'Tipo'),
                 items: const [
                   DropdownMenuItem(
@@ -789,7 +789,7 @@ class _CouponFormState extends State<_CouponForm> {
             const SizedBox(height: 12),
             if (_type == 'producto_gratis')
               DropdownButtonFormField<String>(
-                  initialValue: _gift,
+                  value: _gift,
                   decoration:
                       const InputDecoration(labelText: 'Producto que regalas'),
                   items: [
@@ -821,7 +821,7 @@ class _CouponFormState extends State<_CouponForm> {
                     hintText: 'Ej. 100')),
             const SizedBox(height: 12),
             DropdownButtonFormField<int>(
-                initialValue: _days,
+                value: _days,
                 decoration: const InputDecoration(labelText: 'Dura'),
                 items: const [
                   DropdownMenuItem(value: 1, child: Text('1 día')),

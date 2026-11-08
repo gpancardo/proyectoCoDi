@@ -119,7 +119,7 @@ abstract final class BarrioTheme {
                 : BarrioColors.niebla),
         trackOutlineColor: const WidgetStatePropertyAll(BarrioColors.marino),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: BarrioColors.blanco,
         elevation: 0,
         shape: RoundedRectangleBorder(

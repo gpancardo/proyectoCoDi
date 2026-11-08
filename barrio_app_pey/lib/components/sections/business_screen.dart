@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../apis/models/api_models.dart';
 import '../../services/barrio_api.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
@@ -76,15 +77,11 @@ class _BusinessScreenState extends State<BusinessScreen> {
     }
     setState(() => _sending = true);
     try {
-      final quote = await context.read<BarrioApi>().post(
-          '/orders/quotes',
-          {
-            'business_id': business['id'],
-            'items': items,
-            if (_coupon.text.trim().isNotEmpty)
-              'coupon_code': _coupon.text.trim()
-          },
-          token: token) as Map<String, dynamic>;
+      final quote = await context.read<BarrioApi>().createQuote(
+          businessId: (business['id'] as num).toInt(),
+          items: items,
+          couponCode: _coupon.text.trim(),
+          token: token);
       if (!mounted) return;
       await showModalBottomSheet<void>(
           context: context,
@@ -94,20 +91,16 @@ class _BusinessScreenState extends State<BusinessScreen> {
               quote: quote,
               onConfirm: () async {
                 try {
-                  final order = await context.read<BarrioApi>().post(
-                      '/orders',
-                      {
-                        'quote_id': quote['quote_id'],
-                        'confirmed_total_minor': quote['total_minor']
-                      },
+                  final order = await context.read<BarrioApi>().confirmOrder(
+                      quoteId: quote.quoteId,
+                      confirmedTotalMinor: quote.totalMinor,
                       token: token,
                       idempotencyKey:
                           '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(999999)}');
                   if (sheet.mounted) Navigator.pop(sheet);
                   if (mounted) {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (_) => OrderStatusScreen(
-                            orderId: (order['id'] as num).toInt())));
+                        builder: (_) => OrderStatusScreen(orderId: order.id)));
                   }
                 } catch (error) {
                   if (sheet.mounted) Navigator.pop(sheet);
@@ -235,7 +228,7 @@ class _ProductRow extends StatelessWidget {
 
 class _Ticket extends StatefulWidget {
   const _Ticket({required this.quote, required this.onConfirm});
-  final Map<String, dynamic> quote;
+  final QuoteResponse quote;
   final Future<void> Function() onConfirm;
   @override
   State<_Ticket> createState() => _TicketState();
@@ -247,7 +240,7 @@ class _TicketState extends State<_Ticket> {
   @override
   Widget build(BuildContext c) {
     final quote = widget.quote;
-    final discount = (quote['descuento_minor'] as num? ?? 0);
+    final discount = quote.descuentoMinor;
     return SafeArea(
         child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -262,18 +255,14 @@ class _TicketState extends State<_Ticket> {
                           fontWeight: FontWeight.w800,
                           color: BarrioColors.marino)),
                   const Divider(color: BarrioColors.marino, thickness: 2),
-                  for (final item
-                      in (quote['items'] as List<dynamic>? ?? const []))
+                  for (final item in quote.items)
                     Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(children: [
                           Expanded(
-                              child: Text(
-                                  '${item['cantidad']} × ${item['nombre']}',
+                              child: Text('${item.cantidad} × ${item.nombre}',
                                   style: const TextStyle(fontSize: 17))),
-                          Text(
-                              formatMoney((item['precio_minor'] as num) *
-                                  (item['cantidad'] as num)),
+                          Text(formatMoney(item.precioMinor * item.cantidad),
                               style: const TextStyle(
                                   fontSize: 17, fontWeight: FontWeight.w700)),
                         ])),
@@ -282,8 +271,7 @@ class _TicketState extends State<_Ticket> {
                         padding: const EdgeInsets.only(top: 6),
                         child: Row(children: [
                           Expanded(
-                              child: Text(
-                                  '${quote['coupon']?['titulo'] ?? 'Descuento'}',
+                              child: Text(quote.coupon?.titulo ?? 'Descuento',
                                   style: const TextStyle(
                                       fontSize: 16,
                                       color: BarrioColors.teal,
@@ -294,7 +282,7 @@ class _TicketState extends State<_Ticket> {
                                   fontWeight: FontWeight.w700)),
                         ])),
                   const Divider(color: BarrioColors.marino, thickness: 2),
-                  Text('Total ${formatMoney(quote['total_minor'])}',
+                  Text('Total ${formatMoney(quote.totalMinor)}',
                       style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,

@@ -273,7 +273,7 @@ class _BusinessSetupState extends State<BusinessSetup> {
                     : null),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-                initialValue: _category,
+                value: _category,
                 decoration: const InputDecoration(labelText: 'Tipo de negocio'),
                 items: [
                   for (final giro in I18n.giros)
@@ -283,7 +283,7 @@ class _BusinessSetupState extends State<BusinessSetup> {
                 onChanged: (v) => setState(() => _category = v)),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-                initialValue: _zone,
+                value: _zone,
                 decoration: const InputDecoration(labelText: 'Alcaldía'),
                 items: [
                   for (final zona in I18n.alcaldiasCdmx)

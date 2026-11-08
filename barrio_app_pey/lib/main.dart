@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'services/barrio_api.dart';
@@ -12,26 +11,29 @@ import 'state/app_state.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env.example');
+  final supabaseUrl = dotenv.env['SUPABASE_URL']?.trim() ?? '';
+  final publishableKey = dotenv.env['SUPABASE_PUBLISHABLE_KEY']?.trim() ?? '';
+  if (supabaseUrl.isEmpty || publishableKey.isEmpty) {
+    throw StateError('Configura SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY.');
+  }
+  await Supabase.initialize(url: supabaseUrl, publishableKey: publishableKey);
   final preferences = await SharedPreferences.getInstance();
   final state = AppState(preferences);
   final api = BarrioApi();
-
-  // La sesión dura una hora: se renueva al abrir, al volver a la app y cada 45 min.
-  Future<void> renovar() async {
-    final refresh = preferences.getString('session_refresh_token') ?? '';
-    if (refresh.isEmpty) return;
-    try {
-      final data = await api.refresh(refresh);
-      await state.saveSession(
-          data['access_token'].toString(), data['refresh_token'].toString());
-    } on BarrioApiException {
-      await state.signOut(); // la sesión ya no sirve: que vuelva a entrar
-    } catch (_) {/* sin señal: se intenta en la siguiente vuelta */}
+  final auth = Supabase.instance.client.auth;
+  final currentSession = auth.currentSession;
+  if (currentSession != null) {
+    await state.saveSession(
+        currentSession.accessToken, currentSession.refreshToken ?? '');
   }
-
-  await renovar().timeout(const Duration(seconds: 5), onTimeout: () {});
-  Timer.periodic(const Duration(minutes: 45), (_) => renovar());
-  AppLifecycleListener(onResume: renovar);
+  auth.onAuthStateChange.listen((event) async {
+    final session = event.session;
+    if (session == null) {
+      await state.signOut();
+    } else {
+      await state.saveSession(session.accessToken, session.refreshToken ?? '');
+    }
+  });
   runApp(
     MultiProvider(
       providers: [

@@ -2,13 +2,19 @@ import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../apis/models/api_models.dart';
 
 /// Cliente del único servidor autorizado para catálogo, pedidos y cobros.
 /// No contiene llaves de servidor ni toma decisiones de dinero.
 class BarrioApi {
-  BarrioApi({http.Client? client}) : _client = client ?? http.Client();
+  BarrioApi({http.Client? client, SupabaseClient? supabase})
+      : _client = client ?? http.Client(),
+        _supabase = supabase ?? Supabase.instance.client;
 
   final http.Client _client;
+  final SupabaseClient _supabase;
   static const _timeout = Duration(seconds: 15);
 
   String get _apiBase {
@@ -20,44 +26,90 @@ class BarrioApi {
     return value.replaceFirst(RegExp(r'/$'), '');
   }
 
-  String get _supabaseUrl => dotenv.env['SUPABASE_URL']?.trim() ?? '';
-  String get _publishableKey =>
-      dotenv.env['SUPABASE_PUBLISHABLE_KEY']?.trim() ?? '';
-
-  Future<Map<String, dynamic>> signIn(String email, String password) => _auth(
-      'token?grant_type=password', {'email': email, 'password': password});
+  Future<Map<String, dynamic>> signIn(String email, String password) async {
+    try {
+      final response = await _supabase.auth
+          .signInWithPassword(email: email, password: password);
+      return _sessionJson(response.session);
+    } on AuthException catch (error) {
+      throw BarrioApiException(error.message);
+    }
+  }
 
   Future<Map<String, dynamic>> signUp(
-          String email, String password, String name) =>
-      _auth('signup', {
-        'email': email,
-        'password': password,
-        'data': {'nombre': name}
-      });
-
-  Future<Map<String, dynamic>> refresh(String refreshToken) =>
-      _auth('token?grant_type=refresh_token', {'refresh_token': refreshToken});
-
-  Future<Map<String, dynamic>> _auth(
-      String route, Map<String, dynamic> body) async {
-    if (_supabaseUrl.isEmpty || _publishableKey.isEmpty) {
-      throw const BarrioApiException('Falta configurar la sesión de Barrio.');
+      String email, String password, String name) async {
+    try {
+      final response = await _supabase.auth
+          .signUp(email: email, password: password, data: {'nombre': name});
+      return _sessionJson(response.session);
+    } on AuthException catch (error) {
+      throw BarrioApiException(error.message);
     }
-    final response = await _client
-        .post(Uri.parse('$_supabaseUrl/auth/v1/$route'),
-            headers: {
-              'apikey': _publishableKey,
-              'Content-Type': 'application/json'
-            },
-            body: jsonEncode(body))
-        .timeout(_timeout);
-    final data = _decode(response);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw BarrioApiException(data['msg']?.toString() ??
-          data['error_description']?.toString() ??
-          'No pudimos entrar. Revisa tus datos.');
-    }
-    return data;
+  }
+
+  Map<String, dynamic> _sessionJson(Session? session) => {
+        if (session != null) 'access_token': session.accessToken,
+        if (session != null) 'refresh_token': session.refreshToken,
+      };
+
+  Future<AgentSearchResponse> searchAgent(
+      {required String query,
+      required String zone,
+      required String? token}) async {
+    final envelope = await _request('POST', '/search/agent',
+        token: token,
+        body: {
+          'query': query,
+          'filters': {'zone': zone}
+        },
+        includeEnvelope: true) as Map<String, dynamic>;
+    return AgentSearchResponse.fromJson(envelope);
+  }
+
+  Future<QuoteResponse> createQuote({
+    required int businessId,
+    required List<Map<String, dynamic>> items,
+    String? couponCode,
+    required String token,
+  }) async =>
+      QuoteResponse.fromJson(await post(
+          '/orders/quotes',
+          {
+            'business_id': businessId,
+            'items': items,
+            if (couponCode != null && couponCode.isNotEmpty)
+              'coupon_code': couponCode,
+          },
+          token: token) as Map<String, dynamic>);
+
+  Future<OrderResponse> confirmOrder({
+    required int quoteId,
+    required int confirmedTotalMinor,
+    required String token,
+    required String idempotencyKey,
+  }) async =>
+      OrderResponse.fromJson(await post(
+          '/orders',
+          {
+            'quote_id': quoteId,
+            'confirmed_total_minor': confirmedTotalMinor,
+          },
+          token: token,
+          idempotencyKey: idempotencyKey) as Map<String, dynamic>);
+
+  /// Pey se integra mediante el backend; la app nunca guarda sus llaves.
+  Future<PaymentAttemptResponse> createPayment(
+          {required int orderId, required String token}) async =>
+      PaymentAttemptResponse.fromJson(
+          await post('/orders/$orderId/payments', {}, token: token)
+              as Map<String, dynamic>);
+
+  Future<PaymentAttemptResponse?> currentPayment(
+      {required int orderId, required String token}) async {
+    final result = await get('/orders/$orderId/payments/current', token: token);
+    return result is Map<String, dynamic>
+        ? PaymentAttemptResponse.fromJson(result)
+        : null;
   }
 
   Future<dynamic> get(String route, {String? token}) =>
@@ -75,7 +127,8 @@ class BarrioApi {
   Future<dynamic> _request(String method, String route,
       {String? token,
       Map<String, dynamic>? body,
-      String? idempotencyKey}) async {
+      String? idempotencyKey,
+      bool includeEnvelope = false}) async {
     final response = await _client
         .send(http.Request(method, Uri.parse('$_apiBase/api/v1$route'))
           ..headers.addAll({
@@ -95,7 +148,7 @@ class BarrioApi {
               : 'No pudimos hacerlo ahora.',
           statusCode: response.statusCode);
     }
-    return decoded['data'];
+    return includeEnvelope ? decoded : decoded['data'];
   }
 
   Map<String, dynamic> _decode(http.Response response) {

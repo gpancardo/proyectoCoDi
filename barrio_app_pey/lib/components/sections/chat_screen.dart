@@ -7,6 +7,7 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../i18n.dart';
+import '../../apis/models/api_models.dart';
 import '../../services/barrio_api.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
@@ -31,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _localeId = 'es_MX';
   String? _voiceNote;
   String? _answer;
-  List<Map<String, dynamic>> _businesses = const [];
+  List<BusinessApiModel> _businesses = const [];
 
   @override
   void dispose() {
@@ -49,21 +50,17 @@ class _ChatScreenState extends State<ChatScreen> {
       _voiceNote = null;
     });
     try {
-      final data = await context.read<BarrioApi>().post(
-          '/search/agent',
-          {
-            'query': query,
-            'filters': {'zone': context.read<AppState>().zone},
-          },
+      final response = await context.read<BarrioApi>().searchAgent(
+          query: query,
+          zone: context.read<AppState>().zone,
           token: context.read<AppState>().accessToken);
       if (!mounted) return;
-      final found =
-          (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
       setState(() {
-        _answer = found.isEmpty
-            ? 'No encontré algo abierto con eso. Prueba con otra palabra.'
-            : 'Esto encontré cerca de ti.';
-        _businesses = found;
+        _answer = response.meta?.answer ??
+            (response.data.isEmpty
+                ? 'No encontré algo abierto con eso. Prueba con otra palabra.'
+                : 'Esto encontré cerca de ti.');
+        _businesses = response.data;
       });
     } catch (error) {
       if (!mounted) return;
@@ -301,12 +298,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       _MessageCard(text: _answer!),
                       for (final business in _businesses)
                         _BusinessCard(
-                            business: business,
-                            onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (_) => BusinessScreen(
-                                        businessId:
-                                            (business['id'] as num).toInt())))),
+                          business: business,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  BusinessScreen(businessId: business.id),
+                            ),
+                          ),
+                        ),
                     ],
                   ],
                 ),
@@ -400,7 +399,7 @@ class _SuggestionChip extends StatelessWidget {
         onTap: () => onTap(label),
         child: Ink(
           decoration: BoxDecoration(
-            color: BarrioColors.crema.withValues(alpha: .75),
+            color: BarrioColors.crema.withOpacity(.75),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: BarrioColors.marino, width: 2),
           ),
@@ -443,17 +442,15 @@ class _MessageCard extends StatelessWidget {
 
 class _BusinessCard extends StatelessWidget {
   const _BusinessCard({required this.business, required this.onTap});
-  final Map<String, dynamic> business;
+  final BusinessApiModel business;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final title = business['nombre'] ?? business['name'] ?? 'Negocio cercano';
-    final category = business['categoria'] ?? business['category'] ?? '';
-    final neighborhood = business['colonia'] ?? '';
-    final reasons = (business['match_reasons'] as List<dynamic>? ?? const [])
-        .take(3)
-        .join(' · ');
+    final title = business.nombre;
+    final category = business.categoria;
+    final neighborhood = business.colonia ?? '';
+    final reasons = business.matchReasons.take(3).join(' · ');
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: InkWell(
@@ -476,7 +473,7 @@ class _BusinessCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('$title',
+                      Text(title,
                           style: const TextStyle(
                               color: BarrioColors.marino,
                               fontSize: 16,
@@ -484,7 +481,7 @@ class _BusinessCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                           [category, neighborhood]
-                              .where((part) => '$part'.isNotEmpty)
+                              .where((part) => part.isNotEmpty)
                               .join(' · '),
                           style: const TextStyle(color: BarrioColors.gris)),
                       if (reasons.isNotEmpty) ...[
