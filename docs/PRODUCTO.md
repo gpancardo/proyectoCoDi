@@ -30,7 +30,7 @@ La economía de barrio está formada por unidades económicas pequeñas, creadas
 - La **Circular 9/2026 de Banxico** obliga a los bancos a homologar las transferencias móviles antes del **14 de dic de 2026**.
 - **pey** abrió una API de CoDi gratuita, agnóstica al banco, que deposita directo en la cuenta del comercio.
 
-🟡 Las dos primeras cifras vienen de la investigación inicial del equipo. Verificar la fuente antes del pitch.
+Detalle y fuentes en [`LEY-ECONOMIA-DIGITAL.md`](LEY-ECONOMIA-DIGITAL.md). La ley está verificada en el DOF; de la circular solo tenemos fuentes de prensa.
 
 ## 4. Usuarios
 

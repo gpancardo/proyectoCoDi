@@ -23,6 +23,7 @@ Búsqueda con IA sobre un catálogo real, totales calculados por el servidor y c
 | **Repositorio** | https://github.com/gpancardo/proyectoCoDi |
 | **Pitch** | [`PITCH.md`](PITCH.md) |
 | **Pantallas** | [Las 23 pantallas de la app](capturas/README.md) |
+| **Contexto legal** | [La Ley de Economía Digital y Barrio](LEY-ECONOMIA-DIGITAL.md) |
 <!-- | **Video de demo** | ENLACE | -->
 <!-- | **Video de pitch** | ENLACE | -->
 
