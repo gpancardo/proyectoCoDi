@@ -13,24 +13,20 @@ El producto cambia de WhatsApp a una app standalone desarrollada por otro integr
 - `develop` y `staging` son aliases retirados; si un workspace viejo los vuelve a publicar, verifica que no tengan commits propios antes de borrarlos. `landing` y `Diseño/-Landing-alex` conservan código exclusivo de un prototipo Astro; confirmar con sus responsables antes de integrarlas o borrarlas.
 - Hay cambios locales sin commit en `bot/index.js`, `bot/package.json`, `bot/package-lock.json` y `bot/vincular.js`. Consérvalos; el ajuste de vinculación QR de WhatsApp quedó obsoleto.
 - Se actualizaron README, AGENTS, PRODUCTO, DESIGN, VOZ-DE-MARCA y este handoff; se agregó `docs/BACKEND.md`.
-- `backend/` contiene el primer corte HTTP de Descubrir y Buscar con Barrio: catálogo determinista, perfil por señales explícitas, RAG acotado y fallback sin OpenAI. Rama `feature/backend-orders-payments-promos` agrega cotización/pedidos, gestión del negocio, cobros con pey (`intentos_cobro`), webhook propio, barrido, cupones e insignias; la Edge Function `pey-webhook` se retiró porque el backend la reemplaza. Esquema cerrado en `20261107030000_cerrar_schema.sql` y probado en Postgres con pgvector (CI). **El backend, solo con pruebas unitarias y un import de arranque, no contra Supabase/pey reales.** Faltan despliegue, aplicar la migración, apuntar el webhook de pey a `/webhooks/pey` e integrar la app.
+- **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio. `render.yaml`/`Dockerfile` quedan como alternativa.
+- **Base:** migraciones hasta `20261107050000` aplicadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
+- **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
+- **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
+- **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
 
-## Bloqueos que debe cerrar el equipo
+## Pendiente
 
-1. Backend y app acuerdan autenticación/sesión y roles. Hoy: Supabase Auth; comprador se da de alta con `POST /me`; el negocio se liga con `negocios.sujeto_auth` (falta el flujo de alta/verificación sin WhatsApp).
-2. Acordar forma de ubicación (zona, coordenadas o ambas), datos visibles del negocio y criterios/pesos del ranking.
-3. Mantener el índice de catálogo al día: ejecutar `backend` `index:catalog` tras cambios de menú desde un entorno con secretos.
-4. Probar de punta a punta en `dev` el flujo pedido → aceptación → cobro → webhook → "¡Pagado!" con `PEY_MOCK=1` y luego con pey real ($0.01).
-5. Adaptar `web/` para que altas y consultas pasen por backend; no dejar llave de servidor en cliente.
-6. Definir actualización de estado para app (polling autenticado inicialmente o canal en tiempo real autorizado).
-
-Contrato propuesto y rutas: [`BACKEND.md`](BACKEND.md). Ninguna ruta se debe presentar como implementada hasta que exista y esté integrada.
-
-## Plan ajustado a pey (hackathon)
-
-1. Registrar en <https://portal.pey.mx> una de las CLABEs pre-autorizadas (lista en [`PEY.md`](PEY.md)) y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
-2. Configurar `PEY_API_KEY`, `PEY_MOCK=0` y `PEY_WEBHOOK_SECRET` en el entorno del backend; probar **solo $0.01** (no se devuelve).
-3. Entrega: **domingo 8 nov, 1:00 PM**, a hola@aibuilders.lat.
+1. Registrar el webhook de pey en `https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api/webhooks/pey` y guardar su secreto como `PEY_WEBHOOK_SECRET`. Existe una Edge Function `pey-webhook` anterior con el esquema viejo; retirarla o repuntar pey.
+2. Cargar `OPENAI_API_KEY` (OpenRouter o OpenAI) en Edge Function Secrets y ejecutar `index:catalog`.
+3. Registrar una CLABE de [`PEY.md`](PEY.md) en el portal de pey y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
+4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
+5. Acordar ubicación (coordenadas) y pesos del ranking; la app Flutter (`barrio_app_pey/`) aún no consume la API.
+6. Entrega: **domingo 8 nov, 1:00 PM**, a hola@aibuilders.lat. Pruebas de pago solo de $0.01 (no se devuelve).
 
 ## Reglas que se conservan
 
