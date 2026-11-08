@@ -52,11 +52,11 @@ feature/<área>-<cambio> → dev → stg → main
 | Ruta | Estado |
 |---|---|
 | `backend/` | API en producción como Edge Function (`edge/api.js` + `src/`); pruebas en `test/`, recorrido real en `scripts/e2e-live.mjs` |
-| `supabase/` | migraciones hasta `20261108010000` aplicadas en producción, seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
-| `web/` | landing y registro heredados + app web (`app.html`/`app.js`); la publicación de la web la hace otro integrante |
+| `supabase/` | migraciones hasta `20261108030000` aplicadas en producción, seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
+| `web/` | landing, blog y descarga, publicados en Netlify Drop; `app.html`/`app.js` es un prototipo que ya no se enlaza (Barrio es solo app Android) |
 | `barrio_app_pey/` | app Flutter integrada a la API: compra, gestión de negocio y dictado; falta prueba de voz en Android físico |
 | `docs/` | producto, contrato y estado del backend, pey, diseño y voz |
 
 ## Comprobaciones
 
-El CI corre dos trabajos: `backend` (`npm run check` y `npm test`) y `supabase` (migraciones + `supabase/tests/schema_smoke.sql` en Postgres con pgvector). Reglas nuevas de dinero/estado/parseo llevan pruebas en `backend/test/`; las de esquema, en `supabase/tests/`. La API vive en la Edge Function `api`: tras cambiar `backend/src/`, ejecuta `npm run build:edge` y vuelve a desplegar. No despliegues la web en GitHub Pages desde sesiones de agente: eso lo hace el responsable de la web.
+El CI corre tres trabajos: `backend` (`npm run check` y `npm test`), `supabase` (migraciones + `supabase/tests/schema_smoke.sql` en Postgres con pgvector) y `web` (sintaxis y prueba de la cuenta). Reglas nuevas de dinero/estado/parseo llevan pruebas en `backend/test/`; las de esquema, en `supabase/tests/`. La API vive en la Edge Function `api`: tras cambiar `backend/src/`, ejecuta `npm run build:edge` y vuelve a desplegar. No despliegues la web en GitHub Pages desde sesiones de agente: eso lo hace el responsable de la web.
