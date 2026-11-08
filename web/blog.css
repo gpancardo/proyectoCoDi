@@ -1,4 +1,4 @@
-/* Blog, descarga y privacidad: páginas de lectura sobre la base de estilo.css */
+/* Blog, descarga: páginas de lectura sobre la base de estilo.css */
 body.hoja { background: var(--crema); }
 .barra nav { display: flex; align-items: center; gap: 20px; }
 main { padding-block: clamp(32px, 6vw, 72px); }

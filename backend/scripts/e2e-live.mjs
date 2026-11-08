@@ -11,12 +11,11 @@ const { Supabase } = await import(B + 'supabase.js'); const { manejar, Fallo } =
 const db = new Supabase({ url: process.env.SUPABASE_URL, serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY, anonKey: process.env.SUPABASE_ANON_KEY });
 const NEG_ID = Number(process.env.E2E_NEGOCIO_ID ?? 7); const ids = { ordenes: [], cupones: [] };
 const [negocio] = await db.get('negocios', `id=eq.${NEG_ID}&select=id,nombre`);
-// El comprador demo cobra por push a este celular (el de quien prueba). telefono es único: solo una cuenta puede tenerlo.
+// El comprador demo cobra por push a este celular (el de quien prueba); telefono ya no es único.
 const TEL_DEMO = process.env.E2E_PHONE ?? '5615156164';
 let [comprador] = await db.get('compradores', 'wa_jid=eq.e2e-test&select=id,nombre,telefono');
-if (!comprador) [comprador] = await db.get('compradores', `telefono=eq.${TEL_DEMO}&select=id,nombre,telefono`);
 if (!comprador) [comprador] = await db.insertar('compradores', { wa_jid: 'e2e-test', nombre: 'E2E prueba', telefono: TEL_DEMO });
-else if (comprador.telefono !== TEL_DEMO && !(await db.get('compradores', `telefono=eq.${TEL_DEMO}&select=id`)).length) await db.actualizar('compradores', `id=eq.${comprador.id}`, { telefono: TEL_DEMO });
+else if (comprador.telefono !== TEL_DEMO) await db.actualizar('compradores', `id=eq.${comprador.id}`, { telefono: TEL_DEMO });
 const llamar = async (auth, method, path, body, headers = {}) => {
   let out; const res = {}; const req = { method, headers: { ...headers } };
   try { const ok = await manejar({ db, req, res, url: new URL('http://x/api/v1' + path), auth, cuerpo: async () => body ?? {}, enviar: (_r, status, b) => { out = { status, ...b }; } }); assert.ok(ok, 'ruta ' + path); }
