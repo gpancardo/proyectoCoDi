@@ -12,7 +12,7 @@
 
 ![Android](https://img.shields.io/badge/Android-app-0B2545?style=flat-square) ![CoDi](https://img.shields.io/badge/CoDi-cobro_real-0F7C75?style=flat-square) ![pey](https://img.shields.io/badge/pey-webhook_firmado-F5A524?style=flat-square) ![IA](https://img.shields.io/badge/IA-RAG_h%C3%ADbrido-0B2545?style=flat-square)
 
-[Sitio](https://jade-paprenjak-a98b06.netlify.app) · [Descargar para Android](https://jade-paprenjak-a98b06.netlify.app/descargar/) · [Pitch](docs/PITCH.md) · [Expediente de entrega](docs/ENTREGA.md) · [Pantallas](docs/capturas/README.md)
+[Sitio](https://jade-paprenjak-a98b06.netlify.app) · [Descargar para Android](https://jade-paprenjak-a98b06.netlify.app/descargar/) · [Pitch](docs/PITCH.md) · [Expediente de entrega](docs/ENTREGA.md) · [Por qué ahora](docs/LEY-ECONOMIA-DIGITAL.md) · [Pantallas](docs/capturas/README.md)
 
 `DevDay Exchange Community Hackathon · CDMX · 7–8 nov 2026`
 

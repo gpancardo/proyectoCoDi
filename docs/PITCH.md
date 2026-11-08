@@ -25,6 +25,10 @@ El comercio de barrio tiene dos desventajas que se refuerzan entre sí:
 
 CoDi, el sistema de cobros de Banco de México, ya resuelve el dinero: [no genera comisiones adicionales y opera en segundos](https://www.banxico.org.mx/sistemas-de-pago/codi-cobro-digital-banco-me.html). Lo que le falta es todo lo que pasa antes y después del cobro. Hoy pedir y cobrar con CoDi da más trabajo que dar un billete.
 
+## Por qué ahora
+
+El 5 de noviembre de 2026 entró en vigor la **Ley de Economía Digital para Pagos Digitales y Electrónicos**, que promueve la adopción de pagos digitales en todo el país. Hay una ley nueva y CoDi ya existe; falta lo cotidiano para que un negocio pequeño los use. [Cómo se relaciona con Barrio](LEY-ECONOMIA-DIGITAL.md).
+
 ## La idea
 
 Barrio junta las tres cosas que CoDi no hace por sí solo.
@@ -121,6 +125,6 @@ Comprar en tu barrio deja huella: un sello por cada una de las 16 alcaldías, en
 
 <div align="center">
 
-[Expediente de entrega](ENTREGA.md) · [Repositorio](../README.md) · [Todas las pantallas](capturas/README.md)
+[Expediente de entrega](ENTREGA.md) · [Por qué ahora](LEY-ECONOMIA-DIGITAL.md) · [Repositorio](../README.md) · [Todas las pantallas](capturas/README.md)
 
 </div>

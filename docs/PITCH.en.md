@@ -27,6 +27,10 @@ Neighborhood shops face two disadvantages that feed each other:
 
 CoDi already solves the money part: it [generates no additional fees and settles in seconds](https://www.banxico.org.mx/sistemas-de-pago/codi-cobro-digital-banco-me.html). What is missing is everything before and after the charge. Today, ordering and collecting with CoDi takes more effort than handing over a banknote.
 
+## Why now
+
+On November 5, 2026 Mexico's **Digital Economy Law for Digital and Electronic Payments** came into force, promoting the adoption of digital payments nationwide. There is a new law and CoDi already exists; what is missing is the daily work that lets a small shop use them. [How this relates to Barrio](LEY-ECONOMIA-DIGITAL.en.md).
+
 ## The idea
 
 Barrio brings together the three things CoDi does not do on its own.
@@ -123,6 +127,6 @@ Buying locally leaves a mark: one badge for each of the 16 boroughs, in bronze, 
 
 <div align="center">
 
-[Submission dossier](ENTREGA.en.md) · [Repository](../README.en.md) · [All screens](capturas/README.md)
+[Submission dossier](ENTREGA.en.md) · [Why now](LEY-ECONOMIA-DIGITAL.en.md) · [Repository](../README.en.md) · [All screens](capturas/README.md)
 
 </div>
