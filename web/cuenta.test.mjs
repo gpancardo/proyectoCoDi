@@ -1,6 +1,6 @@
 // node web/cuenta.test.mjs
 import assert from 'node:assert/strict'
-import { armarCuenta } from './cuenta.js'
+import { armarCuenta } from './cuenta.mjs'
 
 const total = (t) => armarCuenta(t).cuentas.map((c) => c.total)
 

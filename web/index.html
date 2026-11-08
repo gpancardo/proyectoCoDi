@@ -32,7 +32,7 @@
     <a href="#negocios">Negocios</a>
     <a href="#dudas">Preguntas</a>
   </nav>
-  <a class="btn btn-chico btn-marino" href="registro.html">Registra tu negocio</a>
+  <a class="btn btn-chico btn-marino" href="app.html">Registra tu negocio</a>
 </header>
 
 <main id="contenido">
@@ -63,7 +63,7 @@
     <div class="banda">
       <p>Busca negocios abiertos cerca de ti, ve el total antes de confirmar y paga desde la app de tu banco. CoDi no cobra comisión.</p>
       <div class="banda-acciones">
-        <a class="btn" href="registro.html">Registra tu negocio</a>
+        <a class="btn" href="app.html">Registra tu negocio</a>
         <a class="enlace-app" id="app" href="#" hidden>Abrir la app</a>
       </div>
     </div>
@@ -135,18 +135,17 @@
   <section class="cierre" aria-labelledby="cierre-t">
     <div class="cierre-texto">
       <h2 id="cierre-t">abre tu changarro</h2>
-      <p>Toma 2 minutos. Revisamos tu negocio antes de que reciba pedidos.</p>
+      <p>Crea tu cuenta, publica tu menú y tus precios y empieza a recibir pedidos.</p>
     </div>
-    <form class="dialogo" action="registro.html" method="get" data-ui>
+    <div class="dialogo" data-ui>
       <p class="dialogo-titulo">Registra tu negocio</p>
-      <label>Nombre de tu negocio<input name="nombre" value="Tacos Doña Lupe" maxlength="60" autocomplete="organization"></label>
-      <fieldset class="segmento">
-        <legend>¿Cómo aceptas los pedidos?</legend>
-        <label><input type="radio" name="auto" value="0" checked><span>Yo los acepto</span></label>
-        <label><input type="radio" name="auto" value="1"><span>En automático</span></label>
-      </fieldset>
-      <button class="btn btn-marino">Seguir con el registro</button>
-    </form>
+      <ol class="dialogo-pasos">
+        <li>Crea tu cuenta con tu correo.</li>
+        <li>Escribe el nombre, la zona y la dirección de tu negocio.</li>
+        <li>Agrega tus productos con su precio.</li>
+      </ol>
+      <a class="btn btn-marino" href="app.html">Crear mi cuenta</a>
+    </div>
   </section>
 </main>
 
@@ -158,7 +157,7 @@
     <nav aria-label="Pie"><a href="#como">Cómo se pide</a><a href="#cuenta">Arma tu cuenta</a><a href="#negocios">Para tu negocio</a><a href="#dudas">Preguntas</a></nav>
     <p>Hecho en CDMX para el DevDay Exchange Community Hackathon.<br>Cobros con <a href="https://pey.mx">pey</a> y CoDi.</p>
   </div>
-  <div class="pie-fin"><span>© 2026 Barrio</span><a class="btn btn-chico" href="registro.html">Registra tu negocio</a></div>
+  <div class="pie-fin"><span>© 2026 Barrio</span><a class="btn btn-chico" href="app.html">Registra tu negocio</a></div>
 </footer>
 
 <script src="config.js"></script>
