@@ -53,7 +53,7 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | negocio | Cupones por porcentaje, monto o producto gratis; pueden llevar un código único, mínimo y vencimiento |
 | `POST /orders/quotes` | comprador | Cotiza desde el catálogo del servidor; autoaplica el mejor cupón aceptado o valida `coupon_code`; caduca a los 10 min |
 | `POST /orders` | comprador | Crea el pedido desde `quote_id` con `Idempotency-Key` y `confirmed_total_minor` igual al total cotizado |
-| `GET /orders`, `GET /orders/{id}` | sesión | Pedidos propios o del negocio; `codigo` de recogida solo al comprador desde `pagada` hasta `entregada` |
+| `GET /orders`, `GET /orders/{id}` | sesión | Pedidos propios o del negocio (`?as=comprador` para ver los propios si la cuenta también tiene negocio); `codigo` de recogida solo al comprador desde `pagada` hasta `entregada` |
 | `POST /orders/{id}/cancel` | comprador | Solo en `pendiente`, `aceptada` o `vencida` |
 | `POST /orders/{id}/accept\|reject\|ready` | negocio | Aceptar (genera el cobro), rechazar, marcar listo |
 | `POST /orders/{id}/received` | comprador | Confirma entrega con transición atómica `lista → entregada` |
@@ -99,7 +99,8 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 ## Cupones e insignias
 
 - **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Puede ser porcentaje, monto o un producto gratis y tener un `codigo` único. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** o valida un código de ese negocio y lo resta en el servidor (total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
-- **Insignias:** derivadas de pedidos pagados, sin tabla: 3 en la misma colonia, 5 en la misma alcaldía o 3 en el mismo negocio (`REGLAS_INSIGNIAS` en `backend/src/pedidos.js`). `GET /me/profile` devuelve también las que van en progreso. Requiere `negocios.colonia`.
+- **Sellos (`insignias`):** derivados de pedidos pagados, sin tabla. Siempre son cuatro: primera compra (1), bronce (3 compras en un negocio), plata (3 negocios de una colonia) y oro (4 tipos de negocio); ver `METAS_SELLOS` en `backend/src/pedidos.js`. `GET /me/profile` devuelve `nivel`, `nombre` y `detalle` personalizados, `avance`, `meta` y `obtenida`, más `premio` (la promoción sin código del negocio de la primera compra, si sigue disponible). El negocio solo ve el nombre genérico del sello, nunca dónde más compra su cliente.
+- **Promociones sin código:** quien ya pagó en un negocio las recibe aceptadas al cotizar ahí (`cuponesPorOfrecer`), una vez por persona y por cupón.
 - `negocios.sujeto_auth` liga la sesión de Supabase Auth con el negocio (rol negocio); `compradores.sujeto_auth`, con el comprador.
 
 ## Decisiones tomadas

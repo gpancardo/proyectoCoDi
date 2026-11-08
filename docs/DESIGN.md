@@ -266,3 +266,35 @@ La guía completa está en `VOZ-DE-MARCA.md`.
 - Ninguna palabra de la lista de `VOZ-DE-MARCA.md` ni emoji fuera de ✅.
 - Revisada en 390 px y en 1280 px, sin desbordes ni texto cortado, y navegada solo con teclado.
 - Probada en un Android real, a pleno sol.
+
+## 13. Sellos de logros (imágenes por hacer)
+
+Hoy la app usa medallas provisionales. Faltan cuatro sellos definitivos. Se dibujan una vez y sustituyen estos archivos sin tocar código.
+
+| Archivo en `barrio_app_pey/assets/icons/` | Logro | Color único | Motivo central |
+|---|---|---|---|
+| `medal-first.svg` | Primera compra | Grana `#9B1B4B` | Huellas de pie en camino: en los códices, las huellas indican un trayecto |
+| `medal-bronze.svg` | Ya te conocen en (negocio) | Bronce `#8A4F24` | Casa con voluta de palabra: un lugar donde ya platican contigo |
+| `medal-silver.svg` | Conoces (colonia) | Plata `#5F6B78` | Cerro de topónimo, el signo con que los códices nombran un lugar |
+| `medal-gold.svg` | De todo en tu barrio | Oro `#8F6A00` | Cuatro cuadrantes con oficios: herramienta, libro, flor, canasta |
+
+Los cuatro colores pasan 4.5:1 sobre crema y blanco. La grana viene de la cochinilla, el tinte americano; no se confunde con `--rojo`, que sigue siendo solo para errores.
+
+**Estilo.** La mezcla de dos referencias:
+
+- **Del sello universitario:** círculo con borde dentado, doble anillo y composición simétrica. Se ve como un sello estampado, no como una medalla de videojuego.
+- **De los signos de códice:** figura plana, contorno grueso de grosor parejo, formas cerradas y geométricas, sin perspectiva ni sombras.
+
+**Reglas técnicas.**
+
+- SVG con `viewBox="0 0 64 64"`, fondo transparente y **una sola tinta**. Blanco y detalle se resuelven con huecos.
+- Tiene que leerse a 72 px en la lista. Sin texto dentro del sello: el nombre lo pone la app, porque cambia con cada persona.
+- El estado "por lograr" lo pinta la app en gris; no se dibuja aparte.
+
+**Cuidado cultural.** Es inspiración gráfica en formas de escritura vivas en la memoria de pueblos originarios, no adorno.
+
+- Nada de deidades, escenas rituales, calendario sagrado, tocados ni personajes "aztecas".
+- No copiar signos de un códice ni de ilustraciones existentes: se dibujan de nuevo. Los códices solo enseñan la forma de dibujar.
+- Los nombres de los logros van en español. Si algún día se usa náhuatl, lo revisa una persona hablante.
+- Antes de publicarlos fuera de la demo, los revisa y acredita una persona diseñadora o especialista nahua, con pago por su trabajo.
+- Motivos de todos los oficios, no solo comida.
