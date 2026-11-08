@@ -8,21 +8,36 @@ export const NEGOCIOS = [
       { nombre: 'Taco de canasta', precio: 12, alias: ['taco', 'taco de canasta', 'tacos de canasta', 'canasta'] },
       { nombre: 'Agua de horchata', precio: 25, alias: ['horchata', 'agua de horchata'] },
     ] },
-  { nombre: 'Tortillería La Esperanza', lugar: 'Calle Allende 41, Coyoacán', distancia: '600 m',
+  { nombre: 'Tortillería La Güera', lugar: 'Calle Allende 41, Benito Juárez', distancia: '600 m',
     productos: [
       { nombre: 'Tortillas de maíz (kilo)', precio: 24, alias: ['tortilla', 'tortillas', 'kilo de tortillas', 'kilo de tortilla'] },
       { nombre: 'Totopos (bolsa)', precio: 30, alias: ['totopo', 'totopos'] },
     ] },
-  { nombre: 'Tamales Don Chuy', lugar: 'Calle Tres Cruces 9, Coyoacán', distancia: '900 m',
+  { nombre: 'Tamales Chuy', lugar: 'Calle Hidalgo 9, Xochimilco', distancia: '900 m',
     productos: [
       { nombre: 'Tamal de rajas', precio: 18, alias: ['tamal de rajas', 'tamales de rajas', 'rajas'] },
       { nombre: 'Tamal verde', precio: 18, alias: ['tamal verde', 'tamales verdes', 'verde'] },
       { nombre: 'Atole de vainilla', precio: 20, alias: ['atole', 'atoles'] },
     ] },
-  { nombre: 'Abarrotes Don Beto', lugar: 'Calle Carrillo Puerto 70, Coyoacán', distancia: '450 m',
+  { nombre: 'Abarrotes Los Dos Hermanos', lugar: 'Calle 5 de Mayo 70, Iztapalapa', distancia: '450 m',
     productos: [
       { nombre: 'Refresco 600 ml', precio: 22, alias: ['refresco', 'refrescos', 'coca', 'cocas'] },
       { nombre: 'Agua natural 1 l', precio: 15, alias: ['agua natural', 'agua', 'aguas'] },
+    ] },
+  { nombre: 'Panadería La Espiga', lugar: 'Calle Cuitláhuac 33, Azcapotzalco', distancia: '700 m',
+    productos: [
+      { nombre: 'Concha', precio: 14, alias: ['concha', 'conchas'] },
+      { nombre: 'Bolillo', precio: 4, alias: ['bolillo', 'bolillos'] },
+    ] },
+  { nombre: 'Papelería Miranda', lugar: 'Av. Universidad 340, Benito Juárez', distancia: '500 m',
+    productos: [
+      { nombre: 'Copia', precio: 1, alias: ['copia', 'copias'] },
+      { nombre: 'Cuaderno profesional', precio: 38, alias: ['cuaderno', 'cuadernos'] },
+    ] },
+  { nombre: 'Ferretería San Miguel', lugar: 'Calle Norte 45, Gustavo A. Madero', distancia: '800 m',
+    productos: [
+      { nombre: 'Foco LED', precio: 45, alias: ['foco', 'focos', 'foco led'] },
+      { nombre: 'Cinta de aislar', precio: 22, alias: ['cinta de aislar', 'cinta'] },
     ] },
 ]
 
