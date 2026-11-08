@@ -1,12 +1,18 @@
 <div align="center">
 
+<img src="web/capturas/og.jpg" alt="Barrio: pide en tu barrio, paga con CoDi" width="100%">
+
+**Español** · [English](README.en.md)
+
 # barrio
 
 ### lo bueno del barrio, a un toque
 
 **Busca en tu barrio con tus palabras, ve el total antes de pedir y paga con CoDi desde la app de tu banco.**
 
-[Sitio](https://jade-paprenjak-a98b06.netlify.app) · [Descargar para Android](https://jade-paprenjak-a98b06.netlify.app/descargar/) · [Pitch](docs/PITCH.md) · [Pantallas](docs/capturas/README.md) · [Producto](docs/PRODUCTO.md) · [API y estado](docs/BACKEND.md)
+![Android](https://img.shields.io/badge/Android-app-0B2545?style=flat-square) ![CoDi](https://img.shields.io/badge/CoDi-cobro_real-0F7C75?style=flat-square) ![pey](https://img.shields.io/badge/pey-webhook_firmado-F5A524?style=flat-square) ![IA](https://img.shields.io/badge/IA-RAG_h%C3%ADbrido-0B2545?style=flat-square)
+
+[Sitio](https://jade-paprenjak-a98b06.netlify.app) · [Descargar para Android](https://jade-paprenjak-a98b06.netlify.app/descargar/) · [Pitch](docs/PITCH.md) · [Expediente de entrega](docs/ENTREGA.md) · [Pantallas](docs/capturas/README.md)
 
 `DevDay Exchange Community Hackathon · CDMX · 7–8 nov 2026`
 
@@ -59,11 +65,18 @@ Para ver el lado del negocio, abre el menú lateral y entra a **Tu negocio**: al
 
 ## La app
 
-| Buscar | Descubrir | Cuenta | Sellos | Panel del negocio |
-|---|---|---|---|---|
-| ![Buscar](docs/capturas/04-resultados.png) | ![Descubrir](docs/capturas/05-descubrir.png) | ![Cuenta](docs/capturas/07-cuenta.png) | ![Sellos](docs/capturas/14-sellos-ciudad.png) | ![Panel](docs/capturas/17-panel-resumen.png) |
+<table>
+<tr><th>Buscar</th><th>Descubrir</th><th>Cuenta</th><th>Sellos</th><th>Panel del negocio</th></tr>
+<tr>
+<td><img src="docs/capturas/04-resultados.png" width="170" alt="Buscar con pregunta de seguimiento"></td>
+<td><img src="docs/capturas/05-descubrir.png" width="170" alt="Descubrir"></td>
+<td><img src="docs/capturas/07-cuenta.png" width="170" alt="Cuenta"></td>
+<td><img src="docs/capturas/14-sellos-ciudad.png" width="170" alt="Sellos de la ciudad"></td>
+<td><img src="docs/capturas/17-panel-resumen.png" width="170" alt="Panel del negocio"></td>
+</tr>
+</table>
 
-Estas capturas usan datos de muestra. Están [todas las pantallas](docs/capturas/README.md) y las [capturas del pago real](docs/capturas/reales/README.md).
+Estas capturas usan datos de muestra. Aquí están [todas las pantallas](docs/capturas/README.md).
 
 ## Qué es real y qué es de demo
 
@@ -82,14 +95,17 @@ La lista completa está en [`pendientes/`](pendientes/README.md).
 
 ## Arquitectura
 
-```text
-App Flutter (Android)
-        │ HTTPS + sesión de Supabase Auth
-        ▼
-API Barrio · Supabase Edge Function `api`
-        ├── Postgres, Auth y pgvector · Supabase
-        ├── pey · CoDi por push y webhook firmado
-        └── Modelo · filtros tipados y embeddings (opcional)
+```mermaid
+flowchart LR
+    APP["App Flutter<br/>Android"]:::app -->|HTTPS| API["API Barrio<br/>Edge Function"]:::api
+    API --> DB[("Postgres<br/>+ pgvector")]:::dato
+    API --> IA["Modelo de IA<br/>opcional"]:::ext
+    API --> PEY["pey · CoDi"]:::ext
+    PEY -->|webhook firmado| API
+    classDef app fill:#F5A524,stroke:#0B2545,stroke-width:2px,color:#0B2545
+    classDef api fill:#0B2545,stroke:#0B2545,color:#FFF8EC
+    classDef dato fill:#0F7C75,stroke:#0B2545,color:#FFF8EC
+    classDef ext fill:#FFF8EC,stroke:#0B2545,stroke-width:2px,color:#0B2545
 ```
 
 La app no toca tablas ni contiene llaves de servidor. La API valida permisos, calcula los totales, controla los estados del pedido y es la única que habla con pey y con el modelo.

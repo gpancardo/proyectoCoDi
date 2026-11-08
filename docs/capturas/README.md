@@ -1,6 +1,6 @@
 # Pantallas de Barrio
 
-Generadas desde la app real con datos de muestra (`barrio_app_pey/tool/capturas_test.dart`). Las capturas del pago real van en [`reales/`](reales/README.md).
+Generadas desde la app real con datos de muestra (`barrio_app_pey/tool/capturas_test.dart`).
 
 Regenerar: `cd barrio_app_pey && flutter test tool/capturas_test.dart --update-goldens`. `23-menu.png` lleva un recorte a mano para quitar la sombra del render.
 
