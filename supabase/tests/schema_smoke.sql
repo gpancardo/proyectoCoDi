@@ -53,7 +53,7 @@ begin
   insert into auth.users(id, raw_user_meta_data) values (u, '{"nombre":"Beto"}'), (w, '{}');
   select id into c from compradores where sujeto_auth = u;
   assert c is not null and (select nombre from compradores where id = c) = 'Beto', 'comprador creado al registrarse';
-  insert into negocios(nombre, telefono, zona, direccion, categoria, productos, wa_jid, verificado) values ('Barrido','5599999999','Coyoacán','Calle 9 #9','comida','[{"nombre":"x","precio":1}]','w1',true) returning id into n;
+  insert into negocios(nombre, telefono, zona, direccion, categoria, productos, semilla, verificado) values ('Barrido','5599999999','Coyoacán','Calle 9 #9','comida','[{"nombre":"x","precio":1}]','w1',true) returning id into n;
   insert into ordenes(comprador_id, negocio_id, items, monto, creado) values (c, n, '[]', 5, now() - interval '9 minutes') returning id into o;
   perform barrido_sql();
   assert (select estado from ordenes where id = o) = 'expirada', 'pedido sin respuesta expira';

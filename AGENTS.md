@@ -4,7 +4,7 @@ Lee primero [`docs/PRODUCTO.md`](docs/PRODUCTO.md) y luego [`docs/BACKEND.md`](d
 
 ## Producto y arquitectura
 
-Barrio será una app standalone que consume una API HTTPS propia. WhatsApp/Baileys ya no es canal del producto. El cliente no accede a tablas directamente ni contiene secretos. El backend mantiene catálogo, identidad/autorización, pedidos y pagos; OpenAI es opcional para interpretar búsquedas y nunca determina precios, disponibilidad ni totales.
+Barrio será una app standalone que consume una API HTTPS propia. La app es el único canal del producto. El cliente no accede a tablas directamente ni contiene secretos. El backend mantiene catálogo, identidad/autorización, pedidos y pagos; OpenAI es opcional para interpretar búsquedas y nunca determina precios, disponibilidad ni totales.
 
 La búsqueda determinista es funcional sin modelo: filtros de zona/distancia, apertura, categoría, texto/alias, disponibilidad y precio. El agente puede traducir lenguaje libre a filtros tipados, que el backend valida. Revisa `docs/BACKEND.md` para contrato y orden de entrega.
 

@@ -1,7 +1,7 @@
 -- Negocios de demo: variedad de giros y alcaldías, inspirada en el comercio de barrio y los mercados públicos que impulsa la SEDECO CDMX.
--- Nombres y direcciones son ficticios. Quedan verificados con un wa_jid de demo (la regla pide dueño identificado) y sin aceptar pedidos solos.
+-- Nombres y direcciones son ficticios. Quedan verificados con una marca de demo (la regla pide dueño identificado) y sin aceptar pedidos solos.
 -- El primero (Tacos Doña Lupe) trae un taco de prueba de un centavo: los organizadores piden probar los cobros reales con $0.01.
-insert into negocios (nombre, telefono, zona, colonia, direccion, categoria, descripcion, productos, auto_aceptar, verificado, wa_jid) values
+insert into negocios (nombre, telefono, zona, colonia, direccion, categoria, descripcion, productos, auto_aceptar, verificado, semilla) values
   ('Tacos Doña Lupe', '5615156164', 'Coyoacán', 'San Lucas', 'Av. Miguel Hidalgo 128, San Lucas', 'Antojitos', 'Tacos de canasta y quesadillas de siempre.', '[{"nombre": "Taco de prueba", "precio": 0.01}, {"nombre": "Taco de canasta", "precio": 12}, {"nombre": "Quesadilla", "precio": 35}, {"nombre": "Agua de horchata", "precio": 25}]', false, true, 'demo-seed'),
   ('Fonda Doña Carmen', '5615156164', 'Iztapalapa', 'Santa Martha Acatitla', 'Calzada Ermita Iztapalapa 1450', 'Comida', 'Desayunos y comida corrida de todos los días.', '[{"nombre": "Chilaquiles con huevo", "precio": 65}, {"nombre": "Comida corrida", "precio": 75}, {"nombre": "Caldo de pollo", "precio": 60}, {"nombre": "Agua de jamaica (litro)", "precio": 28}, {"nombre": "Café de olla", "precio": 18}]', false, true, 'demo-seed-1'),
   ('Frutas y Verduras Jamaica', '5615156164', 'Venustiano Carranza', 'Jamaica', 'Mercado de Jamaica, local 112', 'Frutería', 'Fruta y verdura de temporada en el mercado público.', '[{"nombre": "Naranja (kg)", "precio": 22}, {"nombre": "Plátano (kg)", "precio": 24}, {"nombre": "Aguacate (kg)", "precio": 65}, {"nombre": "Limón (kg)", "precio": 30}, {"nombre": "Jitomate (kg)", "precio": 28}]', false, true, 'demo-seed-2'),
@@ -16,9 +16,9 @@ insert into negocios (nombre, telefono, zona, colonia, direccion, categoria, des
   ('Lavandería La Burbuja', '5615156164', 'Cuauhtémoc', 'Doctores', 'Calle Dr. Vértiz 120', 'Lavandería', 'Lavado, secado y planchado por kilo.', '[{"nombre": "Lavado por kilo", "precio": 28}, {"nombre": "Planchado por prenda", "precio": 15}, {"nombre": "Edredón", "precio": 120}]', false, true, 'demo-seed-11'),
   ('Café de la Barranca', '5615156164', 'Cuajimalpa', 'Contadero', 'Av. Contadero 55', 'Café', 'Café de olla, americano y pan de la casa.', '[{"nombre": "Café americano", "precio": 30}, {"nombre": "Capuchino", "precio": 45}, {"nombre": "Pan de la casa", "precio": 18}]', false, true, 'demo-seed-12'),
   ('Productos de Milpa Alta', '5615156164', 'Milpa Alta', 'Villa Milpa Alta', 'Mercado de Milpa Alta, local 23', 'Abarrotes', 'Nopal, mole y tunas directo del campo de Milpa Alta.', '[{"nombre": "Nopal limpio (kg)", "precio": 28}, {"nombre": "Mole 250 g", "precio": 55}, {"nombre": "Tunas (kg)", "precio": 30}]', false, true, 'demo-seed-13')
-on conflict (wa_jid) do nothing;
+on conflict (semilla) do nothing;
 
 -- Cupón de demo (se ofrece solo a quien ya pagó un pedido aquí; publicarlo por la API para generar los avisos).
 insert into cupones (negocio_id, titulo, tipo, valor, min_compra_minor, vence)
-select id, '10% en tu siguiente pedido', 'porcentaje', 10, 5000, now() + interval '30 days' from negocios where wa_jid = 'demo-seed'
+select id, '10% en tu siguiente pedido', 'porcentaje', 10, 5000, now() + interval '30 days' from negocios where semilla = 'demo-seed'
 and not exists (select 1 from cupones c where c.negocio_id = negocios.id);

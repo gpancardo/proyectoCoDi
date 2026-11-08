@@ -5,7 +5,7 @@ create table compradores (
   id bigint generated always as identity primary key,
   telefono text unique check (telefono ~ '^[0-9]{10}$'),  -- 10 dígitos, formato que pide pey /codi/pn
   wa_jid text unique not null,
-  nombre text check (length(nombre) <= 80),               -- sale del perfil de WhatsApp; no se pregunta
+  nombre text check (length(nombre) <= 80),               -- opcional; se puede dejar vacío
   zona text,
   ultima_respuesta text,                                  -- previous_response_id de OpenAI = memoria de la conversación
   creado timestamptz not null default now()
@@ -15,8 +15,8 @@ create table negocios (
   id bigint generated always as identity primary key,
   nombre text not null check (length(nombre) between 2 and 60),
   telefono text unique not null check (telefono ~ '^[0-9]{10}$'),
-  wa_jid text unique,                           -- se llena cuando el negocio le escribe al bot
-  verificado boolean not null default false,    -- true cuando ese WhatsApp saludó al bot: nadie recibe pedidos con un número ajeno
+  wa_jid text unique,                           -- identificador heredado; ver 20261108030000
+  verificado boolean not null default false,    -- true cuando el negocio tiene dueño identificado: nadie recibe pedidos con un número ajeno
   zona text not null,
   direccion text not null check (length(direccion) between 5 and 200),
   categoria text not null check (length(categoria) between 2 and 60),
