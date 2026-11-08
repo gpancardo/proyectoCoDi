@@ -47,18 +47,20 @@ class _SellerScreenState extends State<SellerScreen> {
         return;
       }
       final orders = await api.get('/orders', token: token) as List<dynamic>;
-      if (mounted)
+      if (mounted) {
         setState(() {
           _business = business;
           _orders = orders;
           _loading = false;
         });
+      }
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _message = mensajeDe(error);
         });
+      }
     }
   }
 

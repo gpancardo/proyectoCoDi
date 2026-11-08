@@ -79,7 +79,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
         _loading = false;
       });
       if (const {'lista', 'entregada', 'rechazada', 'expirada', 'cancelada'}
-          .contains(order['estado'])) _poller?.cancel();
+          .contains(order['estado'])) {
+        _poller?.cancel();
+      }
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -108,10 +110,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_loading)
+    if (_loading) {
       return const Scaffold(
           body: Center(
               child: CircularProgressIndicator(color: BarrioColors.marino)));
+    }
     if (_problem != null && _order == null) {
       return Scaffold(
           appBar: AppBar(title: const Text('Tu pedido')),
@@ -120,11 +123,13 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
     }
     final order = _order!;
     final state = order['estado'].toString();
-    if (state == 'lista')
+    if (state == 'lista') {
       return _DeliveryConfirm(
           order: order, onReceived: () => _act('/received'));
-    if (state == 'pagada' || state == 'entregada')
+    }
+    if (state == 'pagada' || state == 'entregada') {
       return _PaidOrder(order: order, ready: state == 'entregada');
+    }
     return Scaffold(
         appBar: AppBar(title: const Text('Tu pedido')),
         body: BarrioBackdrop(
@@ -176,8 +181,9 @@ class _PaymentInstructions extends StatelessWidget {
   final Map<String, dynamic>? payment;
   @override
   Widget build(BuildContext context) {
-    if (payment == null)
+    if (payment == null) {
       return const BarrioPanel(child: Text('Preparando tu cobro…'));
+    }
     final via = payment!['via']?.toString();
     final amount = payment!['monto_minor'] ?? payment!['amount_minor'];
     return BarrioPanel(

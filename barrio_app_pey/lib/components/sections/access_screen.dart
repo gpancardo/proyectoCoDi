@@ -38,15 +38,19 @@ class _AccessScreenState extends State<AccessScreen> {
           : await api.signIn(_email.text.trim(), _password.text);
       final token = data['access_token']?.toString();
       final refresh = data['refresh_token']?.toString();
-      if (token == null || refresh == null)
+      if (token == null || refresh == null) {
         throw const BarrioApiException(
             'Revisa tu correo y confirma tu cuenta antes de entrar.');
-      if (!mounted) return;
+      }
+      if (!mounted) {
+        return;
+      }
       await context.read<AppState>().saveSession(token, refresh);
     } on BarrioApiException catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.message)));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
