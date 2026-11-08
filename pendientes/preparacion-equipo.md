@@ -24,7 +24,7 @@ Documento interno. Lo que leen los jueces está en `docs/PITCH.md`, `docs/ENTREG
 
 1. Sube el APK nuevo a Drive como `barrio-demo.apk`.
 2. Sube los dos videos a YouTube como «sin listar».
-3. Copia el correo de abajo y llena lo que está entre corchetes.
+3. Abre [`correo-entrega.html`](correo-entrega.html) en el navegador, selecciona todo (Ctrl+A), cópialo y pégalo en Gmail. Cambia lo resaltado en naranja y edita los dos botones de video para poner sus enlaces. El asunto y la versión solo texto están abajo.
 4. Abre cada enlace en una ventana privada.
 5. Envíalo a hola@aibuilders.lat antes de la 1:00 PM, después de confirmar esa dirección con los organizadores.
 
