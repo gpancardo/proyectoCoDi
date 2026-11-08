@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -27,11 +28,14 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _loading = false;
   bool _listening = false;
   bool _speechReady = false;
+  String _localeId = 'es_MX';
+  String? _voiceNote;
   String? _answer;
   List<Map<String, dynamic>> _businesses = const [];
 
   @override
   void dispose() {
+    _speech.cancel();
     _query.dispose();
     super.dispose();
   }
@@ -39,7 +43,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _search() async {
     final query = _query.text.trim();
     if (query.isEmpty || _loading) return;
-    setState(() => _loading = true);
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _loading = true;
+      _voiceNote = null;
+    });
     try {
       final data = await context.read<BarrioApi>().post(
           '/search/agent',
@@ -49,21 +57,46 @@ class _ChatScreenState extends State<ChatScreen> {
           },
           token: context.read<AppState>().accessToken);
       if (!mounted) return;
+      final found =
+          (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
       setState(() {
-        _answer = 'Estas opciones coinciden con lo que buscas.';
-        _businesses =
-            (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
+        _answer = found.isEmpty
+            ? 'No encontré algo abierto con eso. Prueba con otra palabra.'
+            : 'Esto encontré cerca de ti.';
+        _businesses = found;
       });
-    } on Exception catch (exception) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        _answer = exception is BarrioApiException
-            ? exception.message
-            : 'Sin señal. Revisa tu conexión e inténtalo de nuevo.';
+        _answer = mensajeDe(error);
         _businesses = const [];
       });
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _say(String message) {
+    if (mounted) setState(() => _voiceNote = message);
+  }
+
+  /// speech_to_text avisa de los fallos con un código; cada uno tiene salida.
+  void _onSpeechError(SpeechRecognitionError error) {
+    if (!mounted) return;
+    setState(() => _listening = false);
+    switch (error.errorMsg) {
+      case 'error_permission':
+        _speechReady = false;
+        _say('Sin permiso para el micrófono. Actívalo en los ajustes del '
+            'teléfono o escribe tu búsqueda.');
+      case 'error_no_match':
+      case 'error_speech_timeout':
+        _say('No te escuché bien, ¿me lo escribes?');
+      case 'error_network':
+      case 'error_network_timeout':
+        _say('Sin señal para entenderte. Escribe tu búsqueda.');
+      default:
+        _say('No pude escucharte. Revisa el micrófono o escribe tu búsqueda.');
     }
   }
 
@@ -76,36 +109,40 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!_speechReady) {
       _speechReady = await _speech.initialize(
         onStatus: (status) {
-          if (mounted && (status == 'done' || status == 'notListening'))
+          if (mounted && (status == 'done' || status == 'notListening')) {
             setState(() => _listening = false);
-        },
-        onError: (_) {
-          if (mounted) {
-            setState(() => _listening = false);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text(
-                    'No pude escucharte. Revisa el micrófono e inténtalo de nuevo.')));
           }
         },
+        onError: _onSpeechError,
       );
+      if (_speechReady) {
+        // Español de México si el teléfono lo tiene; si no, otro español.
+        final locales = await _speech.locales();
+        final ids = locales.map((l) => l.localeId.replaceAll('-', '_'));
+        _localeId = ids.contains('es_MX')
+            ? 'es_MX'
+            : ids.firstWhere((id) => id.startsWith('es'), orElse: () => '');
+      }
     }
     if (!_speechReady) {
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'Activa el micrófono y el reconocimiento de voz para dictar.')));
+      _say('Activa el micrófono y el reconocimiento de voz para dictar, '
+          'o escribe tu búsqueda.');
       return;
     }
+    _query.clear();
+    setState(() {
+      _voiceNote = null;
+      _listening = true;
+    });
     await _speech.listen(
       onResult: _onSpeech,
       listenOptions: SpeechListenOptions(
-        localeId: 'es_MX',
+        localeId: _localeId.isEmpty ? null : _localeId,
         listenFor: const Duration(seconds: 30),
         pauseFor: const Duration(seconds: 4),
         partialResults: true,
       ),
     );
-    if (mounted) setState(() => _listening = true);
   }
 
   void _onSpeech(SpeechRecognitionResult result) {
@@ -113,9 +150,12 @@ class _ChatScreenState extends State<ChatScreen> {
         text: result.recognizedWords,
         selection:
             TextSelection.collapsed(offset: result.recognizedWords.length));
-    if (result.finalResult) {
-      setState(() => _listening = false);
-      _search();
+    if (!result.finalResult) return;
+    setState(() => _listening = false);
+    if (result.recognizedWords.trim().isEmpty) {
+      _say('No te escuché bien, ¿me lo escribes?');
+    } else {
+      _search(); // al terminar el dictado, la búsqueda sale sola
     }
   }
 
@@ -273,59 +313,67 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                child: BarrioPanel(
-                  padding: const EdgeInsets.all(9),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _query,
-                          minLines: 1,
-                          maxLines: 3,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _search(),
-                          decoration: const InputDecoration(
-                            hintText: I18n.chatHint,
-                            filled: true,
-                            fillColor: BarrioColors.blanco,
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 13),
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
-                              borderSide: BorderSide(color: BarrioColors.borde),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
-                              borderSide: BorderSide(color: BarrioColors.borde),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
-                              borderSide: BorderSide(
-                                  color: BarrioColors.marino, width: 1.6),
-                            ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_listening || _voiceNote != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            _listening ? 'Te escucho…' : _voiceNote!,
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: _listening
+                                    ? BarrioColors.teal
+                                    : BarrioColors.rojo),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      _ComposerButton(
-                        icon: _listening ? 'loading' : 'microphone',
-                        color: BarrioColors.mango,
-                        label:
-                            _listening ? 'Dejar de dictar' : 'Dictar búsqueda',
-                        onTap: _loading ? null : _toggleVoice,
+                    BarrioPanel(
+                      padding: const EdgeInsets.all(9),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _query,
+                              minLines: 1,
+                              maxLines: 3,
+                              textInputAction: TextInputAction.search,
+                              onSubmitted: (_) => _search(),
+                              decoration: const InputDecoration(
+                                hintText: I18n.chatHint,
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 13),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _ComposerButton(
+                            icon: 'microphone',
+                            color: _listening
+                                ? BarrioColors.marino
+                                : BarrioColors.mango,
+                            label: _listening
+                                ? 'Dejar de dictar'
+                                : 'Dictar búsqueda',
+                            selected: _listening,
+                            onTap: _loading ? null : _toggleVoice,
+                          ),
+                          const SizedBox(width: 7),
+                          _ComposerButton(
+                            icon: _loading ? 'loading' : 'send',
+                            color: BarrioColors.marino,
+                            label: _loading ? 'Buscando' : 'Buscar',
+                            onTap: _loading ? null : _search,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 7),
-                      _ComposerButton(
-                        icon: _loading ? 'loading' : 'send',
-                        color: BarrioColors.marino,
-                        label: 'Buscar',
-                        onTap: _loading ? null : _search,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -403,6 +451,9 @@ class _BusinessCard extends StatelessWidget {
     final title = business['nombre'] ?? business['name'] ?? 'Negocio cercano';
     final category = business['categoria'] ?? business['category'] ?? '';
     final neighborhood = business['colonia'] ?? '';
+    final reasons = (business['match_reasons'] as List<dynamic>? ?? const [])
+        .take(3)
+        .join(' · ');
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: InkWell(
@@ -436,6 +487,14 @@ class _BusinessCard extends StatelessWidget {
                               .where((part) => '$part'.isNotEmpty)
                               .join(' · '),
                           style: const TextStyle(color: BarrioColors.gris)),
+                      if (reasons.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(reasons,
+                            style: const TextStyle(
+                                color: BarrioColors.teal,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500)),
+                      ],
                     ],
                   ),
                 ),
@@ -453,24 +512,30 @@ class _ComposerButton extends StatelessWidget {
     required this.color,
     required this.label,
     required this.onTap,
+    this.selected = false,
   });
   final String icon;
   final Color color;
   final String label;
   final VoidCallback? onTap;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) => Semantics(
         button: true,
+        toggled: selected ? true : null,
+        enabled: onTap != null,
         label: label,
         child: Material(
           color: color,
-          shape: const CircleBorder(),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: const BorderSide(color: BarrioColors.marino, width: 2)),
           child: InkWell(
-            customBorder: const CircleBorder(),
+            borderRadius: BorderRadius.circular(8),
             onTap: onTap,
             child: SizedBox.square(
-              dimension: 48,
+              dimension: 52,
               child: BarrioIcon(asset: icon, size: 25),
             ),
           ),
