@@ -35,7 +35,11 @@ const normal = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').r
 const ALIAS = NEGOCIOS.flatMap((n) => n.productos.flatMap((p) => p.alias.map((a) => ({ a: normal(a), n, p }))))
   .sort((x, y) => y.a.length - x.a.length)
 
+// Palabras de cortesía antes de la cantidad: "quiero 2 aguas", "dame tres tamales"
+const RELLENO = /^(quiero|quisiera|me das|me da|dame|deme|ponme|porfa|por favor|tambien|ademas)\s+/
+
 function cantidadDe(trozo) {
+  while (RELLENO.test(trozo)) trozo = trozo.replace(RELLENO, '')
   if (/^media docena\b/.test(trozo)) return [6, trozo.slice(12).trim()]
   const m = trozo.match(/^(\d{1,3}|[a-z]+)\s+(.*)$/)
   if (m && /^\d+$/.test(m[1])) return [Number(m[1]), m[2]]

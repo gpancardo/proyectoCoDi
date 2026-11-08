@@ -8,8 +8,15 @@
 }
 .landing h2 { font-weight: 800; font-stretch: 125%; letter-spacing: -0.03em; line-height: .92; }
 .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.btn { transition: background-color .15s, transform .15s; }
+.btn { transition: background-color .15s, transform .1s; }
 .btn:hover { background: var(--mango-presionado); }
+.btn:active { transform: translateY(1px); }
+/* Superficies del navegador con la paleta: selección, scroll y párrafos sin viudas */
+html:has(.landing) { scrollbar-color: var(--marino) var(--crema); }
+.landing ::selection { background: var(--mango); color: var(--marino); }
+.landing h1, .landing h2 { text-wrap: balance; }
+.landing p { text-wrap: pretty; }
+.landing [id] { scroll-margin-top: 16px; }
 .btn-chico { min-height: 48px; padding: 0 18px; font-size: 1rem; }
 .btn-marino { background: var(--marino); color: var(--crema); }
 .btn-marino:hover, .btn-marino:active { background: var(--marino-2); }
@@ -48,6 +55,7 @@
 .barra-etapas li { flex: 0 0 calc(var(--ancho) - 6px); min-width: 0; }
 .barra-etapas li:nth-child(1) { --bg: var(--marino); --fg: var(--crema); }
 .barra-etapas li:nth-child(2) { --bg: var(--blanco); --fg: var(--marino); }
+.barra-etapas li:nth-child(2) .dura { box-shadow: inset 0 0 0 2px var(--marino); }
 .barra-etapas li:nth-child(3) { --bg: var(--mango); --fg: var(--marino); }
 .barra-etapas li:nth-child(4) { --bg: var(--teal); --fg: var(--blanco); }
 .dura { display: block; height: max(180px, 22vh); padding: 20px; background: var(--bg); color: var(--fg);
@@ -58,7 +66,7 @@
 .cuenta-viva { background: var(--marino); color: var(--crema); min-height: 88svh; padding: clamp(80px, 10vw, 140px) var(--m); }
 .linea { display: block; width: 100%; margin: 0; padding: 0 0 .08em; border: 0; border-radius: 0; background: transparent;
   color: var(--crema); caret-color: var(--mango); font: 800 clamp(44px, 8vw, 132px)/1 'Archivo', sans-serif; font-stretch: 112%;
-  letter-spacing: -0.03em; min-height: 0; }
+  letter-spacing: -0.03em; min-height: 0; resize: none; overflow: hidden; overflow-wrap: anywhere; }
 .linea:focus { outline: none; box-shadow: none; } /* taste-skill-ignore: quita la sombra de foco de estilo.css */
 .linea:focus-visible { outline: 3px solid var(--mango); outline-offset: 10px; }
 .respuesta { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 48px 64px; margin-top: 48px; align-items: start; }
@@ -132,11 +140,11 @@
 .fichero details:nth-child(3n) :focus-visible { outline-color: var(--crema); }
 
 /* Cierre: el registro ya abierto */
-.cierre { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0 24px; min-height: 90svh; background: var(--mango);
-  padding: 40px var(--m); align-items: center; }
+.cierre { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0 24px; min-height: 76svh; background: var(--mango);
+  padding: clamp(80px, 10vw, 140px) var(--m); align-items: center; }
 .cierre-texto { grid-column: 1 / 6; align-self: end; }
 .cierre-texto h2 { font-size: clamp(56px, 7vw, 112px); color: var(--marino); margin-bottom: 20px; }
-.cierre-texto p { font-size: 17px; max-width: 36ch; margin: 0; }
+.cierre-texto p { font-size: 20px; max-width: 32ch; margin: 0; }
 .dialogo { grid-column: 7 / 12; width: min(100%, 440px); justify-self: center; display: grid; gap: 20px; background: var(--blanco);
   border-radius: 8px; padding: 28px; box-shadow: 0 24px 48px rgba(11, 37, 69, .22); } /* taste-skill-ignore: es un diálogo abierto sobre la página */
 .dialogo-titulo { margin: 0; font-size: 1.35rem; font-weight: 800; font-stretch: 112%; color: var(--marino); }
@@ -201,6 +209,8 @@
   .banda-acciones { flex-direction: column; align-items: stretch; }
   .barra-etapas { flex-direction: column; }
   .barra-etapas li { flex: none; min-height: max(72px, calc(var(--n) * .7svh)); padding: 16px; background: var(--bg); color: var(--fg); }
+  .barra-etapas li:nth-child(2) { box-shadow: inset 0 0 0 2px var(--marino); }
+  .barra-etapas li:nth-child(2) .dura { box-shadow: none; }
   .dura { height: auto; padding: 0; background: none; font-size: 22px; }
   .barra-etapas p { margin-top: 6px; font-size: 16px; max-width: none; }
   .respuesta { grid-template-columns: 1fr; gap: 28px; margin-top: 28px; }
@@ -216,7 +226,7 @@
 
   .etapas h2 { font-size: 11vw; margin-bottom: 40px; }
 
-  .linea { font-size: 8vw; font-stretch: 100%; }
+  .linea { font-size: 11vw; font-stretch: 100%; }
   .ejemplos { flex-direction: row; flex-wrap: wrap; gap: 8px; }
   .ejemplos button { background: var(--marino-2); padding: 0 14px; text-decoration: none; border-radius: 6px; }
 
