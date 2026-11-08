@@ -190,7 +190,7 @@ Las insignias no tienen tabla: se calculan de los pedidos pagados. `ordenes.pey_
 
 1. **Web de la app** (`web/app.html`): comprador (descubrir, buscar, cuenta, pedido, pago, avisos, perfil con insignias) y negocio (pedidos, promociones, menú, abrir/cerrar). Un solo archivo JS sin build.
 2. **App Flutter** (`barrio_app_pey/`): en construcción por otro integrante; aún no consume la API.
-3. **Landing** (`web/index.html`) y **registro heredado** (`web/registro.html`): prototipos del flujo de WhatsApp; el registro vigente es el de `app.html`.
+3. **Landing** (`web/index.html`): cartel de calle con changarrito 3D que explica el producto y lleva a `app.html`. `web/registro.html` solo redirige a la app, donde se registra el negocio con cuenta.
 
 **Criterios de diseño:** botones grandes, una sola acción principal por pantalla, alto contraste, cero jerga financiera (ver `VOZ-DE-MARCA.md`), funciona en Android de gama media y con señal débil.
 

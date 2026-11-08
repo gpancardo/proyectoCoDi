@@ -5,7 +5,7 @@ Producto y alcance en `PRODUCTO.md`. Voz en `VOZ-DE-MARCA.md`.
 
 Estado: propuesta. Lo que sigue abierto lleva la etiqueta *(abierto)*.
 
-Alcance: la app standalone de comprador y negocio, más la landing y el registro de `web/`. Pantallas del MVP: Descubrir, Buscar con Barrio, ficha del negocio, cuenta, cobro, pagado, y el panel del negocio. El dictado por voz y el cobro en mostrador (Barrio Mostrador) son posteriores al hackathon y no definen el diseño actual.
+Alcance: la app standalone de comprador y negocio, más la landing de `web/`. Pantallas del MVP: Descubrir, Buscar con Barrio, ficha del negocio, cuenta, cobro, pagado, y el panel del negocio. El dictado por voz y el cobro en mostrador (Barrio Mostrador) son posteriores al hackathon y no definen el diseño actual.
 
 ---
 
@@ -126,7 +126,7 @@ Variantes:
 
 ### El toldo
 
-Franja de 14 px con rayas de 32 px y una línea de 2 px en marino debajo. En fondo claro alterna mango y blanco; sobre marino, mango y crema. En el registro va en el borde superior de la página. En la landing aparece en el toldo del changarrito y en el pie, donde las letras de `barrio` se construyen sobre franjas mango y blanco. En la app, solo en la cabecera de la ficha de un negocio. No se usa de relleno en otros lugares.
+Franja de 14 px con rayas de 32 px y una línea de 2 px en marino debajo. En fondo claro alterna mango y blanco; sobre marino, mango y crema. En la landing aparece en el toldo del changarrito y en el pie, donde las letras de `barrio` se construyen sobre franjas mango y blanco. En la app, solo en la cabecera de la ficha de un negocio. No se usa de relleno en otros lugares.
 
 ### Botones
 
@@ -199,9 +199,9 @@ Círculo de 96 px en mango con el ícono `mic` en marino; grabando, anillo mango
 La landing (`web/index.html`, `landing.css`, `landing.js`) es un cartel de calle: paneles de color plano que se tocan, titulares en minúsculas a todo volumen y el changarrito montado sobre la costura entre el campo mango y la banda marino.
 
 - **Titulares de la landing** en Archivo 800, ancho 125, en minúsculas, como la versión corta del logo. Dos líneas como máximo en cualquier ancho. La interfaz de la app sigue en mayúscula inicial.
-- **Secciones**, en orden: portada; la barra de etapas del pedido, con anchos que siguen el tiempo real (la espera del negocio, hasta 8 minutos, es la más larga); "arma tu cuenta", donde el titular es un campo de texto que se vuelve ticket con total; el mosaico para negocios; las preguntas como fichas de archivero (una abierta a la vez, `<details name>`); el cierre con el registro ya abierto, que pasa nombre y modo de aceptación a `registro.html`; y el pie con `barrio` construido como toldo.
+- **Secciones**, en orden: portada; la barra de etapas del pedido, con anchos que siguen el tiempo real (la espera del negocio, hasta 8 minutos, es la más larga); "arma tu cuenta", donde el titular es un campo de texto que se vuelve ticket con total; el mosaico para negocios; las preguntas como fichas de archivero (una abierta a la vez, `<details name>`); el cierre con los tres pasos para registrar el negocio, que lleva a la app (`app.html`, con una sola cuenta para comprar o vender); y el pie con `barrio` construido como toldo.
 - **Sin fotos ni videos.** Todo lo visual se dibuja o se construye en código: el changarrito en 3D, el dibujo SVG de respaldo y fragmentos de interfaz (`data-ui`) con números que cuadran.
-- **Precios de muestra** en "arma tu cuenta" (`web/cuenta.js`), marcados como tales en la página. En la app el total lo calcula el backend.
+- **Precios de muestra** en "arma tu cuenta" (`web/cuenta.mjs`), marcados como tales en la página. En la app el total lo calcula el backend.
 
 ### Changarrito 3D
 
