@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+
+import '../../state/app_state.dart';
 import '../../theme.dart';
 import 'achievements_screen.dart';
 import 'chat_screen.dart';
@@ -18,6 +21,7 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   late int _section = widget.initialSection;
+  int _sealsVisit = 0; // volver a Logros recarga los sellos
 
   static const _sections = <_SectionItem>[
     _SectionItem(label: 'Buscar con Barrio'),
@@ -64,7 +68,10 @@ class _HomeShellState extends State<HomeShell> {
                           selectedColor: BarrioColors.marino,
                           onTap: () {
                             Navigator.pop(context);
-                            setState(() => _section = index);
+                            setState(() {
+                              _section = index;
+                              if (index == 2) _sealsVisit++;
+                            });
                           },
                         ),
                       const Divider(color: BarrioColors.marino, thickness: 2),
@@ -86,14 +93,20 @@ class _HomeShellState extends State<HomeShell> {
                                 MaterialPageRoute(
                                     builder: (_) => const OrdersScreen()));
                           }),
+                      ListTile(
+                          title: const Text('Salir de mi cuenta'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            context.read<AppState>().signOut();
+                          }),
                     ],
                   ))),
         ),
-        body: IndexedStack(index: _section, children: const [
-          ChatScreen(),
-          MarketplaceScreen(),
-          AchievementsScreen(),
-          SellerScreen()
+        body: IndexedStack(index: _section, children: [
+          const ChatScreen(),
+          const MarketplaceScreen(),
+          AchievementsScreen(key: ValueKey(_sealsVisit)),
+          const SellerScreen()
         ]),
       );
 }
