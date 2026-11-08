@@ -118,3 +118,13 @@ test('solo el negocio semilla con taco de prueba se autoacepta en la demo', asyn
   assert.equal(esPruebaDemo({ semilla: null }, prueba), false);
   assert.equal(esPruebaDemo({ semilla: 'demo-seed' }, { items: [{ nombre: 'Quesadilla' }] }), false);
 });
+
+test('la firma del webhook no depende del Buffer global (Edge Function)', () => {
+  const secreto = `whsec_${Buffer.from('llave').toString('base64')}`; const ts = Math.floor(Date.now() / 1000);
+  const firma = createHmac('sha256', Buffer.from('llave')).update(`w1.${ts}.{}`).digest('base64');
+  const h = { 'webhook-id': 'w1', 'webhook-timestamp': String(ts), 'webhook-signature': `v1,${firma}` };
+  const global_ = globalThis.Buffer;
+  try { delete globalThis.Buffer; assert.equal(verificarFirma(secreto, '{}', h), true); assert.equal(verificarFirma(secreto, '{"x":1}', h), false); }
+  finally { globalThis.Buffer = global_; }
+});
+
