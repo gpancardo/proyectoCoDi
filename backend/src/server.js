@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { Supabase } from './supabase.js';
-import { buscarConPista, buscarDeterminista, seccionesDescubrimiento } from './search.js';
+import { buscarDeterminista, buscarHibrido, seccionesDescubrimiento } from './search.js';
+import { indexarPendientes } from './indexar.js';
 import { manejar, Fallo } from './rutas.js';
 import { barrido, recibirWebhook } from './pagos.js';
 import { combinarFiltros, embeddingConsulta, explicarCandidatos, interpretarConsulta } from './agent.js';
@@ -49,25 +50,28 @@ const manejarPeticion = async (req, res) => {
     }
     if (req.method === 'POST' && url.pathname === '/api/v1/search/agent') {
       const entrada = await cuerpo(req); const { negocios, perfil } = await contexto(req);
+      const consulta = String(entrada.query ?? '').slice(0, 200);
+      const modelo = env.OPENAI_MODEL ?? 'gpt-4o-mini'; const modeloEmb = env.OPENAI_EMBEDDING_MODEL ?? 'text-embedding-3-small';
       let interpretacion = null;
-      let recuperados = null;
-      try { interpretacion = await interpretarConsulta({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL ?? 'gpt-4o-mini', query: entrada.query ?? '' }); } catch { /* el fallback es parte del contrato */ }
+      let similitudes = new Map();
+      try { interpretacion = await interpretarConsulta({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta }); } catch { /* el fallback es parte del contrato */ }
       try {
-        const embedding = await embeddingConsulta({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_EMBEDDING_MODEL ?? 'text-embedding-3-small', query: entrada.query ?? '' });
-        if (embedding) recuperados = new Set((await db.documentos(embedding)).map((d) => Number(d.negocio_id)));
-      } catch { /* catálogo determinista completo si RAG no está disponible */ }
+        await indexarPendientes(db, { apiKey: env.OPENAI_API_KEY, model: modeloEmb, limite: 3 }).catch(() => {}); // catálogo cambiado → vector al día
+        const embedding = await embeddingConsulta({ apiKey: env.OPENAI_API_KEY, model: modeloEmb, query: consulta });
+        if (embedding) similitudes = new Map((await db.documentos(embedding)).map((d) => [Number(d.negocio_id), Number(d.similitud)]));
+      } catch { /* sin vectores: solo reglas exactas */ }
       const search = combinarFiltros(entrada.filters ?? {}, interpretacion);
-      const fuente = recuperados?.size ? negocios.filter((n) => recuperados.has(Number(n.id))) : negocios;
-      let matches = buscarConPista(fuente, search, perfil, entrada.filters ?? {}).slice(0, 12);
+      let matches = buscarHibrido(negocios, search, perfil, similitudes, entrada.filters ?? {}).slice(0, 12);
       let explicacion = null;
-      if (interpretacion && recuperados) {
-        try { explicacion = await explicarCandidatos({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL ?? 'gpt-4o-mini', query: entrada.query ?? '', candidatos: matches }); } catch { /* el orden determinista permanece */ }
+      if (interpretacion && similitudes.size) {
+        try { explicacion = await explicarCandidatos({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta, candidatos: matches }); } catch { /* el orden híbrido permanece */ }
       }
       if (explicacion?.business_ids.length) {
         const posiciones = new Map(explicacion.business_ids.map((id, i) => [Number(id), i]));
         matches = [...matches].sort((a, b) => (posiciones.get(Number(a.negocio.id)) ?? 99) - (posiciones.get(Number(b.negocio.id)) ?? 99));
       }
-      return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: interpretacion && recuperados ? 'agent_rag' : 'deterministic_fallback', filters: search, answer: explicacion?.answer ?? interpretacion?.answer ?? 'Te muestro coincidencias del catálogo disponible.' } });
+      const modo = interpretacion && similitudes.size ? 'agent_rag' : interpretacion ? 'agent' : similitudes.size ? 'rag' : 'deterministic_fallback';
+      return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: modo, retrieved: similitudes.size, filters: search, answer: explicacion?.answer ?? interpretacion?.answer ?? 'Te muestro coincidencias del catálogo disponible.' } });
     }
     if (req.method === 'POST' && url.pathname === '/api/v1/discovery/events') {
       const auth = await persona(req); if (!auth?.comprador) return fallo(res, 401, 'UNAUTHENTICATED', 'Inicia sesión para guardar tus preferencias.');
