@@ -42,7 +42,7 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `GET /health` | — | Estado del servicio |
 | `GET /discovery` | opcional | Categorías y carruseles deterministas; afinidad ligera si hay sesión |
 | `GET /catalog/search?q=&zone=&category=&open_now=&min_amount_minor=&max_amount_minor=` | opcional | Búsqueda determinista con `match_reasons` y `score` |
-| `POST /search/agent` | opcional | Buscar con Barrio: `{ query, filters? }`; usa modelo + RAG si hay llave, si no cae al modo determinista (`meta.mode`) |
+| `POST /search/agent` | opcional | Buscar con Barrio: `{ query, filters?, history? }` (`history`: últimos 6 turnos `{role, text}`, sin confianza). Usa modelo + RAG si hay llave, si no cae al modo determinista (`meta.mode`). `meta.follow_up` trae `{question, options}` o `null`: máximo 3 preguntas por conversación, sin repetir; la zona o categoría contestada manda sobre el perfil |
 | `POST /discovery/events` | comprador | Señal `search`/`view`/`save`/`order` para el perfil |
 | `GET /businesses/{id}` | — | Perfil público y menú (sin teléfono ni datos de cobro) |
 | `GET /me`, `POST /me` | sesión | Comprador/negocio de la sesión; actualizar nombre, celular (10 dígitos, para el push), zona, colonia, ubicación |
@@ -118,15 +118,15 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 - **Base:** migraciones hasta `20261108030000` aplicadas en producción (la última por SQL Editor: celular repetible y `negocios.semilla`); los negocios demo cobran y avisan a 5615156164, las cuentas nuevas usan el número que registran; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
 - **Entrega y códigos:** `20261108010000_entrega_y_codigos.sql` ya habilitó `entregada`, códigos únicos y producto gratis. El bundle de backend correspondiente ya está publicado en la Edge Function `api`; el 8 nov 2026 respondió `200 {"ok":true}` en producción después del despliegue.
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
+- **Demo de Doña Lupe:** los pedidos al negocio semilla (`semilla` `demo-seed*`, sin dueño) que incluyen el «Taco de prueba» pasan solos a `aceptada` y se cobran 5 s después de crearse (espera en memoria con `EdgeRuntime.waitUntil`; si ya se canceló, no se toca). Sirve para probar el cobro a mano.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
-- **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
+- **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`). `OPENAI_API_KEY` ya está en los secretos de la función y el catálogo indexado: producción responde `meta.mode: agent_rag`.
 
 ### Pendiente
 
 La lista vigente por persona está en [`../pendientes/`](../pendientes/README.md); lo siguiente es el contexto original.
 
 1. Registrar el webhook de pey en `https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api/webhooks/pey` y guardar su secreto como `PEY_WEBHOOK_SECRET`. Existe una Edge Function `pey-webhook` anterior con el esquema viejo; retirarla o repuntar pey.
-2. Cargar `OPENAI_API_KEY` (OpenRouter o OpenAI) en Edge Function Secrets y ejecutar `index:catalog`.
 3. Registrar una CLABE de [`PEY.md`](PEY.md) en el portal de pey y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
 4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
 5. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.

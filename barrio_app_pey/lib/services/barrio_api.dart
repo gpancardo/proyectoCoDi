@@ -66,6 +66,11 @@ class BarrioApi {
           {String? token, String? idempotencyKey}) =>
       _request('POST', route,
           token: token, body: body, idempotencyKey: idempotencyKey);
+  /// Igual que [post], pero conserva `meta` (la búsqueda con Barrio la usa).
+  Future<Map<String, dynamic>> postCompleto(
+          String route, Map<String, dynamic> body, {String? token}) async =>
+      await _request('POST', route, token: token, body: body, completo: true)
+          as Map<String, dynamic>;
   Future<dynamic> patch(String route, Map<String, dynamic> body,
           {required String token}) =>
       _request('PATCH', route, token: token, body: body);
@@ -75,7 +80,8 @@ class BarrioApi {
   Future<dynamic> _request(String method, String route,
       {String? token,
       Map<String, dynamic>? body,
-      String? idempotencyKey}) async {
+      String? idempotencyKey,
+      bool completo = false}) async {
     final response = await _client
         .send(http.Request(method, Uri.parse('$_apiBase/api/v1$route'))
           ..headers.addAll({
@@ -95,7 +101,7 @@ class BarrioApi {
               : 'No pudimos hacerlo ahora.',
           statusCode: response.statusCode);
     }
-    return decoded['data'];
+    return completo ? decoded : decoded['data'];
   }
 
   Map<String, dynamic> _decode(http.Response response) {

@@ -4,7 +4,7 @@ import { buscarDeterminista, buscarHibrido, seccionesDescubrimiento } from './se
 import { indexarPendientes } from './indexar.js';
 import { manejar, Fallo } from './rutas.js';
 import { barrido, recibirWebhook } from './pagos.js';
-import { combinarFiltros, embeddingConsulta, explicarCandidatos, interpretarConsulta } from './agent.js';
+import { combinarFiltros, contextoConversacion, embeddingConsulta, explicarCandidatos, interpretarConsulta, limpiarHistorial, preguntaDeSeguimiento, respuestaSegura } from './agent.js';
 
 const env = process.env;
 const port = Number(env.PORT ?? 3000);
@@ -51,17 +51,23 @@ const manejarPeticion = async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/v1/search/agent') {
       const entrada = await cuerpo(req); const { negocios, perfil } = await contexto(req);
       const consulta = String(entrada.query ?? '').slice(0, 200);
+      const historial = limpiarHistorial(entrada.history);
+      const turno = contextoConversacion(consulta, historial, negocios);
+      // lo dicho en la conversación manda sobre la zona guardada en el perfil
+      const explicitos = { ...(entrada.filters ?? {}), ...(turno.zone ? { zone: turno.zone } : {}), ...(turno.category ? { category: turno.category } : {}) };
+      if (turno.todaCiudad) delete explicitos.zone;
       const modelo = env.OPENAI_MODEL ?? 'gpt-4o-mini'; const modeloEmb = env.OPENAI_EMBEDDING_MODEL ?? 'text-embedding-3-small';
       let interpretacion = null;
       let similitudes = new Map();
-      try { interpretacion = await interpretarConsulta({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta }); } catch { /* el fallback es parte del contrato */ }
+      try { interpretacion = await interpretarConsulta({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta, historial, categoriasDisponibles: [...new Set(negocios.filter((n) => n.verificado).map((n) => n.categoria))] }); } catch { /* el fallback es parte del contrato */ }
       try {
         await indexarPendientes(db, { apiKey: env.OPENAI_API_KEY, model: modeloEmb, limite: 3 }).catch(() => {}); // catálogo cambiado → vector al día
-        const embedding = await embeddingConsulta({ apiKey: env.OPENAI_API_KEY, model: modeloEmb, query: consulta });
+        const embedding = await embeddingConsulta({ apiKey: env.OPENAI_API_KEY, model: modeloEmb, query: interpretacion?.q || turno.q || consulta });
         if (embedding) similitudes = new Map((await db.documentos(embedding)).map((d) => [Number(d.negocio_id), Number(d.similitud)]));
       } catch { /* sin vectores: solo reglas exactas */ }
-      const search = combinarFiltros(entrada.filters ?? {}, interpretacion);
-      let matches = buscarHibrido(negocios, search, perfil, similitudes, entrada.filters ?? {}).slice(0, 12);
+      const search = combinarFiltros(explicitos, interpretacion ?? { q: turno.q });
+      if (turno.todaCiudad) search.zone = null;
+      let matches = buscarHibrido(negocios, search, perfil, similitudes, explicitos).slice(0, 12);
       let explicacion = null;
       if (interpretacion && similitudes.size) {
         try { explicacion = await explicarCandidatos({ apiKey: env.OPENAI_API_KEY, model: modelo, query: consulta, candidatos: matches }); } catch { /* el orden híbrido permanece */ }
@@ -71,7 +77,7 @@ const manejarPeticion = async (req, res) => {
         matches = [...matches].sort((a, b) => (posiciones.get(Number(a.negocio.id)) ?? 99) - (posiciones.get(Number(b.negocio.id)) ?? 99));
       }
       const modo = interpretacion && similitudes.size ? 'agent_rag' : interpretacion ? 'agent' : similitudes.size ? 'rag' : 'deterministic_fallback';
-      return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: modo, retrieved: similitudes.size, filters: search, answer: explicacion?.answer ?? interpretacion?.answer ?? 'Te muestro coincidencias del catálogo disponible.' } });
+      return enviar(res, 200, { data: matches.map(({ negocio, score, match_reasons }) => ({ ...negocio, score, match_reasons })), meta: { mode: modo, retrieved: similitudes.size, filters: search, answer: matches.length ? respuestaSegura(explicacion?.answer ?? interpretacion?.answer, search.zone) : 'No encontré algo abierto con eso.', follow_up: preguntaDeSeguimiento({ interpretacion, matches, filtros: search, historial, negocios }) } });
     }
     if (req.method === 'POST' && url.pathname === '/api/v1/discovery/events') {
       const auth = await persona(req); if (!auth?.comprador) return fallo(res, 401, 'UNAUTHENTICATED', 'Inicia sesión para guardar tus preferencias.');
