@@ -4,96 +4,164 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Barrio: pide en tu barrio, paga con CoDi</title>
-  <meta name="description" content="Dile a Barrio por WhatsApp, con voz o texto, qué quieres. Te dice dónde, cuánto cuesta y te llega el cobro a la app de tu banco. Sin comisión.">
-  <meta name="theme-color" content="#0B2545">
+  <meta name="description" content="Encuentra negocios abiertos cerca de ti, ve el total antes de pedir y paga con CoDi desde la app de tu banco. CoDi no cobra comisión.">
+  <meta property="og:title" content="Barrio: pide en tu barrio, paga con CoDi">
+  <meta property="og:description" content="Negocios abiertos cerca de ti, total claro antes de pedir y pago con CoDi desde tu banco.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_MX">
+  <meta name="theme-color" content="#F5A524">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B2545'/%3E%3Cpath d='M5 7h22v7H5z' fill='%23F5A524'/%3E%3Cpath d='M9 7h4v7H9zM19 7h4v7h-4z' fill='%23FFF8EC'/%3E%3Crect x='8' y='17' width='16' height='9' fill='%23FFF8EC'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400;100,500;100,700;112.5,800;125,800&display=swap">
   <link rel="stylesheet" href="estilo.css">
+  <link rel="stylesheet" href="landing.css">
+  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" } }</script>
 </head>
-<body>
+<body class="landing">
 <a class="salto" href="#contenido">Saltar al contenido</a>
 
-<header class="contenedor barra">
+<header class="barra-l">
   <a class="logo" href="./" aria-label="Barrio, inicio">
     <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0B2545"/><path d="M5 7h22v7H5z" fill="#F5A524"/><path d="M9 7h4v7H9zM19 7h4v7h-4z" fill="#FFF8EC"/><rect x="8" y="17" width="16" height="9" fill="#FFF8EC"/><path d="M11 20h3v3h-3zM18 20h3v3h-3z" fill="#0B2545"/></svg>
     Barrio
   </a>
-  <a href="registro.html">Registra tu negocio</a>
+  <nav aria-label="Principal">
+    <a href="#como">Cómo se pide</a>
+    <a href="#cuenta">Arma tu cuenta</a>
+    <a href="#negocios">Negocios</a>
+    <a href="#dudas">Preguntas</a>
+  </nav>
+  <a class="btn btn-chico btn-marino" href="registro.html">Registra tu negocio</a>
 </header>
 
 <main id="contenido">
-  <div class="contenedor hero">
-    <div>
-      <h1>Pide en tu barrio. Paga con un toque.</h1>
-      <p class="lead">Dile a Barrio qué se te antoja, por voz o por texto. Te dice dónde y cuánto cuesta, y el cobro te llega a la app de tu banco.</p>
-      <div class="acciones">
-        <a class="btn" id="wa" href="#">Pedir por WhatsApp</a>
-        <a class="btn btn-sec" href="registro.html">Tengo un negocio</a>
+  <section class="portada" aria-labelledby="titulo">
+    <div class="campo">
+      <h1 id="titulo">pide en<br>tu barrio</h1>
+      <div class="escena">
+        <svg class="respaldo" viewBox="0 0 400 420" aria-hidden="true">
+          <g transform="translate(40 30)">
+            <path d="M0 70 L320 70 L300 0 L20 0 Z" fill="#F5A524"/>
+            <path d="M55 0 h35 l5 70 h-45 Z M125 0 h35 l3 70 h-41 Z M195 0 h35 l7 70 h-45 Z M265 0 h20 l12 70 h-38 Z" fill="#FFFFFF"/>
+            <path d="M0 70 q20 26 40 0 q20 26 40 0 q20 26 40 0 q20 26 40 0 q20 26 40 0 q20 26 40 0 q20 26 40 0 q20 26 40 0" fill="#F5A524" stroke="#0B2545" stroke-width="6"/>
+            <rect x="34" y="96" width="10" height="120" fill="#0B2545"/><rect x="276" y="96" width="10" height="120" fill="#0B2545"/>
+            <rect x="10" y="216" width="300" height="16" fill="#FFFFFF" stroke="#0B2545" stroke-width="6"/>
+            <rect x="24" y="232" width="272" height="110" fill="#0B2545"/>
+            <rect x="40" y="246" width="240" height="80" fill="#F5A524"/>
+            <text x="56" y="296" font-family="Archivo, sans-serif" font-weight="800" font-size="36" fill="#0B2545">doña lupe</text>
+            <circle cx="80" cy="350" r="34" fill="#0B2545"/><circle cx="80" cy="350" r="11" fill="#F5A524"/>
+            <ellipse cx="80" cy="196" rx="42" ry="22" fill="#FFFFFF" stroke="#0B2545" stroke-width="6"/>
+            <rect x="140" y="160" width="40" height="56" rx="6" fill="#FFF8EC" stroke="#0B2545" stroke-width="6"/>
+            <rect x="210" y="176" width="14" height="40" rx="5" fill="#0F7C75" stroke="#0B2545" stroke-width="5"/>
+            <rect x="232" y="176" width="14" height="40" rx="5" fill="#0F7C75" stroke="#0B2545" stroke-width="5"/>
+          </g>
+        </svg>
+        <canvas id="changarrito" aria-hidden="true"></canvas>
       </div>
-      <p class="nota">Sin comisión. No necesitas bajar nada ni registrarte.</p>
     </div>
-
-    <div class="telefono" role="img" aria-label="Ejemplo de conversación. La persona manda una nota de voz: quiero 10 tacos de canasta. Barrio le muestra la cuenta de Tacos Doña Lupe, total 120 pesos, y pregunta si lo pide. La persona dice que sí. Barrio avisa que el negocio aceptó y que le llegó el cobro a su banco. Al pagar, recibe el aviso de pagado y su código para recoger.">
-      <div class="telefono-barra" aria-hidden="true"><span></span>Barrio</div>
-      <div class="chat" aria-hidden="true">
-        <p class="burbuja yo"><svg class="mic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>Quiero 10 tacos de canasta, por Coyoacán</p>
-        <p class="burbuja bot"><strong>Tacos Doña Lupe</strong><br>10 × Taco de canasta: <span class="monto">$120</span><br><strong>Total: <span class="monto">$120</span></strong><br>Recoges en: Av. Hidalgo 128</p>
-        <p class="burbuja bot">¿Lo pido?</p>
-        <p class="burbuja yo">Sí</p>
-        <p class="burbuja bot">Tacos Doña Lupe aceptó tu pedido. Te llegó un cobro de <span class="monto">$120</span> a la app de tu banco. Ábrela y apruébalo.</p>
-        <p class="burbuja pagado">✅ ¡Pagado! Ya le llegaron <span class="monto">$120</span> a Tacos Doña Lupe.<br>Tu código para recoger: <strong>4821</strong></p>
+    <div class="banda">
+      <p>Busca negocios abiertos cerca de ti, ve el total antes de confirmar y paga desde la app de tu banco. CoDi no cobra comisión.</p>
+      <div class="banda-acciones">
+        <a class="btn" href="registro.html">Registra tu negocio</a>
+        <a class="enlace-app" id="app" href="#" hidden>Abrir la app</a>
       </div>
     </div>
-  </div>
+  </section>
 
-  <section class="contenedor" aria-labelledby="como">
-    <h2 id="como">Así de fácil</h2>
-    <ol class="pasos">
-      <li><h3>Dile qué quieres</h3><p>Escribe o manda una nota de voz, como se lo dirías a un vecino.</p></li>
-      <li><h3>Ve la cuenta</h3><p>Barrio te muestra el total antes de que pidas nada.</p></li>
-      <li><h3>Aprueba el cobro</h3><p>Te llega a la app de tu banco. Sin tarjeta y sin comisión.</p></li>
-      <li><h3>Recoge con tu código</h3><p>Te avisamos cuando esté listo. Dices tu código de 4 números y ya.</p></li>
+  <section class="etapas" id="como" aria-labelledby="como-t">
+    <h2 id="como-t">así llega tu pedido</h2>
+    <ol class="barra-etapas" data-ui>
+      <li style="--ancho: 17%; --n: 17"><span class="dura">un minuto</span><p>Primero buscas y comparas negocios abiertos en tu zona.</p></li>
+      <li style="--ancho: 13%; --n: 13"><span class="dura">segundos</span><p>Luego revisas la cuenta: el total ya viene calculado.</p></li>
+      <li style="--ancho: 56%; --n: 56"><span class="dura">hasta 8 minutos</span><p>El negocio acepta. Si no contesta, se cancela y no pagas.</p></li>
+      <li style="--ancho: 14%; --n: 14"><span class="dura">un toque</span><p>Apruebas el cobro en tu banco y recibes tu código.</p></li>
     </ol>
   </section>
 
-  <section class="negocio sobre-marino" aria-labelledby="negocios">
-    <div class="contenedor">
-      <div>
-        <h2 id="negocios">Los pedidos te llegan con la cuenta hecha</h2>
-        <ul>
-          <li><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg><span>Respondes con una palabra, o con un 👍. O activas la aceptación automática.</span></li>
-          <li><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg><span>Te llega completo y al instante. CoDi no cobra comisión.</span></li>
-          <li><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg><span>Sin terminal, sin renta y sin app nueva. Todo en tu WhatsApp.</span></li>
-        </ul>
-        <a class="btn" href="registro.html">Registrar mi negocio</a>
+  <section class="cuenta-viva" id="cuenta" aria-labelledby="cuenta-t">
+    <h2 id="cuenta-t" class="oculto">Arma tu cuenta</h2>
+    <label class="oculto" for="pedido">Escribe lo que se te antoja</label>
+    <input id="pedido" class="linea" data-ui value="10 tacos de canasta" autocomplete="off" spellcheck="false" enterkeyhint="done">
+    <div class="respuesta">
+      <div id="tickets" aria-live="polite">
+        <article class="ticket" data-ui>
+          <header><strong>Tacos Doña Lupe</strong><span class="lugar">Av. Hidalgo 128, Coyoacán</span><span class="abierto">Abierto · 350 m</span></header>
+          <ul><li><span><span class="prod">Taco de canasta</span><small>10 × $12</small></span><span class="monto">$120</span></li></ul>
+          <p class="total"><span>Total</span><span class="monto">$120</span></p>
+        </article>
       </div>
-      <div>
-        <h3 style="color:var(--crema)">Solo necesitas 6 palabras</h3>
-        <p>Escritas o por nota de voz.</p>
-        <ul class="palabras" aria-label="Palabras que entiende Barrio">
-          <li>sí</li><li>no</li><li>listo</li><li>hoy</li><li>cerrar</li><li>abrir</li>
-        </ul>
-        <p>Escribe <strong>hoy</strong> y te dice cuánto vendiste.</p>
+      <div class="lado">
+        <p class="nota-viva">Escribe lo que se te antoja, como se lo pedirías a un vecino. Precios de muestra: en la app, el total sale del menú vigente de cada negocio.</p>
+        <div class="ejemplos" aria-label="Ejemplos">
+          <button type="button" data-ejemplo="2 aguas de horchata y 6 tacos">2 aguas de horchata y 6 tacos</button>
+          <button type="button" data-ejemplo="un kilo de tortillas">un kilo de tortillas</button>
+          <button type="button" data-ejemplo="3 tamales de rajas y un atole">3 tamales de rajas y un atole</button>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="contenedor" aria-labelledby="dudas">
-    <h2 id="dudas">Dudas comunes</h2>
-    <details><summary>¿Tengo que bajar una app?</summary><p>No. Todo pasa en tu WhatsApp, y pagas desde la app de tu banco.</p></details>
-    <details><summary>¿Cuánto cuesta?</summary><p>Nada. CoDi es gratis para quien paga y para quien cobra.</p></details>
-    <details><summary>¿Qué es CoDi?</summary><p>Es el sistema de cobros de Banxico. Te llega un cobro a la app de tu banco, lo apruebas con un toque y el dinero pasa al instante.</p></details>
-    <details><summary>¿Mi banco funciona?</summary><p>Tu banco debe tener CoDi activado en su app. Si no, Barrio te manda un código QR para escanearlo desde tu banco.</p></details>
-    <details><summary>¿Puedo mandar nota de voz?</summary><p>Sí. Si mandas voz, Barrio te responde por escrito y también con una nota de voz.</p></details>
+  <section class="mosaico" id="negocios" aria-labelledby="negocios-t">
+    <div class="loseta l-titulo"><h2 id="negocios-t">para tu negocio</h2><p>Los pedidos te llegan con la cuenta hecha.</p></div>
+    <figure class="loseta l-panel">
+      <div class="panel" data-ui>
+        <p class="panel-cab"><strong>Pedido nuevo</strong><span>Se cancela en 7:42</span></p>
+        <p class="panel-ren"><span>Taco de canasta<small>10 × $12</small></span><span class="monto">$120</span></p>
+        <p class="panel-ren"><span>Agua de horchata<small>2 × $25</small></span><span class="monto">$50</span></p>
+        <p class="panel-total"><span>Total</span><span class="monto">$170</span></p>
+        <p class="panel-acc"><span class="acc si">Aceptar</span><span class="acc no">Rechazar</span></p>
+      </div>
+      <figcaption>Así se ve un pedido en tu panel.</figcaption>
+    </figure>
+    <div class="loseta l-cifra"><p class="cifra monto">$0</p><p>de comisión al cobrar con CoDi.</p></div>
+    <div class="loseta l-lista"><h3>Un toque</h3><ul><li>Aceptar</li><li>Rechazar</li><li>Marcar listo</li><li>Abrir o cerrar</li></ul></div>
+    <div class="loseta l-cupon"><p>Publicas un cupón y avisamos a quien ya te compró.</p></div>
+    <div class="loseta l-renta"><p>Sin terminal ni renta.</p></div>
+    <div class="loseta l-hoy"><p>Cada día ves cuánto vendiste.</p></div>
+  </section>
+
+  <section class="dudas-l" id="dudas" aria-labelledby="dudas-t">
+    <h2 id="dudas-t">antes de empezar</h2>
+    <div class="fichero">
+      <details name="dudas" open style="--i:0"><summary><span class="pestana">Costo</span><span class="pregunta">¿Cuánto cuesta?</span></summary><p>Pagar con CoDi no cuesta: es gratis para quien paga y para quien cobra. Si tu banco no tiene CoDi y pagas con tarjeta, ese cobro puede tener comisión.</p></details>
+      <details name="dudas" style="--i:1"><summary><span class="pestana">CoDi</span><span class="pregunta">¿Qué es CoDi?</span></summary><p>Es el sistema de cobros de Banxico. Te llega un cobro a la app de tu banco, lo apruebas con un toque y el dinero pasa al instante.</p></details>
+      <details name="dudas" style="--i:2"><summary><span class="pestana">Tu banco</span><span class="pregunta">¿Mi banco funciona?</span></summary><p>Tu banco debe tener CoDi activo en su app. Si no, Barrio te ofrece otra forma de pagar desde el mismo celular.</p></details>
+      <details name="dudas" style="--i:3"><summary><span class="pestana">Precios</span><span class="pregunta">¿Cómo sé que el precio es el correcto?</span></summary><p>El total lo calcula Barrio con los precios que publicó el negocio. Lo ves completo antes de confirmar.</p></details>
+      <details name="dudas" style="--i:4"><summary><span class="pestana">Sin respuesta</span><span class="pregunta">¿Y si el negocio no contesta?</span></summary><p>Si no responde en 8 minutos, el pedido se cancela y no se te cobra. Te mostramos otras opciones cercanas.</p></details>
+    </div>
+  </section>
+
+  <section class="cierre" aria-labelledby="cierre-t">
+    <div class="cierre-texto">
+      <h2 id="cierre-t">abre tu changarro</h2>
+      <p>Toma 2 minutos. Revisamos tu negocio antes de que reciba pedidos.</p>
+    </div>
+    <form class="dialogo" action="registro.html" method="get" data-ui>
+      <p class="dialogo-titulo">Registra tu negocio</p>
+      <label>Nombre de tu negocio<input name="nombre" value="Tacos Doña Lupe" maxlength="60" autocomplete="organization"></label>
+      <fieldset class="segmento">
+        <legend>¿Cómo aceptas los pedidos?</legend>
+        <label><input type="radio" name="auto" value="0" checked><span>Yo los acepto</span></label>
+        <label><input type="radio" name="auto" value="1"><span>En automático</span></label>
+      </fieldset>
+      <button class="btn btn-marino">Seguir con el registro</button>
+    </form>
   </section>
 </main>
 
-<footer class="contenedor">
-  Barrio · Hecho en CDMX para el DevDay Exchange Community Hackathon · Cobros con <a href="https://pey.mx">pey</a> y CoDi.
+<footer class="pie">
+  <p class="marca-grande" role="img" aria-label="Barrio">
+    <span style="--h:100%">b</span><span style="--h:78%">a</span><span style="--h:90%">r</span><span style="--h:68%">r</span><span style="--h:86%">i</span><span style="--h:74%">o</span>
+  </p>
+  <div class="pie-cols">
+    <nav aria-label="Pie"><a href="#como">Cómo se pide</a><a href="#cuenta">Arma tu cuenta</a><a href="#negocios">Para tu negocio</a><a href="#dudas">Preguntas</a></nav>
+    <p>Hecho en CDMX para el DevDay Exchange Community Hackathon.<br>Cobros con <a href="https://pey.mx">pey</a> y CoDi.</p>
+  </div>
+  <div class="pie-fin"><span>© 2026 Barrio</span><a class="btn btn-chico" href="registro.html">Registra tu negocio</a></div>
 </footer>
 
 <script src="config.js"></script>
-<script>
-  document.getElementById('wa').href = `https://wa.me/${BARRIO.BOT}?text=${encodeURIComponent('Hola Barrio')}`
-</script>
+<script type="module" src="landing.js"></script>
 </body>
 </html>

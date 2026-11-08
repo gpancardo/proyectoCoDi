@@ -76,60 +76,22 @@ cobrar · te llegó · completo · al instante · tu negocio · vendiste · esca
 
 | Elemento | Se llama |
 |---|---|
-| Pantalla principal | Cobrar |
-| Lista de lo que se va a cobrar | La cuenta |
-| Resumen | Hoy |
-| Lista de productos | Tus precios |
-| Cliente que paga | Tu cliente |
+| Inicio de la app | Descubrir |
+| Búsqueda con el agente | Buscar con Barrio |
+| Lista de lo que se va a pagar | La cuenta |
+| Pedido en curso | Tu pedido |
+| Clave para recoger | Tu código |
+| Resumen del negocio | Hoy |
+| Lista de productos del negocio | Tus precios |
+| Persona que compra | Tu cliente (para el negocio) |
 
 ## 5. Textos de interfaz (listos para copiar)
 
-### Pantalla Cobrar
-- Título: **Cobrar**
-- Botón de micrófono (aria-label): **Dictar pedido**
-- Mientras graba: **Te escucho…**
-- Placeholder de la caja de texto: **Escribe el pedido, ej. 2 cocas 600 y unas sabritas**
-- Botón junto a la caja: **Armar cuenta**
-- Arriba, total del día: **Hoy: $1,240**
-
-### Pantalla La cuenta
-- Título: **La cuenta**
-- Item sin precio: **No tengo precio para {producto}, ¿cuánto es?**
-- Enlace para corregir: **Cambiar**
-- Volver a capturar: **Dictar otra vez** · **Escribir otra vez**
-- Botón principal: **Cobrar ${total}**
-
-### Pantalla QR
-- Encabezado: **{Nombre del negocio}**
-- Instrucción para el cliente: **Escanea con la app de tu banco**
-- Estado: **Esperando que te paguen…**
-- Cancelar: **Cancelar cobro**
-
-### Pagado
-- **¡Pagado!**
-- **Ya te llegaron ${total}**
-
-### Hoy
-- Título: **Hoy**
-- Total: **Vendiste ${total}**
-- Conteo: **en {n} cobros**
-- Más vendido: **Lo que más salió: {producto}**
-- Vacío: **Todavía no hay cobros hoy. El primero es el bueno.**
-
-### Mensajes de problema
-
-| Situación | Texto |
-|---|---|
-| Voz no entendida | No te escuché bien, ¿me lo escribes? |
-| Sin micrófono | Activa el micrófono para dictar, o escribe el pedido. |
-| No se entendió el pedido | No entendí el pedido. ¿Me lo dices de otra forma? |
-| Cobro expirado | Este cobro ya venció. ¿Lo generamos otra vez? |
-| Sin internet | Sin señal. Revisa tu conexión e inténtalo de nuevo. |
-| No se pudo generar el QR | No pudimos generar el cobro. Inténtalo de nuevo en un momento. |
+La app standalone (comprador y negocio) va primero. Los textos de Barrio Mostrador, el cobro por dictado en el local, son posteriores al hackathon y quedan al final.
 
 ### App standalone
 
-Mismas reglas de voz: frases breves, acción siguiente clara y estados que no dependan solo del color. El dictado puede ser una opción de entrada, pero el recorrido principal funciona con búsqueda y filtros tocables.
+Frases breves, acción siguiente clara y estados que no dependan solo del color. El recorrido principal funciona con búsqueda y filtros tocables; el dictado, si llega, es una opción de entrada.
 
 | Momento | Texto |
 |---|---|
@@ -142,13 +104,58 @@ Mismas reglas de voz: frases breves, acción siguiente clara y estados que no de
 
 En la app, el negocio usa acciones visibles para aceptar, rechazar, marcar listo, consultar el resumen y cambiar disponibilidad.
 
+### Barrio Mostrador (posterior al hackathon)
+
+#### Pantalla Cobrar
+- Título: **Cobrar**
+- Botón de micrófono (aria-label): **Dictar pedido**
+- Mientras graba: **Te escucho…**
+- Placeholder de la caja de texto: **Escribe el pedido, ej. 2 cocas 600 y unas sabritas**
+- Botón junto a la caja: **Armar cuenta**
+- Arriba, total del día: **Hoy: $1,240**
+
+#### Pantalla La cuenta
+- Título: **La cuenta**
+- Item sin precio: **No tengo precio para {producto}, ¿cuánto es?**
+- Enlace para corregir: **Cambiar**
+- Volver a capturar: **Dictar otra vez** · **Escribir otra vez**
+- Botón principal: **Cobrar ${total}**
+
+#### Pantalla QR
+- Encabezado: **{Nombre del negocio}**
+- Instrucción para el cliente: **Escanea con la app de tu banco**
+- Estado: **Esperando que te paguen…**
+- Cancelar: **Cancelar cobro**
+
+#### Pagado
+- **¡Pagado!**
+- **Ya te llegaron ${total}**
+
+#### Hoy
+- Título: **Hoy**
+- Total: **Vendiste ${total}**
+- Conteo: **en {n} cobros**
+- Más vendido: **Lo que más salió: {producto}**
+- Vacío: **Todavía no hay cobros hoy. El primero es el bueno.**
+
+#### Mensajes de problema
+
+| Situación | Texto |
+|---|---|
+| Voz no entendida | No te escuché bien, ¿me lo escribes? |
+| Sin micrófono | Activa el micrófono para dictar, o escribe el pedido. |
+| No se entendió el pedido | No entendí el pedido. ¿Me lo dices de otra forma? |
+| Cobro expirado | Este cobro ya venció. ¿Lo generamos otra vez? |
+| Sin internet | Sin señal. Revisa tu conexión e inténtalo de nuevo. |
+| No se pudo generar el QR | No pudimos generar el cobro. Inténtalo de nuevo en un momento. |
+
 ## 6. Mensajes de marca
 
 ### Tagline principal
 **Cobra en tu barrio, sin comisión.**
 
 ### Alternativas
-- *Dímelo y te lo cobro.*
+- *Dímelo y te lo cobro.* (Barrio Mostrador)
 - *Tú dices, ellos escanean, te llega completo.*
 - *Lo de tu barrio, cobrado al instante.*
 - *Pide en tu barrio. Paga con un toque.* (para quien compra)
@@ -157,9 +164,9 @@ En la app, el negocio usa acciones visibles para aceptar, rechazar, marcar listo
 
 | Audiencia | Mensaje |
 |---|---|
-| Dueño de tiendita | "Le dices lo que te compraron, sale un QR, tu cliente lo escanea con su banco y el dinero te llega completo, al momento." |
-| Cliente que paga | "Escanea con la app de tu banco y listo. No tienes que bajar nada." |
-| Jurado del hackathon | "Convertimos a cualquier tiendita en comercio CoDi en 5 segundos: el dueño habla o escribe, la IA arma la cuenta y pey cobra sin comisión." |
+| Dueño de tiendita | "Te llega el pedido con la cuenta hecha, lo aceptas y el dinero te llega completo, sin comisión." |
+| Cliente que paga | "Ve el total antes de pedir y aprueba el cobro en la app de tu banco." |
+| Jurado del hackathon | "Una app para encontrar y pedir en negocios de barrio: el servidor calcula el total, el negocio acepta y pey cobra con CoDi, sin comisión." |
 | pey | "Una vertical nueva de comercios generando volumen en su API, empezando por el comercio de barrio." |
 
 ## 7. Reglas de escritura
