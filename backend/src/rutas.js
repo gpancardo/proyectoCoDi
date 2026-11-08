@@ -16,9 +16,9 @@ async function mover(db, orden, a, extra = {}) {
   exigir(nueva, 409, 'INVALID_STATE', 'El pedido cambió. Revísalo de nuevo.');
   return nueva;
 }
-// Demo: Doña Lupe (negocio semilla, sin dueño) acepta sola, 15 s después, los pedidos que traen el taco de prueba, para probar el cobro a mano.
+// Demo: Doña Lupe (negocio semilla, sin dueño) acepta sola, 5 s después, los pedidos que traen el taco de prueba, para probar el cobro a mano.
 // ponytail: espera en memoria (waitUntil en Edge); si la función se recicla antes, el pedido queda pendiente y vence. Mejora: columna aceptar_en + barrido.
-const ESPERA_DEMO_MS = 15_000;
+const ESPERA_DEMO_MS = 5_000;
 export const esPruebaDemo = (n, o) => String(n.semilla ?? '').startsWith('demo-seed') && o.items?.some((i) => i.nombre === 'Taco de prueba');
 function aceptarDespues(db, id) {
   const tarea = new Promise((r) => setTimeout(r, ESPERA_DEMO_MS)).then(async () => {
