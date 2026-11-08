@@ -1,4 +1,4 @@
-import { calcularInsignias, cotizar, cuponesPorOfrecer, mejorCupon, MINUTOS, puede, SELLO_PUBLICO } from './pedidos.js';
+import { calcularCiudad, calcularInsignias, cotizar, cuponesPorOfrecer, mejorCupon, MINUTOS, puede, resumenNegocio, SELLO_PUBLICO } from './pedidos.js';
 import { iniciarCobro, liberarCupon, reconciliar } from './pagos.js';
 import { ZONAS, normalizar } from './text.js';
 
@@ -99,7 +99,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     const c = comp();
     const pagados = await db.get('ordenes', `comprador_id=eq.${c.id}&estado=in.(pagada,lista,entregada)&select=negocio_id&order=id.asc`);
     const ids = [...new Set(pagados.map((o) => o.negocio_id))];
-    const negocios = ids.length ? await db.get('negocios', `id=in.(${ids.join(',')})&select=id,nombre,colonia,categoria`) : [];
+    const negocios = ids.length ? await db.get('negocios', `id=in.(${ids.join(',')})&select=id,nombre,colonia,categoria,zona`) : [];
     const porId = new Map(negocios.map((n) => [n.id, n]));
     const insignias = calcularInsignias(pagados.map((o) => { const n = porId.get(o.negocio_id) ?? {}; return { negocio_id: o.negocio_id, negocio_nombre: n.nombre, colonia: n.colonia, categoria: n.categoria }; }));
     // premio del sello de primera compra: la promoción sin código del negocio donde compró
@@ -110,7 +110,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
       const usado = cupon && (await db.get('cupon_canjes', `cupon_id=eq.${cupon.id}&comprador_id=eq.${c.id}&estado=eq.usado&select=id&limit=1`)).length;
       if (cupon && !usado) premio = { negocio_id: id, negocio: porId.get(id)?.nombre ?? null, titulo: cupon.titulo, min_compra_minor: cupon.min_compra_minor };
     }
-    return ok(200, { nombre: c.nombre, pedidos_pagados: pagados.length, insignias, premio });
+    return ok(200, { nombre: c.nombre, pedidos_pagados: pagados.length, insignias, premio, ...calcularCiudad(pagados.map((o) => ({ zona: porId.get(o.negocio_id)?.zona }))) });
   }
   if (m === 'GET' && ruta === '/me/notifications') {
     const c = comp();
@@ -238,6 +238,14 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     delete i.pey_ref; delete i.orden_id;
     const { instrucciones, ...resto } = i; // link y QR son para quien paga, no para el negocio
     return ok(200, esComprador ? { ...resto, link: instrucciones?.link ?? null, qr_image: instrucciones?.qr_image ?? null } : resto);
+  }
+
+  if (ruta === '/business/dashboard' && m === 'GET') {
+    const n = neg();
+    // ponytail: últimos 30 días y hasta 1000 pedidos; una vista agregada en SQL si un negocio rebasa eso
+    const desde = new Date(Date.now() - 30 * 864e5).toISOString();
+    const ordenes = await db.get('ordenes', `negocio_id=eq.${n.id}&creado=gte.${q(desde)}&order=id.desc&limit=1000&select=estado,monto,items,comprador_id,creado,pagada_en,descuento_minor`);
+    return ok(200, resumenNegocio(ordenes));
   }
 
   // ----- promociones del negocio -----

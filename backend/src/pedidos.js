@@ -73,6 +73,71 @@ export function calcularInsignias(pedidos) { // en orden de compra: [{ negocio_i
   ];
 }
 
+// Sellos de ciudad: uno por alcaldía y uno por completar las 16, con los mismos niveles. Documentados en docs/LOGROS.md.
+export const NIVELES_ALCALDIA = [['bronce', 1], ['plata', 3], ['oro', 5]]; // compras pagadas en esa alcaldía
+export const TEMAS_ALCALDIA = {
+  'Álvaro Obregón': ['alvaro-obregon', 'Entre barrancas'],
+  Azcapotzalco: ['azcapotzalco', 'El hormiguero'],
+  'Benito Juárez': ['benito-juarez', 'Los Venados'],
+  Coyoacán: ['coyoacan', 'Lugar de coyotes'],
+  Cuajimalpa: ['cuajimalpa', 'Donde se labra la madera'],
+  Cuauhtémoc: ['cuauhtemoc', 'Águila que desciende'],
+  'Gustavo A. Madero': ['gustavo-a-madero', 'Al pie de la sierra'],
+  Iztacalco: ['iztacalco', 'Casa de la sal'],
+  Iztapalapa: ['iztapalapa', 'Agua sobre lajas'],
+  'Magdalena Contreras': ['magdalena-contreras', 'Los Dinamos'],
+  'Miguel Hidalgo': ['miguel-hidalgo', 'Cerro del chapulín'],
+  'Milpa Alta': ['milpa-alta', 'Tierra de nopal'],
+  Tláhuac: ['tlahuac', 'Canoa y lago'],
+  Tlalpan: ['tlalpan', 'Tierra firme'],
+  'Venustiano Carranza': ['venustiano-carranza', 'Balanza de mercado'],
+  Xochimilco: ['xochimilco', 'Campo de flores'],
+};
+const nivelDe = (compras) => NIVELES_ALCALDIA.filter(([, meta]) => compras >= meta).at(-1)?.[0] ?? null;
+const metaSiguiente = (compras) => (NIVELES_ALCALDIA.find(([, meta]) => compras < meta) ?? NIVELES_ALCALDIA.at(-1))[1];
+export function calcularCiudad(pedidos) { // [{ zona }]
+  const compras = new Map();
+  for (const p of pedidos) if (p.zona) compras.set(p.zona, (compras.get(p.zona) ?? 0) + 1);
+  const alcaldias = Object.entries(TEMAS_ALCALDIA).map(([zona, [id, nombre]]) => {
+    const n = compras.get(zona) ?? 0;
+    return { id, zona, nombre, nivel: nivelDe(n), avance: n, meta: metaSiguiente(n) };
+  });
+  // el sello de la ciudad vale lo que la alcaldía más floja: oro solo con las 16 en oro
+  const peor = Math.min(...alcaldias.map((a) => a.avance));
+  const siguiente = (NIVELES_ALCALDIA.find(([, meta]) => peor < meta) ?? NIVELES_ALCALDIA.at(-1))[1];
+  const cdmx = { id: 'cdmx', nombre: 'Toda la ciudad', nivel: nivelDe(peor), avance: alcaldias.filter((a) => a.avance >= siguiente).length, meta: alcaldias.length };
+  return { alcaldias, cdmx };
+}
+
+const ESTADOS_COBRADOS = new Set(['pagada', 'lista', 'entregada']);
+const diaCdmx = (fecha) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date(fecha)); // AAAA-MM-DD
+
+// Tablero del negocio. ordenes: [{ estado, monto, items, comprador_id, creado, pagada_en, descuento_minor }]
+export function resumenNegocio(ordenes, ahora = new Date()) {
+  const cobradas = ordenes.filter((o) => ESTADOS_COBRADOS.has(o.estado));
+  const totalDe = (lista) => lista.reduce((s, o) => s + Math.round(Number(o.monto) * 100), 0);
+  const delDia = (dia) => cobradas.filter((o) => diaCdmx(o.pagada_en ?? o.creado) === dia);
+  const hoy = diaCdmx(ahora);
+  const dias = Array.from({ length: 7 }, (_, i) => diaCdmx(ahora.getTime() - (6 - i) * 864e5));
+  const ayer = delDia(diaCdmx(ahora.getTime() - 864e5));
+  const productos = new Map(); const compras = new Map();
+  for (const o of cobradas) {
+    compras.set(o.comprador_id, (compras.get(o.comprador_id) ?? 0) + 1);
+    for (const i of o.items ?? []) { const v = productos.get(i.nombre) ?? { nombre: i.nombre, cantidad: 0, ventas_minor: 0 }; v.cantidad += i.cantidad; v.ventas_minor += i.cantidad * i.precio_minor; productos.set(i.nombre, v); }
+  }
+  const deHoy = delDia(hoy);
+  const cuenta = (estados) => ordenes.filter((o) => estados.includes(o.estado)).length;
+  return {
+    hoy: { ventas_minor: totalDe(deHoy), cobros: deHoy.length, ticket_minor: deHoy.length ? Math.round(totalDe(deHoy) / deHoy.length) : 0 },
+    ayer_minor: totalDe(ayer),
+    semana: dias.map((dia) => ({ dia, ventas_minor: totalDe(delDia(dia)), cobros: delDia(dia).length })),
+    por_atender: { responder: cuenta(['pendiente']), preparar: cuenta(['pagada']), recoger: cuenta(['lista']) },
+    productos: [...productos.values()].sort((a, b) => b.cantidad - a.cantidad || b.ventas_minor - a.ventas_minor).slice(0, 5),
+    clientes: { total: compras.size, regresan: [...compras.values()].filter((n) => n > 1).length },
+    mes: { ventas_minor: totalDe(cobradas), cobros: cobradas.length, descuentos_minor: cobradas.reduce((s, o) => s + (o.descuento_minor ?? 0), 0) },
+  };
+}
+
 // Quien ya pagó aquí recibe las promociones sin código que aún no tiene: se descuentan solas en su siguiente cuenta.
 export const cuponesPorOfrecer = (cupones, canjes, comprador_id) => {
   const ya = new Set(canjes.map((x) => x.cupon_id));

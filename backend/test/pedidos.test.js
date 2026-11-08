@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
-import { calcularInsignias, cotizar, cuponesPorOfrecer, descuentoCupon, mejorCupon, pagoConfirmado, puede, verificarFirma } from '../src/pedidos.js';
+import { calcularCiudad, calcularInsignias, cotizar, cuponesPorOfrecer, descuentoCupon, mejorCupon, pagoConfirmado, puede, resumenNegocio, TEMAS_ALCALDIA, verificarFirma } from '../src/pedidos.js';
 
 const menu = [{ nombre: 'Taco de canasta', precio: 12 }, { nombre: 'Refresco', precio: '18.5' }, { nombre: 'Malo', precio: -5 }];
 
@@ -43,6 +43,44 @@ test('sellos: siempre cuatro, personalizados y sin depender de comida', () => {
 test('promociones sin código: solo se ofrecen una vez a quien ya pagó', () => {
   assert.deepEqual(cuponesPorOfrecer([{ id: 1 }, { id: 2 }], [{ cupon_id: 1 }], 9), [{ cupon_id: 2, comprador_id: 9, estado: 'aceptado' }]);
   assert.deepEqual(cuponesPorOfrecer([{ id: 1 }], [{ cupon_id: 1 }], 9), []);
+});
+
+test('sellos de ciudad: 16 alcaldías con niveles y la ciudad vale la más floja', () => {
+  const zonas = Object.keys(TEMAS_ALCALDIA);
+  assert.equal(zonas.length, 16);
+  const pedidosEn = (zona, n) => Array.from({ length: n }, () => ({ zona }));
+  const uno = calcularCiudad(pedidosEn('Coyoacán', 3));
+  const coyo = uno.alcaldias.find((a) => a.zona === 'Coyoacán');
+  assert.equal(coyo.nivel, 'plata'); assert.equal(coyo.meta, 5);
+  assert.equal(uno.alcaldias.find((a) => a.zona === 'Tlalpan').nivel, null);
+  assert.equal(uno.cdmx.nivel, null); assert.equal(uno.cdmx.avance, 1); assert.equal(uno.cdmx.meta, 16);
+  const bronce = calcularCiudad(zonas.flatMap((z) => pedidosEn(z, 1)));
+  assert.equal(bronce.cdmx.nivel, 'bronce'); assert.equal(bronce.cdmx.avance, 0); // rumbo a plata: ninguna lleva 3
+  const oro = calcularCiudad(zonas.flatMap((z) => pedidosEn(z, 5)));
+  assert.equal(oro.cdmx.nivel, 'oro'); assert.equal(oro.alcaldias[0].avance, 5);
+  assert.equal(calcularCiudad(pedidosEn('Narnia', 9)).cdmx.nivel, null);
+  // los sellos que dibujamos cubren exactamente estas alcaldías
+  assert.equal(new Set(Object.values(TEMAS_ALCALDIA).map(([id]) => id)).size, 16);
+});
+
+test('tablero del negocio: suma solo lo cobrado y separa días en hora de CDMX', () => {
+  const ahora = new Date('2026-11-08T18:00:00Z');
+  const item = (cantidad, precio_minor, nombre = 'Pluma') => ({ nombre, cantidad, precio_minor });
+  const o = (estado, monto, creado, comprador_id, items = [], descuento_minor = 0) => ({ estado, monto, creado, comprador_id, items, descuento_minor });
+  const r = resumenNegocio([
+    o('pagada', 100, '2026-11-08T17:00:00Z', 1, [item(2, 5000)]),
+    o('entregada', 50.5, '2026-11-08T07:00:00Z', 2, [item(1, 5050, 'Copia')], 500), // 01:00 en CDMX: sigue siendo hoy
+    o('lista', 30, '2026-11-08T05:00:00Z', 1, [item(1, 3000, 'Copia')]), // 23:00 del 7 en CDMX: ayer
+    o('pendiente', 999, '2026-11-08T17:00:00Z', 3), o('rechazada', 999, '2026-11-08T17:00:00Z', 3),
+  ], ahora);
+  assert.deepEqual(r.hoy, { ventas_minor: 15050, cobros: 2, ticket_minor: 7525 });
+  assert.equal(r.ayer_minor, 3000);
+  assert.equal(r.semana.length, 7); assert.equal(r.semana[6].dia, '2026-11-08'); assert.equal(r.semana[5].ventas_minor, 3000);
+  assert.deepEqual(r.por_atender, { responder: 1, preparar: 1, recoger: 1 });
+  assert.equal(r.productos[0].nombre, 'Pluma'); assert.equal(r.productos[0].cantidad, 2);
+  assert.deepEqual(r.clientes, { total: 2, regresan: 1 });
+  assert.equal(r.mes.descuentos_minor, 500);
+  assert.equal(resumenNegocio([], ahora).hoy.ticket_minor, 0);
 });
 
 test('máquina de estados', () => {
