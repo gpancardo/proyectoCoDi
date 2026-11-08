@@ -26,3 +26,9 @@ La sesión se valida con Supabase Auth y el backend busca al comprador por `suje
 ## Pagos
 
 Cada cobro debe vivir en `intentos_cobro`, no en un campo de la orden: referencia pey, vía, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide más de un intento vigente. El webhook guarda primero su ID de evento, verifica firma/cuerpo crudo, referencia y monto, y solo entonces hace una transición condicional. La reconciliación consulta pey para intentos vivos. Un pago tardío de un intento vencido requiere revisión y jamás confirma un intento nuevo.
+
+## Despliegue y prueba real
+
+- `render.yaml` + `backend/Dockerfile`: crea el servicio en Render desde el repo y captura las variables de `.env.example` en el panel. Con Docker en cualquier otro host basta `docker build backend` y las mismas variables. Tras desplegar, registra `https://<host>/webhooks/pey` en el portal de pey y copia su secreto a `PEY_WEBHOOK_SECRET`.
+- `npm run e2e:live` (con `E2E_CONFIRM=1`): recorre cotización → pedido → aceptación → cobro → webhook firmado → pagado → cupón → insignias contra la base real, con pey en mock, y borra sus datos. Última corrida: 23 pasos correctos (7 nov 2026).
+- Ligar un negocio a su cuenta: `update negocios set sujeto_auth = '<uuid de Auth>', colonia = '<colonia>', verificado = true where id = <id>;` (el trigger desverifica negocios sin dueño).
