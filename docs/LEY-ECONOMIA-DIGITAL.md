@@ -20,16 +20,14 @@ Una ley puede promover un pago digital, pero no le quita a un negocio pequeño e
 
 ## Calendario
 
-```mermaid
-timeline
-    title Del marco legal a la operación
-    Junio 2026 : Banxico publica la Circular 9/2026 para homologar transferencias en apps móviles
-    4 nov 2026 : La ley se publica en el DOF
-    5 nov 2026 : La ley entra en vigor
-    Fines de nov 2026 : Vence el plazo de 15 días hábiles para que Hacienda determine sectores
-    15 días hábiles después : Autoridades de cada sector emiten sus disposiciones
-    14 dic 2026 : Fecha límite de la Circular 9/2026
-```
+| Fecha | Qué pasa |
+|---|---|
+| **Junio de 2026** | Banxico publica la Circular 9/2026 para homologar transferencias en apps móviles |
+| **4 de noviembre** | La ley se publica en el Diario Oficial |
+| **5 de noviembre** | La ley entra en vigor |
+| **Fines de noviembre** | Vencen los 15 días hábiles para que Hacienda determine sectores |
+| **15 días hábiles después** | Las autoridades de cada sector emiten sus disposiciones |
+| **14 de diciembre** | Fecha límite de la Circular 9/2026 |
 
 ## Qué dice la ley
 

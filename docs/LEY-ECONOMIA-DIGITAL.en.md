@@ -20,16 +20,14 @@ A law can promote digital payments, but it does not remove a small shop's work o
 
 ## Timeline
 
-```mermaid
-timeline
-    title From legal framework to operation
-    June 2026 : Banxico publishes Circular 9/2026 to standardize transfers in mobile apps
-    Nov 4, 2026 : The law is published in the DOF
-    Nov 5, 2026 : The law comes into force
-    Late Nov 2026 : 15-business-day deadline for SHCP to designate sectors
-    15 business days later : Each sector's authorities issue their rules
-    Dec 14, 2026 : Circular 9/2026 deadline
-```
+| Date | What happens |
+|---|---|
+| **June 2026** | Banxico publishes Circular 9/2026 to standardize transfers in mobile apps |
+| **November 4** | The law is published in the Official Gazette |
+| **November 5** | The law comes into force |
+| **Late November** | The 15-business-day deadline for SHCP to designate sectors ends |
+| **15 business days later** | Each sector's authorities issue their rules |
+| **December 14** | Circular 9/2026 deadline |
 
 ## What the law says
 
