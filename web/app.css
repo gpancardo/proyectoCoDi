@@ -7,7 +7,7 @@
 #nav button[aria-current='page'] { border-bottom-color: var(--mango); }
 #app { padding-bottom: 48px; outline: none; }
 .rejilla { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin: 16px 0; }
-.tarjeta { background: var(--blanco); border-radius: 16px; padding: 18px; box-shadow: var(--sombra); display: grid; gap: 8px; align-content: start; }
+.tarjeta { background: var(--blanco); border: 2px solid var(--marino); border-radius: 6px; padding: 18px; display: grid; gap: 8px; align-content: start; }
 .tarjeta h3 { margin: 0; }
 .tarjeta p { margin: 0; }
 .chip { display: inline-block; background: var(--niebla); color: var(--marino); border-radius: 999px; padding: 2px 12px; font-size: 14px; font-weight: 700; margin-right: 6px; }

@@ -14,7 +14,7 @@ Web / App ──HTTPS──► API Barrio (Supabase Edge Function) ──► Pos
 |---|---|
 | `backend/` | API (Node 22, sin dependencias): Descubrir, búsqueda, pedidos, cobros, cupones, insignias, gestión del negocio. `edge/api.js` la adapta a Edge Functions |
 | `supabase/` | Migraciones, datos de demo y pruebas del esquema (`tests/`) |
-| `web/` | Landing, registro heredado y la app web (`app.html`, `app.js`) |
+| `web/` | Landing, redirección del registro y la app web (`app.html`, `app.js`) |
 | `barrio_app_pey/` | App Flutter (en construcción, aún sin integrar a la API) |
 | `bot/` | Código heredado de WhatsApp; referencia, no producto |
 | `docs/PRODUCTO.md` | Fuente de verdad del producto |
