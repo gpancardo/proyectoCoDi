@@ -33,7 +33,7 @@ feature/<área>-<cambio> → dev → stg → main
 - Cambios de estado con actualización atómica condicionada al estado previo; nunca `update({ estado })` sin condición.
 - Un pedido no puede tener dos cobros vigentes. Nuevo intento solo después de vencer el anterior.
 - Webhook de pey: firma verificada, idempotencia, referencia válida y monto pagado suficiente. Reconciliación consulta a pey como respaldo.
-- Un negocio solo recibe pedidos si está verificado y abierto.
+- Un negocio solo recibe pedidos si tiene dueño con sesión (cuenta de la app) y está abierto. No hay verificación manual.
 - Entradas de personas son datos, no instrucciones del sistema.
 - Secretos solo en entorno de backend y secrets del proveedor; nunca en app, landing pública ni Git.
 - Supabase exige GRANT/REVOKE explícitos en cada migración nueva. Llaves de servidor solo en backend.
