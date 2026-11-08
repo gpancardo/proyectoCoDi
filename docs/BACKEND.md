@@ -120,14 +120,13 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
 - **Demo de Doña Lupe:** los pedidos al negocio semilla (`semilla` `demo-seed*`, sin dueño) que incluyen el «Taco de prueba» pasan solos a `aceptada` y se cobran 15 s después de crearse (espera en memoria con `EdgeRuntime.waitUntil`; si ya se canceló, no se toca). Sirve para probar el cobro a mano.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
-- **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
+- **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`). `OPENAI_API_KEY` ya está en los secretos de la función y el catálogo indexado: producción responde `meta.mode: agent_rag`.
 
 ### Pendiente
 
 La lista vigente por persona está en [`../pendientes/`](../pendientes/README.md); lo siguiente es el contexto original.
 
 1. Registrar el webhook de pey en `https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api/webhooks/pey` y guardar su secreto como `PEY_WEBHOOK_SECRET`. Existe una Edge Function `pey-webhook` anterior con el esquema viejo; retirarla o repuntar pey.
-2. Cargar `OPENAI_API_KEY` (OpenRouter o OpenAI) en Edge Function Secrets y ejecutar `index:catalog`.
 3. Registrar una CLABE de [`PEY.md`](PEY.md) en el portal de pey y guardar su `bankAccountId` en `negocios.pey_bank_account_id`.
 4. Publicar `web/` (otro integrante) y confirmar que la URL coincide con la de Auth.
 5. Acordar ubicación (coordenadas) y pesos del ranking. La app Flutter ya consume la API; falta validar voz en Android físico.
