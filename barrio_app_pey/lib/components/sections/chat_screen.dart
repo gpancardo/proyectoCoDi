@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../i18n.dart';
 import '../../services/barrio_api.dart';
@@ -21,7 +23,10 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _query = TextEditingController();
+  final _speech = SpeechToText();
   bool _loading = false;
+  bool _listening = false;
+  bool _speechReady = false;
   String? _answer;
   List<Map<String, dynamic>> _businesses = const [];
 
@@ -36,14 +41,18 @@ class _ChatScreenState extends State<ChatScreen> {
     if (query.isEmpty || _loading) return;
     setState(() => _loading = true);
     try {
-      final data = await context.read<BarrioApi>().post('/search/agent', {
-        'query': query,
-        'filters': {'zone': context.read<AppState>().zone},
-      }, token: context.read<AppState>().accessToken);
+      final data = await context.read<BarrioApi>().post(
+          '/search/agent',
+          {
+            'query': query,
+            'filters': {'zone': context.read<AppState>().zone},
+          },
+          token: context.read<AppState>().accessToken);
       if (!mounted) return;
       setState(() {
         _answer = 'Estas opciones coinciden con lo que buscas.';
-        _businesses = (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
+        _businesses =
+            (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
       });
     } on Exception catch (exception) {
       if (!mounted) return;
@@ -55,6 +64,58 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _toggleVoice() async {
+    if (_listening) {
+      await _speech.stop();
+      if (mounted) setState(() => _listening = false);
+      return;
+    }
+    if (!_speechReady) {
+      _speechReady = await _speech.initialize(
+        onStatus: (status) {
+          if (mounted && (status == 'done' || status == 'notListening'))
+            setState(() => _listening = false);
+        },
+        onError: (_) {
+          if (mounted) {
+            setState(() => _listening = false);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text(
+                    'No pude escucharte. Revisa el micrófono e inténtalo de nuevo.')));
+          }
+        },
+      );
+    }
+    if (!_speechReady) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'Activa el micrófono y el reconocimiento de voz para dictar.')));
+      return;
+    }
+    await _speech.listen(
+      onResult: _onSpeech,
+      listenOptions: SpeechListenOptions(
+        localeId: 'es_MX',
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 4),
+        partialResults: true,
+      ),
+    );
+    if (mounted) setState(() => _listening = true);
+  }
+
+  void _onSpeech(SpeechRecognitionResult result) {
+    _query.value = _query.value.copyWith(
+        text: result.recognizedWords,
+        selection:
+            TextSelection.collapsed(offset: result.recognizedWords.length));
+    if (result.finalResult) {
+      setState(() => _listening = false);
+      _search();
     }
   }
 
@@ -199,7 +260,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       const SizedBox(height: 24),
                       _MessageCard(text: _answer!),
                       for (final business in _businesses)
-                        _BusinessCard(business: business, onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => BusinessScreen(businessId: (business['id'] as num).toInt())))),
+                        _BusinessCard(
+                            business: business,
+                            onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => BusinessScreen(
+                                        businessId:
+                                            (business['id'] as num).toInt())))),
                     ],
                   ],
                 ),
@@ -244,12 +311,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 8),
                       _ComposerButton(
-                        icon: 'microphone',
+                        icon: _listening ? 'loading' : 'microphone',
                         color: BarrioColors.mango,
-                        label: 'Dictar búsqueda',
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text(I18n.voiceNotReady)),
-                        ),
+                        label:
+                            _listening ? 'Dejar de dictar' : 'Dictar búsqueda',
+                        onTap: _loading ? null : _toggleVoice,
                       ),
                       const SizedBox(width: 7),
                       _ComposerButton(
@@ -286,7 +352,7 @@ class _SuggestionChip extends StatelessWidget {
         onTap: () => onTap(label),
         child: Ink(
           decoration: BoxDecoration(
-            color: BarrioColors.crema.withOpacity(.75),
+            color: BarrioColors.crema.withValues(alpha: .75),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: BarrioColors.marino, width: 2),
           ),
@@ -339,41 +405,44 @@ class _BusinessCard extends StatelessWidget {
     final neighborhood = business['colonia'] ?? '';
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(6), child: BarrioPanel(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                  color: BarrioColors.crema,
-                  borderRadius: BorderRadius.circular(6)),
-              child: const BarrioIcon(asset: 'marketplace', size: 31),
+      child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(6),
+          child: BarrioPanel(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      color: BarrioColors.crema,
+                      borderRadius: BorderRadius.circular(6)),
+                  child: const BarrioIcon(asset: 'marketplace', size: 31),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('$title',
+                          style: const TextStyle(
+                              color: BarrioColors.marino,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(
+                          [category, neighborhood]
+                              .where((part) => '$part'.isNotEmpty)
+                              .join(' · '),
+                          style: const TextStyle(color: BarrioColors.gris)),
+                    ],
+                  ),
+                ),
+                const BarrioIcon(asset: 'chevron-right', size: 23),
+              ],
             ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('$title',
-                      style: const TextStyle(
-                          color: BarrioColors.marino,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  Text(
-                      [category, neighborhood]
-                          .where((part) => '$part'.isNotEmpty)
-                          .join(' · '),
-                      style: const TextStyle(color: BarrioColors.gris)),
-                ],
-              ),
-            ),
-            const BarrioIcon(asset: 'chevron-right', size: 23),
-          ],
-        ),
-      )),
+          )),
     );
   }
 }

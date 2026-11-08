@@ -77,7 +77,7 @@ abstract final class BarrioTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: BarrioColors.blanco,
         elevation: 0,
         shape: RoundedRectangleBorder(

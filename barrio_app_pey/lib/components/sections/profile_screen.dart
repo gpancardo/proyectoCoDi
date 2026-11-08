@@ -54,18 +54,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final profile = context.read<AppState>();
-    await context.read<BarrioApi>().post('/me', {
-      'nombre': _name.text.trim(),
-      'telefono': _phone.text.trim(),
-      'zona': _zone,
-      'colonia': _neighborhood.text.trim(),
-    }, token: profile.accessToken);
+    await context.read<BarrioApi>().post(
+        '/me',
+        {
+          'nombre': _name.text.trim(),
+          'telefono': _phone.text.trim(),
+          'zona': _zone,
+          'colonia': _neighborhood.text.trim(),
+        },
+        token: profile.accessToken);
     await profile.updateProfile(
-          name: _name.text,
-          phone: _phone.text,
-          zone: _zone!,
-          neighborhood: _neighborhood.text,
-        );
+      name: _name.text,
+      phone: _phone.text,
+      zone: _zone!,
+      neighborhood: _neighborhood.text,
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Listo, guardamos tus cambios.')),
@@ -99,10 +102,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Row(
                   children: [
-                    _RoundAction(
-                      icon: 'back',
-                      label: 'Regresar',
-                      onTap: () => Navigator.of(context).pop(),
+                    IconButton(
+                      tooltip: 'Regresar',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back,
+                          color: BarrioColors.marino),
                     ),
                     const SizedBox(width: 14),
                     Text('Tu perfil',

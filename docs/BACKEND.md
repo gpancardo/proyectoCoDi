@@ -50,14 +50,15 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `GET /me/notifications`, `POST /coupons/{id}/accept\|decline` | comprador | Avisos de cupones; aceptar los autoaplica |
 | `POST /businesses` | sesión | Alta del negocio de la sesión (activo al registrarse) |
 | `GET /business`, `PATCH /business` | negocio | Abrir/cerrar, aceptar en automático, descripción y menú |
-| `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | negocio | Cupones (porcentaje o monto, mínimo, vencimiento); se avisa a quien ya pagó ahí |
-| `POST /orders/quotes` | comprador | Cotiza desde el catálogo del servidor; autoaplica el mejor cupón aceptado; caduca a los 10 min |
+| `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | negocio | Cupones por porcentaje, monto o producto gratis; pueden llevar un código único, mínimo y vencimiento |
+| `POST /orders/quotes` | comprador | Cotiza desde el catálogo del servidor; autoaplica el mejor cupón aceptado o valida `coupon_code`; caduca a los 10 min |
 | `POST /orders` | comprador | Crea el pedido desde `quote_id` con `Idempotency-Key` y `confirmed_total_minor` igual al total cotizado |
-| `GET /orders`, `GET /orders/{id}` | sesión | Pedidos propios o del negocio; `codigo` de recogida solo al comprador desde `pagada` |
+| `GET /orders`, `GET /orders/{id}` | sesión | Pedidos propios o del negocio; `codigo` de recogida solo al comprador desde `pagada` hasta `entregada` |
 | `POST /orders/{id}/cancel` | comprador | Solo en `pendiente`, `aceptada` o `vencida` |
 | `POST /orders/{id}/accept\|reject\|ready` | negocio | Aceptar (genera el cobro), rechazar, marcar listo |
+| `POST /orders/{id}/received` | comprador | Confirma entrega con transición atómica `lista → entregada` |
 | `POST /orders/{id}/payments` | comprador | Nuevo intento de cobro; si hay uno vigente devuelve ese |
-| `GET /orders/{id}/payments/current` | sesión | Estado del cobro; al comprador le devuelve `link`/`qr_image` y reconcilia con pey si sigue vigente |
+| `GET /orders/{id}/payments/current` | sesión | Estado del cobro push y reconciliación con pey si sigue vigente |
 | `POST /webhooks/pey` | firma | Webhook de pey (Standard Webhooks, dedupe por `webhook-id`) |
 | `POST /internal/sweep` | `CRON_SECRET` | Barrido manual (reconciliación con pey, vencimientos); en producción lo cubren `pg_cron` y la reconciliación al consultar el cobro |
 
@@ -97,7 +98,7 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 ## Cupones e insignias
 
-- **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** del negocio y lo resta en el servidor (`descuento_minor`, total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
+- **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Puede ser porcentaje, monto o un producto gratis y tener un `codigo` único. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** o valida un código de ese negocio y lo resta en el servidor (total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
 - **Insignias:** derivadas de pedidos pagados, sin tabla: 3 en la misma colonia, 5 en la misma alcaldía o 3 en el mismo negocio (`REGLAS_INSIGNIAS` en `backend/src/pedidos.js`). `GET /me/profile` devuelve también las que van en progreso. Requiere `negocios.colonia`.
 - `negocios.sujeto_auth` liga la sesión de Supabase Auth con el negocio (rol negocio); `compradores.sujeto_auth`, con el comprador.
 
