@@ -19,7 +19,9 @@ class BarrioApp extends StatelessWidget {
       home: Consumer<AppState>(
         builder: (context, state, _) => !state.hasSession
             ? const AccessScreen()
-            : state.isFirstVisit ? const OnboardingScreen() : const HomeShell(),
+            : state.isFirstVisit
+                ? const OnboardingScreen()
+                : const HomeShell(),
       ),
     );
   }

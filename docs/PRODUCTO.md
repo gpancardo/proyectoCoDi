@@ -12,7 +12,7 @@
 
 **Barrio** conecta a la gente con negocios cercanos desde una **aplicación standalone**. La app ofrece dos puertas: **Descubrir**, un recorrido tradicional tipo Uber Eats, y **Buscar con Barrio**, un agente con RAG que encuentra coincidencias del catálogo real y las explica. La API propia cotiza y pide; pey permite cobrar con CoDi. WhatsApp deja de ser canal del producto.
 
-La persona busca "10 tacos de canasta, por Coyoacán", compara opciones y elige un negocio. Barrio muestra una cotización calculada por el servidor; al confirmar, el negocio recibe el pedido en su superficie de gestión. Al aceptar, llega un **cobro CoDi a la app del banco**. La persona lo aprueba, recibe un código para recoger y el negocio ve el pago confirmado.
+La persona busca "10 tacos de canasta, por Coyoacán", compara opciones y elige un negocio. Barrio muestra una cotización calculada por el servidor; al confirmar, el negocio recibe el pedido en su superficie de gestión. Al aceptar, llega un **cobro CoDi por push a la app del banco**. La persona lo aprueba, recibe un código para recoger, confirma que recibió su pedido o reporta un problema por correo.
 
 La persona usa una app dedicada, diseñada para buscar y comprar de forma directa. La app y el backend se desarrollan como componentes separados por integrantes distintos del equipo.
 
@@ -51,10 +51,10 @@ La app requiere una sesión de comprador. Su perfil de descubrimiento aprende so
 2. **Buscar con Barrio:** un agente interpreta la consulta, recupera candidatos del catálogo (RAG) y devuelve matches explicables. Los filtros deterministas siguen siendo la autoridad y siempre están disponibles.
 3. **Cuenta con total calculado por el sistema** a partir del menú del negocio. Un solo "¿Lo pido?".
 4. **El negocio gestiona el pedido** desde una superficie autenticada y actualiza aceptación, preparación y disponibilidad. Opcional: aceptación automática.
-5. **Cobro CoDi** al comprador (respaldos: link de pago de pey y después QR), confirmación por webhook y reconciliación consultando a pey, y código de recogida.
+5. **Cobro CoDi por push** al comprador, confirmación por webhook y reconciliación consultando a pey, código de recogida y confirmación de entrega.
 6. **Recordatorios y cancelación automática** (el negocio no contesta, la persona no aprueba el cobro).
 7. **Landing y registro de negocios** (GitHub Pages) con menú y precios.
-8. **Promociones:** el negocio publica cupones; la app avisa a quien ya compró ahí y, si los acepta, se descuentan solos al cobrar. **Insignias** en el perfil por comprar varias veces en la misma colonia, alcaldía o negocio.
+8. **Promociones:** el negocio publica cupones con código (porcentaje, monto o producto gratis); los aceptados se descuentan solos y un código válido también se aplica al cotizar. **Insignias** en el perfil por comprar varias veces en la misma colonia, alcaldía o negocio.
 9. **Resumen del día** para el negocio: total, número de cobros y productos más vendidos en su panel.
 
 ### Después del hackathon
@@ -81,13 +81,13 @@ Resumen (el total lo calcula el código, no el modelo)
    ▼
 Negocio recibe el pedido en su superficie de gestión ── acepta / rechaza
    ▼
-pey: cobro CoDi por push al teléfono de Lupita  (respaldos: link de pago, QR)
+pey: cobro CoDi por push al teléfono de Lupita
    ▼
 Lupita aprueba en la app de su banco
    ▼
 Webhook firmado de pey → estado guardado → la app muestra "¡Pagado!" + código de recogida
    ▼
-Negocio marca "Listo" → la app muestra el estado a Lupita
+Negocio marca "Listo" → Lupita recoge con el código y confirma que lo recibió
 ```
 
 ### 6.2 Reglas que no dependen del modelo
