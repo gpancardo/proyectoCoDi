@@ -25,7 +25,8 @@ Si falla `flutter build apk`: hace falta el SDK de Android 36 y JDK 17 o 21; la 
 
 ## Web (quien publica `web/`)
 
-- [ ] Publicar la landing en Netlify desde `main` y confirmar que la URL coincide con `jade-paprenjak-a98b06.netlify.app` (canonical y sitemap la usan). Si es otra, cambiarla en `web/index.html`, `web/blog/`, `web/descargar/`, `web/sitemap.xml` y `web/robots.txt`.
+- [x] Landing publicada el 8 nov 2026 en `https://jade-paprenjak-a98b06.netlify.app`. El sitio es de arrastrar y soltar (Netlify Drop) y **no se publica solo desde `main`**: cada cambio en `web/` se vuelve a subir en Netlify → Deploys, con un zip de `web/` (`git ls-files web | grep -v test | zip landing.zip -@` desde `web/`).
+- [ ] Si algún día la URL cambia, actualizarla en `web/index.html`, `web/blog/`, `web/descargar/`, `web/sitemap.xml` y `web/robots.txt`.
 - [ ] Verificar en Supabase → Auth que Site URL y redirects apunten a esa URL.
 - [ ] Confirmar que el enlace de `/descargar/` abre sin pedir permiso (lo cambia Raz, arriba).
 

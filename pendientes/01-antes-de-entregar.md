@@ -11,7 +11,7 @@ Fecha límite: domingo 8 de noviembre, 1:00 PM, por correo a hola@aibuilders.lat
 ## Sin esto no hay demo
 
 1. **APK final y enlace:** lo hace Raz (pasos en [`por-persona.md`](por-persona.md)): genera el APK, lo sube a Drive y cambia el enlace de `web/descargar/index.html` si cambia la carpeta.
-2. **Publicar la web** y revisarla en un teléfono (`web/`; la publica quien la tenga a cargo).
+2. **Web publicada** (8 nov 2026). Si cambia algo en `web/`, hay que volver a subirla a Netlify (ver [`por-persona.md`](por-persona.md)); no se publica sola. Revisarla en un teléfono.
 3. **Probar un cobro real de $0.01** cuando el banco esté disponible. Los pedidos 10 y 11 de prueba quedaron en «cobrada»; vencen solos.
 4. **Probar el dictado** en un teléfono real: permiso del micrófono, español de México, y que busque al terminar.
 5. **Recorrer la demo completa** con una cuenta nueva de comprador y otra de negocio, de punta a punta, antes de grabar.
