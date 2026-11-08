@@ -23,6 +23,7 @@ AI search over a real catalog, server-calculated totals and real CoDi payments t
 | **Repository** | https://github.com/gpancardo/proyectoCoDi |
 | **Pitch** | [`PITCH.en.md`](PITCH.en.md) |
 | **Screens** | [All 23 app screens](capturas/README.md) |
+| **Legal context** | [Mexico's Digital Economy Law and Barrio](LEY-ECONOMIA-DIGITAL.en.md) |
 <!-- | **Demo video** | LINK | -->
 <!-- | **Pitch video** | LINK | -->
 
