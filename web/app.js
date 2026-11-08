@@ -190,8 +190,8 @@ function instruccionesPago(p) {
   const seguro = p.link && /^https:\/\//.test(p.link)
   return h('div', { class: 'tarjeta', style: 'margin:12px 0' },
     p.via === 'push' ? [h('h3', {}, 'Te llegó un cobro a tu banco'), h('p', {}, `Ábrelo y apruébalo por ${pesos(p.monto_minor)}. Vence en 15 minutos.`)]
-      : p.via === 'link' ? [h('h3', {}, 'Paga con tu banco o tarjeta'), seguro ? h('a', { class: 'btn', href: p.link, target: '_blank', rel: 'noopener noreferrer' }, 'Ir a pagar') : null]
-        : [h('h3', {}, 'Escanea con tu app de banco'), p.qr_image ? h('img', { class: 'qr', alt: 'Código QR de CoDi para pagar', src: `data:image/png;base64,${p.qr_image.replace(/[^A-Za-z0-9+/=]/g, '')}` }) : null],
+      : p.via === 'link' ? [h('h3', {}, 'Paga con CoDi'), seguro ? h('a', { class: 'btn', href: p.link, target: '_blank', rel: 'noopener noreferrer' }, 'Ir a pagar') : null]
+        : [h('h3', {}, 'Escanea con CoDi en la app de tu banco'), p.qr_image ? h('img', { class: 'qr', alt: 'Código QR de CoDi para pagar', src: `data:image/png;base64,${p.qr_image.replace(/[^A-Za-z0-9+/=]/g, '')}` }) : null],
     h('p', { class: 'ayuda' }, 'Cuando pagues, esta pantalla se actualiza sola.'))
 }
 const misPedidos = async () => {
