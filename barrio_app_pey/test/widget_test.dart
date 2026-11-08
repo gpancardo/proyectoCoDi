@@ -10,6 +10,7 @@ import 'package:barrio_app_pey/app.dart';
 import 'package:barrio_app_pey/components/sections/achievements_screen.dart';
 import 'package:barrio_app_pey/components/sections/seller_screen.dart';
 import 'package:barrio_app_pey/components/sections/seller_setup.dart';
+import 'package:barrio_app_pey/services/avisos.dart';
 import 'package:barrio_app_pey/services/barrio_api.dart';
 import 'package:barrio_app_pey/state/app_state.dart';
 import 'package:barrio_app_pey/utils/money.dart';
@@ -141,5 +142,14 @@ void main() {
     expect(find.text('1 de 4'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Coyoacán'), 200);
     expect(find.text('Coyoacán'), findsOneWidget);
+  });
+
+  test('avisa solo cuando cambia a un estado que importa', () {
+    expect(avisosNuevos({1: 'cobrada'}, {1: 'cobrada'}), isEmpty);
+    expect(avisosNuevos({1: 'cobrada'}, {1: 'pagada'}).single.titulo,
+        '¡Pagado! ✅');
+    expect(avisosNuevos({}, {2: 'pendiente'}), isEmpty);
+    expect(avisosNuevos({}, {2: 'cobrada'}).single.id, 2); // auto-aceptado
+    expect(avisosNuevos({1: 'lista'}, {1: 'entregada'}), isEmpty);
   });
 }
