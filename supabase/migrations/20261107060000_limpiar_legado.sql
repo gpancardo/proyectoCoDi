@@ -1,4 +1,4 @@
--- Limpieza del legado de WhatsApp: columnas y funciones que solo usaba bot/ (eliminado del repo).
+-- Limpieza del legado: columnas y funciones que solo usaba un canal anterior (eliminado del repo).
 -- El cobro vive en intentos_cobro; la búsqueda semántica en catalogo_documentos. wa_jid se conserva como dueño heredado.
 drop function if exists agregar_msg(bigint, text);
 drop function if exists match_negocios(vector, text, int);

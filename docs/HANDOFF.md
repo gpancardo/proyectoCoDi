@@ -11,7 +11,7 @@ La fuente vigente es, en este orden:
 
 ## Decisiones consolidadas desde ese traspaso
 
-- El canal es la app y la API HTTPS propia; WhatsApp/Baileys no forma parte del producto.
+- El canal es la app y la API HTTPS propia.
 - La app Flutter ya consume la API para el flujo comprador y vendedor.
 - El cobro de demo es CoDi por **push**. No se ofrecen QR ni links como desvío automático.
 - La persona confirma que recibió el pedido; el negocio puede crear cupones con código y producto gratis.

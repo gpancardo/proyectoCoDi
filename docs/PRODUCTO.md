@@ -21,7 +21,7 @@ La persona usa una app dedicada, diseñada para buscar y comprar de forma direct
 La economía de barrio está formada por unidades económicas pequeñas, creadas por y para los habitantes de una misma localidad: tiendas de abarrotes, misceláneas, puestos de comida, talleres caseros, estéticas.
 
 - **Viven del efectivo.** Las terminales cobran comisión (≈3–4% más IVA), piden renta o equipo, y el depósito tarda días.
-- **Sus clientes no los encuentran fuera de la cuadra**, y los pedidos por WhatsApp se anotan a mano, sin total claro y sin forma ágil de cobrar.
+- **Sus clientes no los encuentran fuera de la cuadra**, y los pedidos por mensaje se anotan a mano, sin total claro y sin forma ágil de cobrar.
 - **CoDi ya resuelve el pago** (gratis, instantáneo, cualquier banco), pero nunca despegó en el comercio pequeño porque pedir y cobrar con CoDi sigue dando más trabajo que dar o recibir un billete. Ese es el hueco.
 
 ## 3. Por qué ahora
@@ -182,7 +182,7 @@ intentos_cobro (id, orden_id, via[push], pey_ref, monto_minor, vence, estado[vig
 eventos_webhook (id)                                         cupones / cupon_canjes / notificaciones
 ```
 
-Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `wa_jid` únicamente persiste como compatibilidad de datos heredados y no participa en ningún flujo de producto.
+Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `negocios.semilla` solo marca a los negocios de demo que no tienen cuenta de app.
 
 ## 9. Superficies
 
@@ -246,7 +246,7 @@ Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `wa_j
 
 **Tomadas**
 - Producto: app standalone para descubrir, pedir y pagar con CoDi.
-- Canal: app → API HTTPS propia. WhatsApp deja de ser canal del producto.
+- Canal: app → API HTTPS propia.
 - Descubrimiento: navegación estilo marketplace con personalización ligera, explicable y basada en señales explícitas.
 - Búsqueda: RAG y agente para encontrar y explicar matches del catálogo; filtros deterministas como autoridad y fallback.
 - Datos: Supabase/Postgres; pey para cobros. El servidor es dueño de las credenciales y reglas de pedidos.

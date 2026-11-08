@@ -30,7 +30,7 @@ update negocios set verificado_en = creado where verificado and verificado_en is
 
 create function negocio_verificado_en() returns trigger language plpgsql as $$
 begin
-  -- nadie recibe pedidos sin un dueño identificado (sesión de la app o WhatsApp heredado); también al borrar la cuenta de auth
+  -- nadie recibe pedidos sin un dueño identificado (sesión de la app o negocio de demo); también al borrar la cuenta de auth
   if new.sujeto_auth is null and new.wa_jid is null then new.verificado = false; end if;
   if new.verificado and (tg_op = 'INSERT' or not old.verificado) then new.verificado_en = now(); end if;
   if not new.verificado then new.verificado_en = null; end if;
