@@ -12,7 +12,7 @@ const db = new Supabase({ url: process.env.SUPABASE_URL, serviceKey: process.env
 const NEG_ID = Number(process.env.E2E_NEGOCIO_ID ?? 7); const ids = { ordenes: [], cupones: [] };
 const [negocio] = await db.get('negocios', `id=eq.${NEG_ID}&select=id,nombre`);
 let [comprador] = await db.get('compradores', 'wa_jid=eq.e2e-test&select=id,nombre,telefono'); 
-if (!comprador) [comprador] = await db.insertar('compradores', { wa_jid: 'e2e-test', nombre: 'E2E prueba', telefono: '5615156164' });
+if (!comprador) [comprador] = await db.insertar('compradores', { wa_jid: 'e2e-test', nombre: 'E2E prueba', telefono: '5599' + String(Date.now()).slice(-6) });
 const llamar = async (auth, method, path, body, headers = {}) => {
   let out; const res = {}; const req = { method, headers: { ...headers } };
   try { const ok = await manejar({ db, req, res, url: new URL('http://x/api/v1' + path), auth, cuerpo: async () => body ?? {}, enviar: (_r, status, b) => { out = { status, ...b }; } }); assert.ok(ok, 'ruta ' + path); }
