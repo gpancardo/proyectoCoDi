@@ -13,9 +13,10 @@ class BarrioApi {
 
   String get _apiBase {
     final value = dotenv.env['API_BASE_URL']?.trim() ?? '';
-    if (value.isEmpty)
+    if (value.isEmpty) {
       throw const BarrioApiException(
           'Falta configurar la dirección de Barrio.');
+    }
     return value.replaceFirst(RegExp(r'/$'), '');
   }
 
