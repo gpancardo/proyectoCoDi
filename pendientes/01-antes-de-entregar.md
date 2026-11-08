@@ -10,7 +10,7 @@ Fecha límite: domingo 8 de noviembre, 1:00 PM, por correo a hola@aibuilders.lat
 
 ## Sin esto no hay demo
 
-1. **Subir `barrio-demo.apk`** (se genera con `flutter build apk --release` en `barrio_app_pey/`) a la carpeta de Drive que abre `/descargar`, con acceso público.
+1. **APK final y enlace:** lo hace Raz (pasos en [`por-persona.md`](por-persona.md)): genera el APK, lo sube a Drive y cambia el enlace de `web/descargar/index.html` si cambia la carpeta.
 2. **Publicar la web** y revisarla en un teléfono (`web/`; la publica quien la tenga a cargo).
 3. **Probar un cobro real de $0.01** cuando el banco esté disponible. Los pedidos 10 y 11 de prueba quedaron en «cobrada»; vencen solos.
 4. **Probar el dictado** en un teléfono real: permiso del micrófono, español de México, y que busque al terminar.
