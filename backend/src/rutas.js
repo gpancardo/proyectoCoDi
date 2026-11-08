@@ -16,6 +16,17 @@ async function mover(db, orden, a, extra = {}) {
   exigir(nueva, 409, 'INVALID_STATE', 'El pedido cambió. Revísalo de nuevo.');
   return nueva;
 }
+// Demo: Doña Lupe (negocio semilla, sin dueño) acepta sola, 15 s después, los pedidos que traen el taco de prueba, para probar el cobro a mano.
+// ponytail: espera en memoria (waitUntil en Edge); si la función se recicla antes, el pedido queda pendiente y vence. Mejora: columna aceptar_en + barrido.
+const ESPERA_DEMO_MS = 15_000;
+export const esPruebaDemo = (n, o) => String(n.semilla ?? '').startsWith('demo-seed') && o.items?.some((i) => i.nombre === 'Taco de prueba');
+function aceptarDespues(db, id) {
+  const tarea = new Promise((r) => setTimeout(r, ESPERA_DEMO_MS)).then(async () => {
+    const [o] = await db.get('ordenes', `id=eq.${id}&estado=eq.pendiente&limit=1`); // si ya la cancelaron, no se toca
+    if (o) await cobrarPedido(db, await mover(db, o, 'aceptada'));
+  }).catch((e) => console.error('auto-aceptar demo:', e.message));
+  globalThis.EdgeRuntime?.waitUntil(tarea);
+}
 async function pedidoDe(db, id, auth) {
   exigir(Number.isInteger(id), 404, 'NOT_FOUND', 'No encontramos ese pedido.');
   const [o] = await db.get('ordenes', `id=eq.${id}&limit=1`);
@@ -166,7 +177,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     exigir(cot, 404, 'QUOTE_NOT_FOUND', 'No encontramos esa cotización.', 'quote_id');
     exigir(new Date(cot.expira) > new Date(), 409, 'QUOTE_EXPIRED', 'La cuenta venció. Vuelve a pedirla.');
     exigir(b.confirmed_total_minor === cot.total_minor, 422, 'NOT_CONFIRMED', 'Confirma el total que viste.', 'confirmed_total_minor');
-    const [n] = await db.get('negocios', `id=eq.${cot.negocio_id}&verificado=eq.true&abierto=eq.true&select=id,auto_aceptar&limit=1`);
+    const [n] = await db.get('negocios', `id=eq.${cot.negocio_id}&verificado=eq.true&abierto=eq.true&select=id,auto_aceptar,semilla&limit=1`);
     exigir(n, 409, 'BUSINESS_UNAVAILABLE', 'Este negocio ya no recibe pedidos.');
     if (cot.canje_id) { // el cupón se reserva con la misma regla de estado previo
       const [canje] = await db.actualizar('cupon_canjes', `id=eq.${cot.canje_id}&estado=eq.aceptado`, { estado: 'usado', actualizado: ahoraIso() });
@@ -181,6 +192,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
       throw e;
     }
     if (n.auto_aceptar) { o = await mover(db, o, 'aceptada'); await cobrarPedido(db, o); [o] = await db.get('ordenes', `id=eq.${o.id}`); }
+    else if (esPruebaDemo(n, o)) aceptarDespues(db, o.id);
     return ok(201, publica(o, true));
   }
   if (m === 'GET' && ruta === '/orders') { // mis pedidos (comprador) o pedidos del negocio
