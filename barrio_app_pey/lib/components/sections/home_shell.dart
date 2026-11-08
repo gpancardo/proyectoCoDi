@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../theme.dart';
-import '../shared/barrio_icon.dart';
 import 'achievements_screen.dart';
 import 'chat_screen.dart';
 import 'marketplace_screen.dart';
+import 'seller_screen.dart';
+import 'profile_screen.dart';
+import 'orders_screen.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, this.initialSection = 1});
+  const HomeShell({super.key, this.initialSection = 0});
   final int initialSection;
 
   @override
@@ -18,95 +20,45 @@ class _HomeShellState extends State<HomeShell> {
   late int _section = widget.initialSection;
 
   static const _sections = <_SectionItem>[
-    _SectionItem(label: 'Mercado', icon: 'marketplace'),
-    _SectionItem(label: 'Buscar', icon: 'chat'),
-    _SectionItem(label: 'Logros', icon: 'achievements'),
+    _SectionItem(label: 'Buscar con Barrio'),
+    _SectionItem(label: 'Descubrir'),
+    _SectionItem(label: 'Logros'),
+    _SectionItem(label: 'Tu negocio'),
   ];
 
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: BarrioColors.crema,
-        body: IndexedStack(
-          index: _section,
-          children: const [
-            MarketplaceScreen(),
-            ChatScreen(),
-            AchievementsScreen(),
-          ],
+        appBar: AppBar(
+          toolbarHeight: 56,
+          title: Text(_sections[_section].label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          bottom: const PreferredSize(preferredSize: Size.fromHeight(2), child: Divider(height: 2, thickness: 2, color: BarrioColors.marino)),
         ),
-        bottomNavigationBar: SafeArea(
-          top: false,
-          child: Container(
-            height: 68,
-            decoration: const BoxDecoration(
-              color: BarrioColors.crema,
-              border:
-                  Border(top: BorderSide(color: BarrioColors.marino, width: 2)),
-            ),
-            child: Row(
-              children: [
-                for (var index = 0; index < _sections.length; index++)
-                  Expanded(
-                    child: _NavigationItem(
-                      item: _sections[index],
-                      selected: _section == index,
-                      onTap: () => setState(() => _section = index),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+        drawer: Drawer(
+          shape: const RoundedRectangleBorder(),
+          child: SafeArea(child: ColoredBox(color: BarrioColors.crema, child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+            children: [
+              const Text('barrio', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: BarrioColors.marino)),
+              const SizedBox(height: 28),
+              for (var index = 0; index < _sections.length; index++)
+                ListTile(
+                  title: Text(_sections[index].label, style: TextStyle(fontWeight: _section == index ? FontWeight.w800 : FontWeight.w500)),
+                  selected: _section == index,
+                  selectedColor: BarrioColors.marino,
+                  onTap: () { Navigator.pop(context); setState(() => _section = index); },
+                ),
+              const Divider(color: BarrioColors.marino, thickness: 2),
+              ListTile(title: const Text('Perfil'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())); }),
+              ListTile(title: const Text('Mis pedidos'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen())); }),
+            ],
+          ))),
         ),
+        body: IndexedStack(index: _section, children: const [ChatScreen(), MarketplaceScreen(), AchievementsScreen(), SellerScreen()]),
       );
 }
 
 class _SectionItem {
-  const _SectionItem({required this.label, required this.icon});
+  const _SectionItem({required this.label});
   final String label;
-  final String icon;
-}
-
-class _NavigationItem extends StatelessWidget {
-  const _NavigationItem(
-      {required this.item, required this.selected, required this.onTap});
-  final _SectionItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-        button: true,
-        selected: selected,
-        label: item.label,
-        child: InkWell(
-          onTap: onTap,
-          child: Container(
-            height: double.infinity,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: selected ? BarrioColors.mango : Colors.transparent,
-                  width: 4,
-                ),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Opacity(
-                  opacity: selected ? 1 : .65,
-                  child: BarrioIcon(asset: item.icon, size: 30),
-                ),
-                const SizedBox(height: 2),
-                Text(item.label,
-                    style: TextStyle(
-                        color: BarrioColors.marino,
-                        fontSize: 14,
-                        fontWeight:
-                            selected ? FontWeight.w800 : FontWeight.w600)),
-              ],
-            ),
-          ),
-        ),
-      );
 }

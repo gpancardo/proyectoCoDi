@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../i18n.dart';
+import '../../services/barrio_api.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../shared/app_button.dart';
@@ -40,7 +41,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _continue() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-    await context.read<AppState>().saveProfile(
+    final profile = context.read<AppState>();
+    await context.read<BarrioApi>().post('/me', {
+      'nombre': _name.text.trim(), 'telefono': _phone.text.trim(), 'zona': _zone, 'colonia': _neighborhood.text.trim(),
+    }, token: profile.accessToken);
+    await profile.saveProfile(
           name: _name.text,
           phone: _phone.text,
           zone: _zone!,

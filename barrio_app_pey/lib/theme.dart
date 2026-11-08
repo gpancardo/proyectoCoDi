@@ -11,6 +11,7 @@ abstract final class BarrioColors {
   static const rojo = Color(0xFFC2392B);
   static const blanco = Color(0xFFFFFFFF);
   static const borde = Color(0xFFE8DFCF);
+  static const trazo = Color(0xFF7D7666);
   static const niebla = Color(0xFFE8EDF4);
 }
 
@@ -28,7 +29,7 @@ abstract final class BarrioTheme {
       primaryColor: BarrioColors.marino,
       colorScheme: scheme,
       scaffoldBackgroundColor: BarrioColors.crema,
-      fontFamily: 'sans-serif',
+      fontFamily: 'Archivo',
       appBarTheme: const AppBarTheme(
         backgroundColor: BarrioColors.crema,
         foregroundColor: BarrioColors.marino,
@@ -56,11 +57,11 @@ abstract final class BarrioTheme {
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide:
-                const BorderSide(color: BarrioColors.borde, width: 1.5)),
+                const BorderSide(color: BarrioColors.trazo, width: 1.5)),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide:
-                const BorderSide(color: BarrioColors.borde, width: 1.5)),
+                const BorderSide(color: BarrioColors.trazo, width: 1.5)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: const BorderSide(color: BarrioColors.marino, width: 2)),

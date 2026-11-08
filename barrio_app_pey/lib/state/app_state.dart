@@ -19,6 +19,20 @@ class AppState extends ChangeNotifier {
   String get zone => _preferences.getString('profile_zone') ?? '';
   String get neighborhood =>
       _preferences.getString('profile_neighborhood') ?? '';
+  String? get accessToken => _preferences.getString('session_access_token');
+  bool get hasSession => (accessToken ?? '').isNotEmpty;
+
+  Future<void> saveSession(String accessToken, String refreshToken) async {
+    await _preferences.setString('session_access_token', accessToken);
+    await _preferences.setString('session_refresh_token', refreshToken);
+    notifyListeners();
+  }
+
+  Future<void> signOut() async {
+    await _preferences.remove('session_access_token');
+    await _preferences.remove('session_refresh_token');
+    notifyListeners();
+  }
 
   Future<void> saveProfile({
     required String name,
