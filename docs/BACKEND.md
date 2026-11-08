@@ -114,7 +114,7 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 
 ## Estado desplegado y pendientes
 
-- **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
+- **API:** corre como Supabase Edge Function `api` (última versión desplegada el 8 nov 2026 con tablero del negocio y sellos de ciudad) (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
 - **Base:** migraciones hasta `20261108030000` aplicadas en producción (la última por SQL Editor: celular repetible y `negocios.semilla`); los negocios demo cobran y avisan a 5615156164, las cuentas nuevas usan el número que registran; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
 - **Entrega y códigos:** `20261108010000_entrega_y_codigos.sql` ya habilitó `entregada`, códigos únicos y producto gratis. El bundle de backend correspondiente ya está publicado en la Edge Function `api`; el 8 nov 2026 respondió `200 {"ok":true}` en producción después del despliegue.
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
@@ -122,6 +122,8 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 - **Modelo de IA:** OpenRouter u OpenAI con el mismo código (ver `backend/README.md`); falta cargar `OPENAI_API_KEY` en los secretos de la función y correr `npm run index:catalog`.
 
 ### Pendiente
+
+La lista vigente por persona está en [`../pendientes/`](../pendientes/README.md); lo siguiente es el contexto original.
 
 1. Registrar el webhook de pey en `https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api/webhooks/pey` y guardar su secreto como `PEY_WEBHOOK_SECRET`. Existe una Edge Function `pey-webhook` anterior con el esquema viejo; retirarla o repuntar pey.
 2. Cargar `OPENAI_API_KEY` (OpenRouter o OpenAI) en Edge Function Secrets y ejecutar `index:catalog`.
