@@ -4,7 +4,9 @@ API HTTP de Barrio para la web y la app. Corre como **Supabase Edge Function** `
 
 ## Estado
 
-Implementado y probado contra la base real (`npm run e2e:live`, 23 pasos, pey en mock; cobro real de $0.01 por push CoDi probado aparte): Descubrir, búsqueda determinista, perfil, agente con fallback, cotización, pedidos idempotentes, gestión del negocio, intentos de cobro, webhook de pey, reconciliación al consultar el cobro, cupones e insignias. Contrato completo: [`docs/BACKEND.md`](../docs/BACKEND.md). Pendientes: [`docs/BACKEND.md#estado-desplegado-y-pendientes`](../docs/BACKEND.md#estado-desplegado-y-pendientes).
+Implementado y probado contra la base real (`npm run e2e:live`, 23 pasos, pey en mock; cobro real de $0.01 por push CoDi probado aparte): Descubrir, búsqueda determinista, perfil, agente con fallback, cotización, pedidos idempotentes, gestión del negocio, intentos de cobro, webhook de pey, reconciliación al consultar el cobro, cupones e insignias.
+
+La rama actual añade confirmación de entrega (`lista → entregada`) y códigos de cupón, incluido producto gratis. Esos cambios viven en la migración `20261108010000_entrega_y_codigos.sql` y **no se deben considerar desplegados** hasta aplicar la migración y publicar el bundle generado. Contrato completo: [`docs/BACKEND.md`](../docs/BACKEND.md).
 
 Variables (`.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY` (en Edge Functions las inyecta Supabase), `PEY_API_KEY`, `PEY_MOCK`, `PEY_WEBHOOK_SECRET`, `CRON_SECRET`, `APP_RETURN_URL`, `ALLOWED_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_EMBEDDING_MODEL`.
 
@@ -12,7 +14,7 @@ Variables (`.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABA
 
 1. Copia `.env.example` a `.env`; los secretos viven solo en el servidor.
 2. Aplica las migraciones de `supabase/migrations/` (SQL Editor o `supabase db push`).
-3. Ejecuta `npm run index:catalog` después de publicar un menú o desde un cron seguro.
+3. Ejecuta `npm run index:catalog` después de publicar un menú o desde un cron seguro, solo si configuraste el proveedor de embeddings.
 4. Ejecuta `npm start`. `GET /health` responde `{ "ok": true }`.
 
 Usa `npm run check` y `npm test` antes de integrar.
@@ -25,7 +27,7 @@ La sesión se valida con Supabase Auth y el backend busca al comprador por `suje
 
 ## Pagos
 
-Cada cobro debe vivir en `intentos_cobro`, no en un campo de la orden: referencia pey, vía, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide más de un intento vigente. El webhook guarda primero su ID de evento, verifica firma/cuerpo crudo, referencia y monto, y solo entonces hace una transición condicional. La reconciliación consulta pey para intentos vivos. Un pago tardío de un intento vencido requiere revisión y jamás confirma un intento nuevo.
+Cada cobro debe vivir en `intentos_cobro`, no en un campo de la orden: referencia pey, vía `push`, monto en centavos, vencimiento, estado e idempotency key. Una restricción parcial impide más de un intento vigente. El webhook guarda primero su ID de evento, verifica firma/cuerpo crudo, referencia y monto, y solo entonces hace una transición condicional. La reconciliación consulta pey para intentos vivos. Un pago tardío de un intento vencido requiere revisión y jamás confirma un intento nuevo.
 
 ## Despliegue y prueba real
 
