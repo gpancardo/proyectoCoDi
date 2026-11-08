@@ -83,7 +83,7 @@ El cliente **no** toca tablas de Supabase ni contiene llaves de servidor. La API
 | [`barrio_app_pey/`](barrio_app_pey) | App Flutter: compra, gestión de negocio y dictado. |
 | [`backend/`](backend) | API Node adaptada a Supabase Edge Functions; reglas de pedidos, pagos y búsqueda. |
 | [`supabase/`](supabase) | Migraciones, seed y prueba de humo del esquema. |
-| [`web/`](web) | Landing y superficie web heredada; su publicación la controla el responsable web. |
+| [`web/`](web) | Landing, blog y superficie web. Su guía de publicación y comprobación está en [`web/README.md`](web/README.md). |
 | [`docs/`](docs) | Producto, contrato de API, diseño, tono y operación. |
 
 ## Para correrlo
