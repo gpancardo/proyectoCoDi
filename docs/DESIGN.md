@@ -1,236 +1,267 @@
-# Barrio — Identidad visual
+# Barrio: identidad visual
 
-> Guía de diseño · DevDay Exchange Community Hackathon CDMX (7–8 nov 2026)
-> Producto y alcance: ver `PRODUCTO.md` · Voz de marca: ver `VOZ-DE-MARCA.md`
-> Estado: **propuesta para discusión** (decisiones abiertas marcadas con 🟡)
->
-> **Alcance:** La experiencia objetivo es una app standalone de comprador y negocio, más landing y registro (`web/`). Las pantallas de búsqueda, catálogo, pedido, cobro CoDi y estado pagado pertenecen a la app. El bot de WhatsApp es legado y no define el diseño nuevo.
+DevDay Exchange Community Hackathon CDMX, 7 y 8 de noviembre de 2026.
+Producto y alcance en `PRODUCTO.md`. Voz en `VOZ-DE-MARCA.md`.
+
+Estado: propuesta. Lo que sigue abierto lleva la etiqueta *(abierto)*.
+
+Alcance: la app standalone de comprador y negocio, más la landing y el registro de `web/`. Pantallas del MVP: Descubrir, Buscar con Barrio, ficha del negocio, cuenta, cobro, pagado, y el panel del negocio. El dictado por voz y el cobro en mostrador (Barrio Mostrador) son posteriores al hackathon y no definen el diseño actual.
 
 ---
 
 ## 1. Nombre
 
-**Barrio** — cobra en tu barrio, sin comisión.
+**Barrio**. Cobra en tu barrio, sin comisión.
 
-La palabra *barrio* nombra exactamente a quien sirve: unidades económicas pequeñas, creadas por y para los habitantes de una misma localidad (tiendas de abarrotes, misceláneas, puestos de comida, talleres caseros, estéticas). Es cercana, mexicana y no suena a banco.
+Nombra a quien servimos: tiendas, fondas, puestos y talleres de una misma colonia. Es mexicano, cercano y no suena a banco.
 
-**Escritura:** `Barrio` con B mayúscula cuando es el nombre de la marca. En la versión corta del logo puede ir en minúsculas (`barrio`). Nunca "BARRIO" en texto corrido.
+Se escribe `Barrio`, con mayúscula inicial. En la versión corta del logo puede ir `barrio`. Nunca BARRIO en texto corrido.
 
-## 2. Personalidad
+"Sin comisión" se refiere al cobro con CoDi. Si el pago cae en el respaldo con tarjeta, no se promete.
 
-Barrio es **el vecino que sabe de tecnología**: confiable porque el dinero llega, cercano porque habla como la gente del barrio.
+## 2. Carácter
 
-| Es | No es |
-|---|---|
-| Cercano, de barrio | Corporativo, bancario |
-| Claro y directo | Técnico o financiero |
-| Confiable (el dinero llega) | Juguetón al grado de no tomarse en serio |
-| Orgulloso de lo local | Folclórico de souvenir (nada de papel picado ni sombreros) |
+Barrio es el vecino que sabe de tecnología. Confiable porque el dinero llega, cercano porque habla como la gente de la colonia.
 
-## 3. Color
+No es corporativo ni bancario, ni técnico, ni infantil. Tampoco folclórico: nada de papel picado ni sombreros. Lo mexicano está en cómo hablamos y en los objetos reales del barrio (el toldo, el letrero pintado, el ticket de la tienda), no en adornos.
 
-La base es un **azul marino** que da seriedad y confianza (se trata de dinero). El color de marca es **mango**, un amarillo-naranja cálido que remite a los toldos, las fachadas pintadas y los letreros de las tienditas. El **teal** se reserva para el estado de "pagado".
+## 3. Reglas anti-plantilla
 
-### 3.1 Paleta
+El diseño se reconoce por lo que elige, no por los defaults de una librería. Estas reglas se revisan en cada pantalla.
+
+- **Una forma por función.** Radios distintos según el objeto (ver §10). Si todo mide 16 px, parece plantilla.
+- **Sin sombras en reposo.** En la app separamos con líneas de 2 px en marino; en la landing, con paneles de color plano que se tocan. La única sombra es la de un diálogo abierto.
+- **Sin tarjetas por reflejo.** Listas y pasos van como renglones con regla, como una cuenta escrita a mano. La tarjeta se reserva para un objeto real: el ticket, la ficha de un negocio en un listado.
+- **Sin ilustración genérica ni íconos en cajitas.** Un ícono repetido tres veces con el mismo dibujo se quita.
+- **Sin degradados, brillos ni vidrio esmerilado.** La interfaz se usa a pleno sol y con prisa.
+- **Movimiento con motivo** (ver §8): solo transform y opacidad, ligado al scroll o a una acción, y siempre con versión quieta.
+- **Ejemplos con contenido real.** Placeholders distintos en cada fila, montos plausibles, negocios que existen en una colonia. Nunca "Lorem", "Producto 1" ni tres campos con el mismo ejemplo.
+- **Ningún texto repetido en cada fila.** Las etiquetas de columna van una vez arriba; cada campo lleva `aria-label`.
+- **Cada recurso decorativo significa algo.** El toldo aparece porque es la fachada de la tienda, no para llenar espacio.
+- **Copy concreto.** Nada de "así de fácil", "sin complicaciones" ni dos frases paralelas tipo eslogan. Se dice qué pasa y cuánto tarda.
+- **Jerarquía real.** El peso 800 va solo en ancho expandido: titulares, monto y código. El resto, 400 a 700 en ancho normal.
+- **Ninguna promesa sin respaldo.** Si el producto no lo hace hoy, la landing no lo dice.
+
+## 4. Color
+
+Base en azul marino, que da seriedad porque se trata de dinero. El color de marca es el mango, un amarillo naranja de toldo y letrero de tienda. El teal queda para "pagado".
 
 | Token | Hex | Uso |
 |---|---|---|
-| `--marino` | `#0B2545` | Texto principal, encabezados, fondo de la pantalla QR |
-| `--mango` | `#F5A524` | Color de marca: botón "Cobrar", micrófono, acentos |
-| `--crema` | `#FFF8EC` | Fondo general de la app (más cálido que el blanco) |
-| `--teal` | `#0F7C75` | Éxito: "✅ Pagado", confirmaciones |
-| `--tinta` | `#1A1F2B` | Texto de cuerpo largo |
-| `--gris` | `#5B6472` | Texto secundario, etiquetas, ayudas |
-| `--rojo` | `#C2392B` | Errores, "sin precio", cobro expirado |
-| `--blanco` | `#FFFFFF` | Tarjetas sobre el fondo crema, fondo del QR |
+| `--marino` | `#0B2545` | Texto principal, títulos, líneas, banda del negocio |
+| `--mango` | `#F5A524` | Botón principal, franjas del toldo, código de recoger |
+| `--crema` | `#FFF8EC` | Fondo general |
+| `--teal` | `#0F7C75` | Solo "Pagado" y confirmaciones |
+| `--tinta` | `#1A1F2B` | Texto de lectura larga |
+| `--gris` | `#5B6472` | Texto secundario, ayudas y placeholders |
+| `--rojo` | `#C2392B` | Errores, sin precio, cobro vencido |
+| `--blanco` | `#FFFFFF` | Campos, ticket, franjas blancas del toldo |
+| `--borde` | `#E8DFCF` | Separadores suaves, nunca bordes de campos |
+| `--trazo` | `#7D7666` | Borde de campos y de botones secundarios |
+| `--niebla` | `#E8EDF4` | Estado presionado de botones secundarios |
 
-### 3.2 Proporción
+El mango es para lo que se toca y para el toldo. Texto sobre mango siempre en marino. Texto en mango solo sobre marino. Crema, blanco y marino llevan casi todo; teal y rojo aparecen solo cuando hay un estado que comunicar.
 
-- **60%** crema (fondo)
-- **25%** marino (texto, encabezados)
-- **10%** mango (acción principal)
-- **5%** teal y rojo (solo estados)
+### Contraste
 
-El mango se reserva para **lo que se toca**. Si todo es mango, nada destaca.
+Calculado con la fórmula de luminancia de WCAG 2.
 
-### 3.3 Contraste (WCAG)
+| Par | Contraste |
+|---|---|
+| Marino sobre crema | 14.6 |
+| Marino sobre mango | 7.5 |
+| Mango sobre marino | 7.5 |
+| Tinta sobre crema | 15.6 |
+| Gris sobre crema | 5.7 |
+| Gris sobre blanco (placeholders) | 6.0 |
+| Blanco sobre teal | 5.0 |
+| Blanco sobre rojo | 5.4 |
+| `--trazo` sobre blanco | 4.5 |
+| `--trazo` sobre crema | 4.3 |
 
-Verificado. Todos los pares de uso pasan AA para texto normal (≥ 4.5:1).
+Todos pasan AA para texto. Los bordes de campos pasan el 3:1 de componentes de interfaz; por eso no usan `--borde`, que da 1.3:1 y no se ve al sol.
 
-| Texto | Fondo | Contraste | Resultado |
-|---|---|---|---|
-| Marino | Crema | 14.6 : 1 | AAA |
-| Marino | Mango | 7.5 : 1 | AAA |
-| Tinta | Crema | 15.6 : 1 | AAA |
-| Gris | Crema | 5.7 : 1 | AA |
-| Blanco | Teal | 5.1 : 1 | AA |
-| Blanco | Rojo | 5.4 : 1 | AA |
-| Crema | Marino | 14.6 : 1 | AAA |
-| Mango | Marino | 7.5 : 1 | AAA |
+No hay modo oscuro en el MVP: la app se usa en la calle y el fondo claro se lee mejor.
 
-**Reglas importantes:**
-- Sobre el botón mango el texto va en **marino, nunca en blanco** (blanco sobre mango no pasa contraste). Esto también ayuda a leer bajo el sol.
-- **Texto mango solo sobre fondo marino.** Sobre crema o blanco no se lee.
+## 5. Tipografía
 
-### 3.4 Tokens CSS
+Una sola familia variable: **Archivo**, de Omnibus-Type, con eje de ancho, servida desde Google Fonts con `display=swap` y solo en los cortes que se usan.
 
-```css
-:root {
-  /* Marca */
-  --marino: #0B2545;
-  --mango:  #F5A524;
-  --mango-presionado: #DB8E12;
+| Rol | Corte | Tamaño en móvil |
+|---|---|---|
+| Titular de portada | 800, ancho 125 | 32 a 54 px, fluido |
+| Título de sección | 800, ancho 112 | 24 a 34 px |
+| Total, código de recoger | 800, ancho 112 a 125 | 26 px (ticket), 38 px (código); 56 px en la pantalla de cobro |
+| Títulos de pasos y botones | 700, ancho normal | 19 a 20 px |
+| Texto | 400, ancho normal | 17 px |
+| Etiquetas y ayudas | 500, ancho normal | 14 px |
 
-  /* Fondos */
-  --crema:  #FFF8EC;
-  --blanco: #FFFFFF;
-
-  /* Texto */
-  --tinta:  #1A1F2B;
-  --gris:   #5B6472;
-
-  /* Estados */
-  --teal:   #0F7C75;   /* pagado */
-  --rojo:   #C2392B;   /* error / sin precio */
-
-  /* Superficies */
-  --borde:  #E8DFCF;
-  --sombra: 0 2px 8px rgba(11, 37, 69, 0.08);
-  --niebla: #E8EDF4;   /* burbuja de la persona en el chat de ejemplo */
-}
-```
-
-No hay modo oscuro en el MVP: la app se usa en la calle y a pleno sol, donde el fondo claro se lee mejor. La única pantalla oscura es la del QR (ver §7).
-
-## 4. Tipografía
-
-Una sola familia para todo, para cargar rápido en celulares de gama media y con señal débil.
-
-| Rol | Fuente | Peso | Tamaño (móvil) |
-|---|---|---|---|
-| Total a cobrar | Plus Jakarta Sans | 800 | 56 px |
-| Títulos de pantalla | Plus Jakarta Sans | 700 | 24 px |
-| Botones | Plus Jakarta Sans | 700 | 20 px |
-| Items de la cuenta | Plus Jakarta Sans | 500 | 18 px |
-| Texto normal | Plus Jakarta Sans | 400 | 17 px |
-| Ayudas y etiquetas | Plus Jakarta Sans | 500 | 14 px |
+Por qué Archivo: viene de la tradición de rotulación y señalización, y su eje de ancho deja que los titulares se vean como letrero (expandidos) sin cambiar de familia. Sus números tabulares son claros, que es lo que más importa en una cuenta.
 
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
-
-body {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 17px;
-  line-height: 1.5;
-  color: var(--tinta);
-  background: var(--crema);
-}
-
-.monto { font-variant-numeric: tabular-nums; } /* los números no "bailan" al cambiar */
+body { font: 400 17px/1.55 'Archivo', system-ui, sans-serif; }
+h1   { font-weight: 800; font-stretch: 125%; letter-spacing: -0.01em; }
+.monto { font-variant-numeric: tabular-nums; }
 ```
 
-**Por qué Plus Jakarta Sans:** es geométrica y moderna, pero con terminaciones redondas que la hacen amable. Sus números son muy legibles, que es lo que más importa aquí.
+Reglas:
+- Texto mínimo de 14 px. Tamaños en `rem` o `clamp()` donde escalan, para respetar el zoom del sistema.
+- Tracking: nunca por debajo de −0.02em.
+- Montos con signo y sin decimales cuando son cerrados: `$55`, no `$55.00 MXN`.
+- Sin mayúsculas sostenidas salvo etiquetas muy cortas.
 
-**Reglas:**
-- Tamaño mínimo de texto: **14 px**. El usuario lee con prisa y a un brazo de distancia.
-- Montos siempre con signo y sin decimales cuando son cerrados: `$55`, no `$55.00 MXN`.
-- Nada en MAYÚSCULAS SOSTENIDAS salvo etiquetas muy cortas.
+## 6. Logotipo
 
-## 5. Logotipo
+Un toldo de tienda visto de frente, con franjas mango y crema, sobre una fachada que lleva un pequeño QR. Junto al símbolo, la palabra `Barrio` en Archivo 800, ancho 112, tracking −0.02em.
 
-**Concepto:** un toldo de tiendita visto de frente, con sus franjas, sobre una fachada que lleva un pequeño código QR. Junto al símbolo, la palabra **Barrio** en Plus Jakarta Sans 800 con tracking de −2 px.
-
-```
-   ▄▀▄▀▄▀▄▀▄        ← toldo (franjas mango / crema)
-   █ ▪ ▫ ▪ █        ← fachada con QR estilizado (marino)
-     Barrio
-```
-
-**Variantes:**
-- **Principal (fondo claro):** símbolo en mango, crema y marino; `Barrio` en marino.
-- **Invertida (fondo marino):** símbolo con contorno crema; `Barrio` en crema o en mango.
+Variantes:
+- **Principal, fondo claro:** símbolo en mango, crema y marino; palabra en marino.
+- **Invertida, fondo marino:** símbolo con contorno crema; palabra en crema o mango.
 - **Corta (stickers, playeras, sellos):** `barrio` en minúsculas, marino sobre mango.
 - **Ícono de app:** solo el toldo con QR sobre fondo marino.
 
-**Área de respeto:** la altura de la "B" alrededor de todo el logo.
-
-🟡 Para el hackathon basta con la versión tipográfica. El símbolo se integra si queda tiempo el domingo.
-
-## 6. Iconos e ilustración
-
-- **Iconos:** Lucide (gratis, línea de 2 px, redondeados). Tamaño mínimo 24 px; en botones principales, 32 px.
-- **Iconos clave:** `mic` (dictar), `keyboard` (escribir), `qr-code` (cobrar), `check-circle` (pagado), `store` (negocio), `bar-chart-3` (hoy).
-- **Ilustración:** no se usa en el MVP. Si se agrega después: formas planas, paleta propia, personas reales del barrio; nada de clip art ni estereotipos.
-- **Fotos:** no se usan en la app. En el pitch, solo fotos propias de comercios reales (con permiso del dueño).
+Área de respeto: la altura de la B alrededor de todo el logo. El símbolo actual es definitivo para el hackathon.
 
 ## 7. Componentes
 
-### Botón principal ("Cobrar $55")
-- Fondo `--mango`, texto `--marino` 700, 20 px.
-- Alto mínimo **64 px**, ancho completo, esquinas de 16 px.
-- Al presionar: `--mango-presionado` + vibración corta.
-- Uno solo por pantalla.
+### El toldo
 
-### Botón de micrófono
-- Círculo de **96 px**, fondo `--mango`, icono `mic` en marino.
-- Grabando: anillo pulsante mango y texto "Te escucho…" debajo.
+Franja de 14 px con rayas de 32 px y una línea de 2 px en marino debajo. En fondo claro alterna mango y blanco; sobre marino, mango y crema. En el registro va en el borde superior de la página. En la landing aparece en el toldo del changarrito y en el pie, donde las letras de `barrio` se construyen sobre franjas mango y blanco. En la app, solo en la cabecera de la ficha de un negocio. No se usa de relleno en otros lugares.
 
-### Caja de texto
-- Fondo blanco, borde `--borde` 2 px, esquinas de 12 px, 18 px de texto.
-- Placeholder: *"Escribe el pedido, ej. 2 cocas 600 y unas sabritas"*.
-- Al enfocarla, el borde cambia a marino.
-- **Siempre visible junto al micrófono**, nunca escondida.
+### Botones
 
-### Tarjeta de cuenta
-- Fondo blanco sobre crema, sombra suave.
-- Cada item: nombre a la izquierda, `cantidad × precio` en gris, subtotal a la derecha en marino.
-- Item "sin precio": fondo rojo muy claro, icono de alerta y campo para escribir el monto.
-- Total al pie en 56 px, 800.
+- **Principal:** fondo `--mango`, texto `--marino` 700, borde de 2 px en marino, esquinas de 8 px, alto mínimo 64 px. Presionado: `--mango-presionado` y baja 1 px, con vibración corta en la app. Uno por bloque visible.
+- **Secundario:** mismo tamaño y borde, fondo transparente.
+- **De texto:** subrayado, para acciones menores ("Agregar otro producto").
+- Los botones llevan siempre un verbo ("Confirmar pedido", "Aprobar en mi banco"). Nunca "Continuar" ni "Enviar" a secas.
 
-### Pantalla QR (la que ve el cliente)
-- Es la **única pantalla oscura**: fondo `--marino`, para que el QR blanco resalte y el cliente sepa que esa pantalla es para él.
-- QR sobre cuadro blanco con margen amplio, lo más grande posible.
-- Arriba: nombre del negocio en crema. Abajo: monto en mango, 56 px.
-- Estado "Esperando que te paguen…" en crema con animación suave.
+### Campos
+
+- Fondo blanco, borde de 1.5 px en `--trazo`, esquinas de 6 px, texto de 18 px.
+- Foco: borde y anillo de 1.5 px en marino, más el contorno de foco visible de 3 px.
+- Error: borde y anillo en rojo, con el mensaje en texto que dice qué hacer.
+- Etiqueta arriba, en negrita, siempre visible (no solo placeholder). Ayuda abajo, en 14 px.
+- Los placeholders son ejemplos reales y no se repiten entre filas.
+
+### Filtros y búsqueda (Descubrir y Buscar con Barrio)
+
+- Filtros como fichas conmutables de 48 px de alto con texto y estado (`aria-pressed`): activo se ve con relleno marino y texto crema, además de un ✓ en texto, no solo por color.
+- Buscar con Barrio es una caja de texto visible. Cada resultado muestra por qué aparece ("Vende taco de canasta, abre ahora, a 400 m"), y los filtros se pueden corregir a mano.
+- Carruseles con desplazamiento nativo, la siguiente tarjeta asomando para indicar que hay más, sin autoplay ni puntos.
+
+### Ficha de negocio
+
+Es un objeto real, así que lleva marco: borde de 2 px en marino, esquinas de 6 px, sin sombra, con el toldo en la cabecera. Muestra nombre, categoría, distancia o zona, si está abierto, disponibilidad y desde cuánto salen los precios. Una sola acción principal por ficha.
+
+### Cuenta (ticket)
+
+Fondo blanco, borde de 2 px en marino, esquinas de 6 px, sin sombra.
+- Cabecera con nombre y dirección del negocio, separada por una línea punteada.
+- Renglones: nombre a la izquierda con `cantidad × precio` en gris debajo, subtotal a la derecha.
+- Total en 800 expandido.
+- Muestra negocio, productos, cantidad, subtotal, total y forma de entrega antes de confirmar.
+- Producto sin precio: fondo rojo claro, ícono de alerta y mensaje con texto.
+
+### Pasos y listas
+
+Renglones separados por reglas de 2 px en marino, con el número en 800 expandido a la izquierda. Sin tarjetas, sin círculos, sin sombra.
+
+### Estado del pedido
+
+Cada estado lleva texto y una forma distinta, nunca solo color:
+
+| Estado | Texto | Marca |
+|---|---|---|
+| Pendiente | Esperando al negocio | reloj |
+| Aceptada | Aprueba el cobro en tu banco | billete |
+| Pagada | ¡Pagado! | ✅ y teal |
+| Lista | Ya puedes pasar | bolsa |
+| Rechazada, vencida o cancelada | Pedido cancelado, con el motivo | tache y rojo |
 
 ### Pagado
-- Toda la pantalla cambia a `--teal` con ✅ grande, monto y "¡Pagado!" en blanco.
-- Sonido corto de caja registradora y vibración.
-- Regresa sola a la pantalla de cobro a los 3 s.
 
-### Mensajes y estados dentro de la app
-- De tú, corto, sin emoji. La única excepción es ✅ en "¡Pagado!".
-- Priorizar tarjetas de negocio comparables: nombre, categoría, distancia/zona, abierto, disponibilidad y precios.
-- La cuenta debe mostrar negocio, productos, cantidad, subtotal, total y forma de entrega antes de confirmar.
-- Mostrar estados con texto e indicador visual accesible; no depender solo del color.
+Pantalla en `--teal` con ✅, el monto, "¡Pagado!" y el código de recoger en 800 expandido, grande. **No se cierra sola:** el código tiene que seguir visible hasta que la persona lo descarte. Vibración corta; el sonido es opcional y apagado por defecto.
 
-## 8. Espaciado y forma
+### Cobro por QR (respaldo)
 
-- Escala de espaciado: **4, 8, 12, 16, 24, 32, 48 px**.
-- Margen lateral de pantalla: **16 px**.
-- Esquinas: 12 px (campos), 16 px (botones y tarjetas), círculo (micrófono).
-- Áreas táctiles mínimas de **48 × 48 px** (se usa con una mano y a veces con prisa).
+Solo aparece si falla el cobro por notificación y el enlace de pago. Fondo marino para que el QR blanco resalte, sobre cuadro blanco con margen amplio y lo más grande posible. Arriba, el nombre del negocio; abajo, el monto en mango (56 px). Texto "Esperando que te paguen…" y botón visible "Cancelar cobro".
 
-## 9. Voz y tono
+### Panel del negocio
 
-Resumen; la guía completa está en `VOZ-DE-MARCA.md`.
+Acciones visibles y de un solo toque: aceptar, rechazar, marcar listo, abrir o cerrar, publicar cupón y ver el resumen del día. Un pedido nuevo muestra cuánto falta para que se cancele por falta de respuesta (8 minutos). El interruptor de abierto o cerrado lleva texto ("Abierto", "Cerrado"), no solo posición.
 
-| Situación | ✅ Sí | ❌ No |
+### Dictado por voz *(abierto, posterior al MVP)*
+
+Círculo de 96 px en mango con el ícono `mic` en marino; grabando, anillo mango y "Te escucho…". Siempre junto a una caja de texto visible. Pertenece a Barrio Mostrador.
+
+## 8. Landing y movimiento
+
+La landing (`web/index.html`, `landing.css`, `landing.js`) es un cartel de calle: paneles de color plano que se tocan, titulares en minúsculas a todo volumen y el changarrito montado sobre la costura entre el campo mango y la banda marino.
+
+- **Titulares de la landing** en Archivo 800, ancho 125, en minúsculas, como la versión corta del logo. Dos líneas como máximo en cualquier ancho. La interfaz de la app sigue en mayúscula inicial.
+- **Secciones**, en orden: portada; la barra de etapas del pedido, con anchos que siguen el tiempo real (la espera del negocio, hasta 8 minutos, es la más larga); "arma tu cuenta", donde el titular es un campo de texto que se vuelve ticket con total; el mosaico para negocios; las preguntas como fichas de archivero (una abierta a la vez, `<details name>`); el cierre con el registro ya abierto, que pasa nombre y modo de aceptación a `registro.html`; y el pie con `barrio` construido como toldo.
+- **Sin fotos ni videos.** Todo lo visual se dibuja o se construye en código: el changarrito en 3D, el dibujo SVG de respaldo y fragmentos de interfaz (`data-ui`) con números que cuadran.
+- **Precios de muestra** en "arma tu cuenta" (`web/cuenta.js`), marcados como tales en la página. En la app el total lo calcula el backend.
+
+### Changarrito 3D
+
+`web/changarrito.js`, Three.js 0.170 desde jsDelivr con `importmap`, geometría procedural (sin modelos descargados).
+- Sombreado tipo cartel (`MeshToonMaterial` con tres tonos) y contorno marino de calcomanía; solo colores de §4.
+- Toldo de franjas mango y blanco con faldón ondulado, rótulo "doña lupe" pintado con Archivo, canasta, jarra de horchata, refrescos y un letrero tipo QR genérico (no es un código real).
+- Se carga después de pintar, solo si hay WebGL; si no, queda el SVG plano. Dibuja solo cuando está a la vista y algo cambió; densidad de píxeles tope 2.
+
+### Movimiento
+
+- **Firma:** el changarrito entra con una cortina (clip-path) y se asienta de 1.12 a 1 en escala.
+- **Parallax:** el changarrito gira y la cámara baja con el scroll de la portada; el titular se queda atrás (`animation-timeline: scroll()`); el panel de pedido flota en su loseta.
+- **Entradas:** titulares, losetas, fichas y diálogo suben 28 px con opacidad al entrar (`animation-timeline: view()`), escalonados. La barra de etapas crece de izquierda a derecha.
+- Todo es CSS ligado al scroll (corre en el compositor, bien en teléfono) dentro de `@supports (animation-timeline: view())`. Sin soporte, el contenido se ve completo y quieto.
+- `prefers-reduced-motion: reduce` apaga todo: el changarrito queda en una pose fija y no sigue al cursor.
+
+## 9. Accesibilidad
+
+Objetivo: WCAG 2.2 AA. Reglas que ya cumple la landing y que la app debe mantener:
+
+- **Contraste** según §4, incluidos placeholders y bordes de campos.
+- **Teclado:** todo funciona sin ratón, con orden lógico y contorno de foco de 3 px en marino (crema sobre marino). Enlace "Saltar al contenido" al inicio.
+- **Objetivos táctiles** de al menos 48 × 48 px, también el logo enlazado.
+- **Estructura:** un `h1` por página, encabezados en orden, `lang="es-MX"`, `nav` y `main` etiquetados.
+- **Formularios:** etiqueta visible, `autocomplete` correcto, `inputmode` numérico en teléfono y precios, errores con texto y `aria-invalid`, y el foco pasa al primer campo con problema. Los campos obligatorios se anuncian una vez, arriba.
+- **Color:** nunca solo color para comunicar estado (§7, Estado del pedido).
+- **Movimiento:** respeta `prefers-reduced-motion` (§8). Nada se esconde si el navegador no soporta animaciones ligadas al scroll.
+- **Zoom:** usable a 200% sin desplazamiento horizontal; texto en `rem` o `clamp()`.
+- **Imágenes decorativas** con `aria-hidden`. Los ejemplos de ticket son texto real, no una imagen con descripción.
+- *(abierto)* Pasar la app por un lector de pantalla real (TalkBack) antes de la entrega.
+
+## 10. Espaciado y forma
+
+- Escala de espaciado: 4, 8, 12, 16, 24, 32, 48, 72 px.
+- Margen lateral de pantalla: 16 px.
+- Esquinas por objeto: botones 8 px, campos 6 px, ticket 6 px, ficha de negocio 6 px, círculo solo para el micrófono. Una forma por función.
+- Líneas: 2 px en marino para estructura, 1.5 px en `--trazo` para campos, 1 px en `--borde` para separadores suaves.
+- Ritmo vertical variable: en la landing cada panel tiene su altura (portada a pantalla completa, secciones de 96 a 180 px de aire arriba y abajo) y un solo margen lateral `clamp(16px, 2.2vw, 28px)`.
+
+## 11. Voz, resumen
+
+La guía completa está en `VOZ-DE-MARCA.md`.
+
+| Situación | Decimos | No decimos |
 |---|---|---|
-| Botón principal | "Cobrar $55" | "Generar solicitud de pago" |
-| Pago recibido | "¡Pagado! Ya te llegaron $55" | "Transacción liquidada exitosamente" |
-| Ruido | "No te escuché bien, ¿me lo escribes?" | "Error de reconocimiento de voz" |
-| Producto desconocido | "No tengo precio para *chicles*, ¿cuánto es?" | "Producto no encontrado en catálogo" |
+| Confirmar | "Confirmar pedido" | "Generar solicitud de pago" |
+| Pago recibido | "¡Pagado! Tu código para recoger: 4821" | "Transacción liquidada exitosamente" |
+| Negocio cerrado | "Este negocio está cerrado. Mira otras opciones cercanas." | "Establecimiento no disponible" |
+| Sin resultados | "No encontré eso por tu zona. Prueba con otra palabra." | "Sin coincidencias" |
 | Resumen | "Hoy vendiste $1,240 en 38 cobros" | "Volumen transaccional diario" |
-| Sin comisión | "Te llega completo, sin comisión" | "0% de tasa de descuento" |
+| Sin comisión | "CoDi no cobra comisión" | "0% de tasa de descuento" |
 
-## 10. Checklist rápido para el equipo
+## 12. Antes de entregar una pantalla
 
-- [ ] Tokens CSS de §3.4 copiados al proyecto.
-- [ ] Plus Jakarta Sans cargada (400, 500, 700, 800).
-- [ ] Texto sobre mango siempre en marino; texto mango solo sobre marino.
-- [ ] Un solo botón mango por pantalla.
-- [ ] Micrófono y caja de texto visibles al mismo tiempo.
-- [ ] Pantalla QR en marino; pantalla "Pagado" en teal.
-- [ ] Ninguna palabra de la lista prohibida en la interfaz (ver `VOZ-DE-MARCA.md`).
-- [ ] Probar en un Android real, a pleno sol.
+- Tokens de §4 y Archivo cargada en 400, 500, 700 y 800.
+- Texto sobre mango en marino; texto mango solo sobre marino.
+- Máximo un botón mango por bloque visible.
+- Ninguna tarjeta con sombra, ningún círculo numerado, ningún ícono repetido en cajita.
+- Placeholders y ejemplos distintos y con sentido.
+- Ninguna promesa que el producto no cumpla hoy.
+- Ninguna palabra de la lista de `VOZ-DE-MARCA.md` ni emoji fuera de ✅.
+- Revisada en 390 px y en 1280 px, sin desbordes ni texto cortado, y navegada solo con teclado.
+- Probada en un Android real, a pleno sol.
