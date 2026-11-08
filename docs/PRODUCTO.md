@@ -97,7 +97,7 @@ Negocio marca "Listo" → la app muestra el estado a Lupita
 - **Los cambios de estado son atómicos:** dos "sí" seguidos no generan dos cobros.
 - **Un cobro nuevo solo se genera cuando el anterior ya venció**, nunca dos vivos para el mismo pedido.
 - **El webhook verifica la firma, es idempotente y exige que el monto pagado alcance.**
-- **Un negocio solo recibe pedidos si está verificado y abierto**, y cada acción se autoriza contra su sesión.
+- **Un negocio solo recibe pedidos si tiene dueño con sesión y está abierto** (sin verificación manual), y cada acción se autoriza contra su sesión.
 - Lo que escribe la persona son datos, no instrucciones para el modelo.
 
 ### 6.3 Tiempos

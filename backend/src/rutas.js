@@ -64,7 +64,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
     return ok(200, { comprador: auth.comprador, negocio: auth.negocio });
   }
-  if (m === 'POST' && ruta === '/businesses') { // alta de negocio de esta sesión; nace sin verificar
+  if (m === 'POST' && ruta === '/businesses') { // alta de negocio de esta sesión; queda activo
     exigir(auth, 401, 'UNAUTHENTICATED', 'Inicia sesión para continuar.');
     const b = await cuerpo(); const tel = String(b.telefono ?? '').replace(/\D/g, '');
     exigir(String(b.nombre ?? '').trim().length >= 2, 422, 'INVALID_BUSINESS', 'Escribe el nombre de tu negocio.', 'nombre');
@@ -75,7 +75,7 @@ export async function manejar({ db, req, res, url, auth, cuerpo, enviar }) {
     const productos = productosValidos(b.productos);
     try {
       const [n] = await db.insertar('negocios', { nombre: b.nombre.trim().slice(0, 60), telefono: tel, zona: b.zona, colonia: b.colonia ? String(b.colonia).trim().slice(0, 80) : null, direccion: b.direccion.trim().slice(0, 200),
-        categoria: b.categoria.trim().slice(0, 60), descripcion: b.descripcion ? String(b.descripcion).trim().slice(0, 300) : null, productos, auto_aceptar: !!b.auto_aceptar, sujeto_auth: auth.session.id });
+        categoria: b.categoria.trim().slice(0, 60), descripcion: b.descripcion ? String(b.descripcion).trim().slice(0, 300) : null, productos, auto_aceptar: !!b.auto_aceptar, sujeto_auth: auth.session.id, verificado: true }); // sin verificación manual: la cuenta con dueño activa el negocio
       return ok(201, { id: n.id, nombre: n.nombre, verificado: n.verificado });
     } catch (e) { cuerpoInvalido(e); }
   }

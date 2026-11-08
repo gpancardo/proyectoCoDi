@@ -87,11 +87,6 @@ const manejarPeticion = async (req, res) => {
       if (!env.CRON_SECRET || req.headers.authorization !== `Bearer ${env.CRON_SECRET}`) return fallo(res, 401, 'UNAUTHENTICATED', 'No autorizado.');
       await barrido(db); return enviar(res, 200, { data: { ok: true } });
     }
-    if (req.method === 'POST' && (m = url.pathname.match(/^\/internal\/businesses\/(\d+)\/verify$/))) { // verificación manual por el equipo
-      if (!env.CRON_SECRET || req.headers.authorization !== `Bearer ${env.CRON_SECRET}`) return fallo(res, 401, 'UNAUTHENTICATED', 'No autorizado.');
-      const [n] = await db.actualizar('negocios', `id=eq.${m[1]}`, { verificado: true });
-      return n ? enviar(res, 200, { data: { id: n.id, verificado: n.verificado } }) : fallo(res, 404, 'NOT_FOUND', 'No encontramos ese negocio.');
-    }
     if (url.pathname.startsWith('/api/v1/') && db && await manejar({ db, req, res, url, auth: await persona(req), cuerpo: () => cuerpo(req), enviar })) return;
     return fallo(res, 404, 'NOT_FOUND', 'No encontramos esa ruta.');
   } catch (error) {
