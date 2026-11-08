@@ -3,7 +3,7 @@ import { armarCuenta } from './cuenta.mjs'
 const $ = (s) => document.querySelector(s)
 const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// El botón principal lleva a la app configurada (app.html por defecto)
+// El botón principal lleva a la descarga de la app
 if (window.BARRIO?.APP_URL) $('#app').href = window.BARRIO.APP_URL
 
 // Arma tu cuenta: opción múltiple. El titular muestra lo elegido y debajo sale el ticket con total.
