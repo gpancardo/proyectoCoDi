@@ -135,6 +135,7 @@ La lista vigente por persona está en [`../pendientes/`](../pendientes/README.md
 
 - Cliente: errores de red/API con mensaje y reintento en todas las pantallas; dictado con `speech_to_text` en es_MX (con respaldo a otro español), permiso `RECORD_AUDIO` declarado, errores por código y búsqueda automática al terminar el dictado.
 - El negocio se da de alta y se administra en la app: resumen, pedidos, menú y promociones.
+- Avisos al comprador: la app revisa `GET /orders?as=comprador` cada 10 s y muestra una notificación local de Android cuando el pedido cambia (cobro, pagado, listo, rechazado, vencido). Solo llegan mientras Android mantenga viva la app; con la app cerrada a la fuerza hace falta FCM.
 - Vendedor puede crear códigos de descuento: porcentaje en toda la compra o un producto gratis. No hay descuento de monto fijo en la app; porcentaje por artículo requiere soporte nuevo en `POST /business/coupons`.
 - El esquema de entrega/códigos y el backend que expone `/orders/:id/received` ya están publicados; falta validación de punta a punta autenticada en producción.
 - Sin emulador Android en esta máquina: la voz solo se validó por código y análisis; falta probarla en un teléfono. Archivo ya va empaquetada en la app. Lo que falta está en [`../pendientes/`](../pendientes/README.md).
