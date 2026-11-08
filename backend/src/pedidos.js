@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'; // en la Edge Function (Deno) Buffer no es global
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { normalizar } from './text.js';
 
