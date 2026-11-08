@@ -16,7 +16,6 @@ Web / App ──HTTPS──► API Barrio (Supabase Edge Function) ──► Pos
 | `supabase/` | Migraciones, datos de demo y pruebas del esquema (`tests/`) |
 | `web/` | Landing, redirección del registro y la app web (`app.html`, `app.js`) |
 | `barrio_app_pey/` | App Flutter (en construcción, aún sin integrar a la API) |
-| `bot/` | Código heredado de WhatsApp; referencia, no producto |
 | `docs/PRODUCTO.md` | Fuente de verdad del producto |
 | `docs/BACKEND.md` | Contrato de la API, esquema, estado desplegado y pendientes |
 | `docs/PEY.md` | Cuentas de prueba, reglas de pago y entrega del hackathon |
@@ -25,7 +24,7 @@ Web / App ──HTTPS──► API Barrio (Supabase Edge Function) ──► Pos
 
 ## Estado
 
-API desplegada como Edge Function `api` en el proyecto de Supabase del equipo; migraciones aplicadas hasta `20261107050000`. Funciona de punta a punta contra la base real (cotizar → pedir → aceptar → cobro → pagado, cupones, insignias). Un cobro real de $0.01 por push CoDi se probó contra pey. Pendientes y detalles: [docs/BACKEND.md](docs/BACKEND.md#estado-desplegado-y-pendientes).
+API desplegada como Edge Function `api` en el proyecto de Supabase del equipo; migraciones aplicadas hasta `20261107050000` (`20261107060000_limpiar_legado.sql` pendiente de aplicar en producción). Funciona de punta a punta contra la base real (cotizar → pedir → aceptar → cobro → pagado, cupones, insignias). Un cobro real de $0.01 por push CoDi se probó contra pey. Pendientes y detalles: [docs/BACKEND.md](docs/BACKEND.md#estado-desplegado-y-pendientes).
 
 ## Desarrollo
 
