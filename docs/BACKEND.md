@@ -51,6 +51,7 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `POST /businesses` | sesión | Alta del negocio de la sesión (activo al registrarse) |
 | `PATCH /business` | negocio | Abrir/cerrar, aceptar en automático, descripción y menú |
 | `GET/POST /business/coupons`, `DELETE /business/coupons/{id}` | negocio | Cupones por porcentaje, monto o producto gratis; pueden llevar un código único, mínimo y vencimiento |
+| `GET /business/dashboard` | negocio | Tablero de los últimos 30 días: ventas de hoy y ayer, 7 días, por atender, lo que más sale, clientes que regresan; días en hora de CDMX |
 | `POST /orders/quotes` | comprador | Cotiza desde el catálogo del servidor; autoaplica el mejor cupón aceptado o valida `coupon_code`; caduca a los 10 min |
 | `POST /orders` | comprador | Crea el pedido desde `quote_id` con `Idempotency-Key` y `confirmed_total_minor` igual al total cotizado |
 | `GET /orders`, `GET /orders/{id}` | sesión | Pedidos propios o del negocio (`?as=comprador` para ver los propios si la cuenta también tiene negocio); `codigo` de recogida solo al comprador desde `pagada` hasta `entregada` |
@@ -99,7 +100,7 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 ## Cupones e insignias
 
 - **Cupón:** `cupones` (negocio) → `cupon_canjes` por comprador (`ofrecido → aceptado → usado`, una vez por persona) + `notificaciones`. Puede ser porcentaje, monto o un producto gratis y tener un `codigo` único. Al publicarlo se ofrece solo a compradores con un pedido `pagada`/`lista` en ese negocio. `POST /orders/quotes` elige el mejor cupón **aceptado** o valida un código de ese negocio y lo resta en el servidor (total mínimo $1); `POST /orders` lo marca `usado` con compare-and-set y vuelve a `aceptado` si el pedido se cancela, rechaza o expira. El cobro usa el total ya descontado.
-- **Sellos (`insignias`):** derivados de pedidos pagados, sin tabla. Siempre son cuatro: primera compra (1), bronce (3 compras en un negocio), plata (3 negocios de una colonia) y oro (4 tipos de negocio); ver `METAS_SELLOS` en `backend/src/pedidos.js`. `GET /me/profile` devuelve `nivel`, `nombre` y `detalle` personalizados, `avance`, `meta` y `obtenida`, más `premio` (la promoción sin código del negocio de la primera compra, si sigue disponible). El negocio solo ve el nombre genérico del sello, nunca dónde más compra su cliente.
+- **Sellos:** derivados de pedidos pagados, sin tabla; reglas y catálogo en [`LOGROS.md`](LOGROS.md). `GET /me/profile` devuelve `insignias` (cuatro, con `nivel`, `nombre` y `detalle` personalizados, `avance`, `meta` y `obtenida`), `alcaldias` (16), `cdmx` y `premio` (la promoción sin código del negocio de la primera compra, si sigue disponible). El negocio solo ve el nombre genérico del sello, nunca dónde más compra su cliente.
 - **Promociones sin código:** quien ya pagó en un negocio las recibe aceptadas al cotizar ahí (`cuponesPorOfrecer`), una vez por persona y por cupón.
 - `negocios.sujeto_auth` liga la sesión de Supabase Auth con el negocio (rol negocio); `compradores.sujeto_auth`, con el comprador.
 
@@ -114,7 +115,7 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 ## Estado desplegado y pendientes
 
 - **API:** corre como Supabase Edge Function `api` (`https://bjbfcxodapjaudawlsvg.supabase.co/functions/v1/api`, JWT de la función apagado: la API autentica sola). Se empaqueta con `npm run build:edge` en `backend/` y se despliega pegando `supabase/functions/api/index.ts` (no versionado) en el editor del panel. Cubre Descubrir, búsqueda (con o sin modelo), cotización, pedidos, cobros con pey (`intentos_cobro`), webhook `/webhooks/pey`, reconciliación puntual al consultar el cobro, cupones, insignias y gestión del negocio.
-- **Base:** migraciones hasta `20261108010000` aplicadas y verificadas en producción; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
+- **Base:** migraciones hasta `20261108030000` aplicadas en producción (la última por SQL Editor: celular repetible y `negocios.semilla`); los negocios demo cobran y avisan a 5615156164, las cuentas nuevas usan el número que registran; `pg_cron` ejecuta `barrido_sql()`. Datos de demo: negocio 7 (Tacos Doña Lupe) y un cupón. Prueba de punta a punta contra la base real: `npm run e2e:live` (pey en mock; 23 pasos). Cobro real de $0.01 por push CoDi verificado.
 - **Entrega y códigos:** `20261108010000_entrega_y_codigos.sql` ya habilitó `entregada`, códigos únicos y producto gratis. El bundle de backend correspondiente ya está publicado en la Edge Function `api`; el 8 nov 2026 respondió `200 {"ok":true}` en producción después del despliegue.
 - **Web:** `web/app.html` + `app.js` (comprador y negocio) consumen la API. La publicación de la web (GitHub Pages) la hace otro integrante; no desplegarla desde aquí. Auth: Site URL y redirects de Supabase apuntan a `https://gpancardo.github.io/proyectoCoDi/`; si la URL cambia, actualizar ambos en Authentication → URL Configuration.
 - **Sin verificación manual de negocios:** un negocio queda activo al registrarse con su cuenta.
@@ -131,6 +132,7 @@ Implementado en `20261107020000_pedidos_pagos_promos.sql`: `intentos_cobro` y `e
 ## App Flutter: estado de validación (8 nov 2026)
 
 - Cliente: errores de red/API con mensaje y reintento en todas las pantallas; dictado con `speech_to_text` en es_MX (con respaldo a otro español), permiso `RECORD_AUDIO` declarado, errores por código y búsqueda automática al terminar el dictado.
+- El negocio se da de alta y se administra en la app: resumen, pedidos, menú y promociones.
 - Vendedor puede crear códigos de descuento: porcentaje en toda la compra o un producto gratis. No hay descuento de monto fijo en la app; porcentaje por artículo requiere soporte nuevo en `POST /business/coupons`.
 - El esquema de entrega/códigos y el backend que expone `/orders/:id/received` ya están publicados; falta validación de punta a punta autenticada en producción.
-- Sin emulador Android en esta máquina: la voz solo se validó por código y análisis; falta probarla en un teléfono. La fuente Archivo no está empaquetada en la app (cae a la del sistema).
+- Sin emulador Android en esta máquina: la voz solo se validó por código y análisis; falta probarla en un teléfono. Archivo ya va empaquetada en la app. Lo que falta está en [`../pendientes/`](../pendientes/README.md).

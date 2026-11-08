@@ -201,7 +201,7 @@ La landing (`web/index.html`, `landing.css`, `landing.js`) es un cartel de calle
 
 - **Titulares de la landing** en Archivo 800, ancho 125, en minúsculas, como la versión corta del logo. Dos líneas como máximo en cualquier ancho. La interfaz de la app sigue en mayúscula inicial.
 - **Secciones**, en orden: portada; la barra de etapas del pedido, con anchos que siguen el tiempo real (la espera del negocio, hasta 8 minutos, es la más larga); "arma tu cuenta", donde el titular es un campo de texto que se vuelve ticket con total; el mosaico para negocios; las preguntas como fichas de archivero (una abierta a la vez, `<details name>`); el cierre con los tres pasos para registrar el negocio, que lleva a la app (`app.html`, con una sola cuenta para comprar o vender); y el pie con `barrio` construido como toldo.
-- **Sin fotos ni videos.** Todo lo visual se dibuja o se construye en código: el changarrito en 3D, el dibujo SVG de respaldo y fragmentos de interfaz (`data-ui`) con números que cuadran.
+- **Sin fotos ni videos de archivo.** Todo lo visual se dibuja o se construye en código: el changarrito en 3D, el dibujo SVG de respaldo y fragmentos de interfaz (`data-ui`). Las capturas de la sección «la app por dentro» son de la app real, con datos de muestra (`barrio_app_pey/tool/capturas_test.dart`).
 - **Precios de muestra** en "arma tu cuenta" (`web/cuenta.mjs`), marcados como tales en la página. En la app el total lo calcula el backend.
 
 ### Changarrito 3D
@@ -267,34 +267,6 @@ La guía completa está en `VOZ-DE-MARCA.md`.
 - Revisada en 390 px y en 1280 px, sin desbordes ni texto cortado, y navegada solo con teclado.
 - Probada en un Android real, a pleno sol.
 
-## 13. Sellos de logros (imágenes por hacer)
+## 13. Sellos de logros
 
-Hoy la app usa medallas provisionales. Faltan cuatro sellos definitivos. Se dibujan una vez y sustituyen estos archivos sin tocar código.
-
-| Archivo en `barrio_app_pey/assets/icons/` | Logro | Color único | Motivo central |
-|---|---|---|---|
-| `medal-first.svg` | Primera compra | Grana `#9B1B4B` | Huellas de pie en camino: en los códices, las huellas indican un trayecto |
-| `medal-bronze.svg` | Ya te conocen en (negocio) | Bronce `#8A4F24` | Casa con voluta de palabra: un lugar donde ya platican contigo |
-| `medal-silver.svg` | Conoces (colonia) | Plata `#5F6B78` | Cerro de topónimo, el signo con que los códices nombran un lugar |
-| `medal-gold.svg` | De todo en tu barrio | Oro `#8F6A00` | Cuatro cuadrantes con oficios: herramienta, libro, flor, canasta |
-
-Los cuatro colores pasan 4.5:1 sobre crema y blanco. La grana viene de la cochinilla, el tinte americano; no se confunde con `--rojo`, que sigue siendo solo para errores.
-
-**Estilo.** La mezcla de dos referencias:
-
-- **Del sello universitario:** círculo con borde dentado, doble anillo y composición simétrica. Se ve como un sello estampado, no como una medalla de videojuego.
-- **De los signos de códice:** figura plana, contorno grueso de grosor parejo, formas cerradas y geométricas, sin perspectiva ni sombras.
-
-**Reglas técnicas.**
-
-- SVG con `viewBox="0 0 64 64"`, fondo transparente y **una sola tinta**. Blanco y detalle se resuelven con huecos.
-- Tiene que leerse a 72 px en la lista. Sin texto dentro del sello: el nombre lo pone la app, porque cambia con cada persona.
-- El estado "por lograr" lo pinta la app en gris; no se dibuja aparte.
-
-**Cuidado cultural.** Es inspiración gráfica en formas de escritura vivas en la memoria de pueblos originarios, no adorno.
-
-- Nada de deidades, escenas rituales, calendario sagrado, tocados ni personajes "aztecas".
-- No copiar signos de un códice ni de ilustraciones existentes: se dibujan de nuevo. Los códices solo enseñan la forma de dibujar.
-- Los nombres de los logros van en español. Si algún día se usa náhuatl, lo revisa una persona hablante.
-- Antes de publicarlos fuera de la demo, los revisa y acredita una persona diseñadora o especialista nahua, con pago por su trabajo.
-- Motivos de todos los oficios, no solo comida.
+Estilo, tintas y reglas en [`LOGROS.md`](LOGROS.md). Son PNG de una tinta en `barrio_app_pey/assets/sellos/`, generados por `tool/sellos/generar.py`.
