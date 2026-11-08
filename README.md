@@ -24,7 +24,7 @@ Web / App ──HTTPS──► API Barrio (Supabase Edge Function) ──► Pos
 
 ## Estado
 
-API desplegada como Edge Function `api` en el proyecto de Supabase del equipo; migraciones aplicadas hasta `20261107060000`. Funciona de punta a punta contra la base real (cotizar → pedir → aceptar → cobro → pagado, cupones, insignias). Un cobro real de $0.01 por push CoDi se probó contra pey. Pendientes y detalles: [docs/BACKEND.md](docs/BACKEND.md#estado-desplegado-y-pendientes).
+API desplegada como Edge Function `api` en el proyecto de Supabase del equipo; migraciones aplicadas hasta `20261107050000` (`20261107060000_limpiar_legado.sql` pendiente de aplicar en producción). Funciona de punta a punta contra la base real (cotizar → pedir → aceptar → cobro → pagado, cupones, insignias). Un cobro real de $0.01 por push CoDi se probó contra pey. Pendientes y detalles: [docs/BACKEND.md](docs/BACKEND.md#estado-desplegado-y-pendientes).
 
 ## Desarrollo
 

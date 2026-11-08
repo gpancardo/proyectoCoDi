@@ -52,7 +52,7 @@ feature/<área>-<cambio> → dev → stg → main
 | Ruta | Estado |
 |---|---|
 | `backend/` | API en producción como Edge Function (`edge/api.js` + `src/`); pruebas en `test/`, recorrido real en `scripts/e2e-live.mjs` |
-| `supabase/` | migraciones (hasta `20261107060000`), seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
+| `supabase/` | migraciones (hasta `20261107060000`; producción va en `050000`), seed y pruebas del esquema; ya no hay funciones versionadas (el bundle `functions/api/` se genera y no se versiona) |
 | `web/` | landing y registro heredados + app web (`app.html`/`app.js`); la publicación de la web la hace otro integrante |
 | `barrio_app_pey/` | app Flutter en construcción (otro integrante) |
 | `docs/` | producto, contrato y estado del backend, pey, diseño y voz |
