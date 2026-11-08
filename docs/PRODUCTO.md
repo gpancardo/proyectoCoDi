@@ -188,7 +188,7 @@ Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `nego
 
 1. **Web de la app** (`web/app.html`): comprador (descubrir, buscar, cuenta, pedido, pago, avisos, perfil con insignias) y negocio (pedidos, promociones, menú, abrir/cerrar). Un solo archivo JS sin build.
 2. **App Flutter** (`barrio_app_pey/`): consume la API propia para sesión, búsqueda, descubrimiento, cotización, pedidos y gestión del negocio; integra dictado local para la consulta.
-3. **Landing** (`web/index.html`): cartel de calle con changarrito 3D que explica el producto y lleva a `app.html`. `web/registro.html` solo redirige a la app, donde se registra el negocio con cuenta.
+3. **Landing** (`web/index.html`): cartel de calle con changarrito 3D que explica el producto y lleva a la descarga de la app Android (`web/descargar/`). `web/registro.html` solo redirige ahí; la app es donde se registra el negocio con cuenta.
 
 **Criterios de diseño:** botones grandes, una sola acción principal por pantalla, alto contraste, cero jerga financiera (ver `VOZ-DE-MARCA.md`), funciona en Android de gama media y con señal débil.
 
@@ -217,7 +217,7 @@ Las insignias no tienen tabla: se calculan de pedidos con pago confirmado. `nego
 1. **Problema (20 s):** "Don Beto pierde 4% con terminal o vive del efectivo. CoDi es gratis, pero pedir y cobrar con CoDi cuesta más trabajo que un billete."
 2. **Descubrimiento y pedido (50 s):** buscar, filtrar por zona, comparar negocios → cuenta con total → confirmar → el negocio acepta → cobro en el celular → aprobar $0.01 → "¡Pagado!" y código.
 3. **El negocio (20 s):** acepta el pedido, lo marca listo y ve el resumen del día.
-4. **Cierre (30 s):** sin comisión, sin instalar nada, replicable a cada barrio.
+4. **Cierre (30 s):** sin comisión, replicable a cada barrio.
 
 ## 12. Impacto y modelo
 
