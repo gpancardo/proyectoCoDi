@@ -127,7 +127,7 @@ Las migraciones nuevas requieren `GRANT`/`REVOKE` explícitos. Antes de desplega
 
 ## Operación de la demo
 
-La base de datos de producción ya incluye la migración de entrega y códigos (`20261108010000_entrega_y_codigos.sql`). Antes de una demostración que use esas rutas, publica el bundle de la Edge Function `api` generado desde `main`; el procedimiento exacto está en [Backend](docs/BACKEND.md).
+La base de datos de producción y la Edge Function `api` ya incluyen la entrega y los códigos (`20261108010000_entrega_y_codigos.sql`). El procedimiento de publicación y operación está en [Backend](docs/BACKEND.md).
 
 ## Documentación que manda
 
