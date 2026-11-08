@@ -77,6 +77,45 @@ abstract final class BarrioTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: BarrioColors.marino,
+          minimumSize: const Size.fromHeight(64),
+          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          side: const BorderSide(color: BarrioColors.marino, width: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: BarrioColors.marino,
+          minimumSize: const Size(48, 48),
+          textStyle: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              decoration: TextDecoration.underline),
+        ),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: BarrioColors.marino,
+        contentTextStyle: TextStyle(
+            color: BarrioColors.crema, fontSize: 16, fontFamily: 'Archivo'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      ),
+      progressIndicatorTheme:
+          const ProgressIndicatorThemeData(color: BarrioColors.marino),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected)
+                ? BarrioColors.marino
+                : BarrioColors.trazo),
+        trackColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected)
+                ? BarrioColors.mango
+                : BarrioColors.niebla),
+        trackOutlineColor: const WidgetStatePropertyAll(BarrioColors.marino),
+      ),
       cardTheme: CardThemeData(
         color: BarrioColors.blanco,
         elevation: 0,

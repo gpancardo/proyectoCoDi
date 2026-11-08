@@ -80,27 +80,31 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
       });
       if (const {'lista', 'entregada', 'rechazada', 'expirada', 'cancelada'}
           .contains(order['estado'])) _poller?.cancel();
-    } on BarrioApiException catch (error) {
-      if (mounted)
+    } catch (error) {
+      if (mounted) {
         setState(() {
-          _problem = error.message;
+          _problem = mensajeDe(error);
           _loading = false;
         });
+      }
     }
   }
 
-  Future<void> _cancel() async {
-    await context.read<BarrioApi>().post('/orders/${widget.orderId}/cancel', {},
-        token: context.read<AppState>().accessToken);
-    await _refresh();
+  /// Acción del pedido: si falla, avisa qué hacer en vez de quedarse callada.
+  Future<void> _act(String path) async {
+    try {
+      await context.read<BarrioApi>().post('/orders/${widget.orderId}$path', {},
+          token: context.read<AppState>().accessToken);
+      await _refresh();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(mensajeDe(error))));
+    }
   }
 
-  Future<void> _retryPayment() async {
-    await context.read<BarrioApi>().post(
-        '/orders/${widget.orderId}/payments', {},
-        token: context.read<AppState>().accessToken);
-    await _refresh();
-  }
+  Future<void> _cancel() => _act('/cancel');
+  Future<void> _retryPayment() => _act('/payments');
 
   @override
   Widget build(BuildContext context) {
@@ -108,31 +112,17 @@ class _OrderStatusScreenState extends State<OrderStatusScreen>
       return const Scaffold(
           body: Center(
               child: CircularProgressIndicator(color: BarrioColors.marino)));
-    if (_problem != null)
+    if (_problem != null && _order == null) {
       return Scaffold(
+          appBar: AppBar(title: const Text('Tu pedido')),
           body: BarrioBackdrop(
-              child: Center(
-                  child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: BarrioPanel(
-                          child:
-                              Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text(_problem!),
-                        const SizedBox(height: 16),
-                        AppButton(
-                            label: 'Intentar de nuevo', onPressed: _refresh)
-                      ]))))));
+              child: BarrioProblema(message: _problem!, onRetry: _refresh)));
+    }
     final order = _order!;
     final state = order['estado'].toString();
     if (state == 'lista')
       return _DeliveryConfirm(
-          order: order,
-          onReceived: () async {
-            await context.read<BarrioApi>().post(
-                '/orders/${widget.orderId}/received', {},
-                token: context.read<AppState>().accessToken);
-            await _refresh();
-          });
+          order: order, onReceived: () => _act('/received'));
     if (state == 'pagada' || state == 'entregada')
       return _PaidOrder(order: order, ready: state == 'entregada');
     return Scaffold(
@@ -192,12 +182,12 @@ class _PaymentInstructions extends StatelessWidget {
     final amount = payment!['monto_minor'] ?? payment!['amount_minor'];
     return BarrioPanel(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Abre la app de tu banco',
-          style: const TextStyle(
+      const Text('Abre la app de tu banco',
+          style: TextStyle(
               fontSize: 21,
               fontWeight: FontWeight.w700,
               color: BarrioColors.marino)),
-      SizedBox(height: 8),
+      const SizedBox(height: 8),
       Text(via == 'push'
           ? 'Te llegó un cobro por ${formatMoney(amount)}. Apruébalo desde tu banco.'
           : 'Cuando pagues, esta pantalla se actualiza sola.'),
@@ -220,6 +210,9 @@ class _DeliveryConfirm extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
       backgroundColor: BarrioColors.teal,
+      appBar: AppBar(
+          backgroundColor: BarrioColors.teal,
+          foregroundColor: BarrioColors.blanco),
       body: SafeArea(
           child: Center(
               child: Padding(
@@ -242,6 +235,8 @@ class _DeliveryConfirm extends StatelessWidget {
                         BarrioPanel(
                             child: Column(children: [
                           Text('Código ${order['codigo'] ?? '—'}',
+                              semanticsLabel:
+                                  'Código ${(order['codigo'] ?? '').toString().split('').join(' ')}',
                               style: const TextStyle(
                                   fontSize: 34,
                                   fontWeight: FontWeight.w800,
@@ -264,6 +259,9 @@ class _PaidOrder extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
       backgroundColor: BarrioColors.teal,
+      appBar: AppBar(
+          backgroundColor: BarrioColors.teal,
+          foregroundColor: BarrioColors.blanco),
       body: SafeArea(
           child: Center(
               child: Padding(
@@ -288,6 +286,10 @@ class _PaidOrder extends StatelessWidget {
                           const Text('Tu código',
                               style: TextStyle(color: BarrioColors.gris)),
                           Text(order['codigo']?.toString() ?? '—',
+                              semanticsLabel: (order['codigo'] ?? '')
+                                  .toString()
+                                  .split('')
+                                  .join(' '),
                               style: const TextStyle(
                                   fontSize: 44,
                                   fontWeight: FontWeight.w800,
