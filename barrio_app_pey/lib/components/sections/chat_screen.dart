@@ -30,49 +30,77 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _speechReady = false;
   String _localeId = 'es_MX';
   String? _voiceNote;
-  String? _answer;
-  List<Map<String, dynamic>> _businesses = const [];
+  final _scroll = ScrollController();
+  final _turnos = <_Turno>[];
 
   @override
   void dispose() {
     _speech.cancel();
     _query.dispose();
+    _scroll.dispose();
     super.dispose();
   }
+
+  List<Map<String, String>> _historial() => [
+        for (final turno in _turnos.where((t) => t.respuesta != null)) ...[
+          {'role': 'user', 'text': turno.pregunta},
+          {'role': 'assistant', 'text': turno.seguimiento ?? turno.respuesta!},
+        ]
+      ];
+
+  void _nuevaConversacion() => setState(() {
+        _turnos.clear();
+        _query.clear();
+      });
+
+  void _alFinal() => WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_scroll.hasClients) return;
+        _scroll.animateTo(_scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      });
 
   Future<void> _search() async {
     final query = _query.text.trim();
     if (query.isEmpty || _loading) return;
     FocusScope.of(context).unfocus();
+    final historial = _historial();
+    final turno = _Turno(query);
     setState(() {
       _loading = true;
       _voiceNote = null;
+      _turnos.add(turno);
+      _query.clear();
     });
+    _alFinal();
     try {
-      final data = await context.read<BarrioApi>().post(
+      final zone = context.read<AppState>().zone;
+      final body = await context.read<BarrioApi>().postCompleto(
           '/search/agent',
           {
             'query': query,
-            'filters': {'zone': context.read<AppState>().zone},
+            'filters': {'zone': zone},
+            'history': historial,
           },
           token: context.read<AppState>().accessToken);
       if (!mounted) return;
-      final found =
-          (data as List<dynamic>).whereType<Map<String, dynamic>>().toList();
+      final meta = body['meta'] as Map<String, dynamic>? ?? const {};
+      final seguimiento = meta['follow_up'] as Map<String, dynamic>?;
       setState(() {
-        _answer = found.isEmpty
-            ? 'No encontré algo abierto con eso. Prueba con otra palabra.'
-            : 'Esto encontré cerca de ti.';
-        _businesses = found;
+        turno.negocios = (body['data'] as List<dynamic>)
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        turno.respuesta = meta['answer']?.toString() ?? 'Esto encontré para ti.';
+        turno.seguimiento = seguimiento?['question']?.toString();
+        turno.opciones = (seguimiento?['options'] as List<dynamic>? ?? const [])
+            .map((o) => '$o')
+            .toList();
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _answer = mensajeDe(error);
-        _businesses = const [];
-      });
+      setState(() => turno.respuesta = mensajeDe(error));
     } finally {
       if (mounted) setState(() => _loading = false);
+      _alFinal();
     }
   }
 
@@ -252,6 +280,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               Expanded(
                 child: ListView(
+                  controller: _scroll,
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
                   children: [
                     const Text(I18n.chatGreeting,
@@ -266,7 +295,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       'Lo que buscas está a la vuelta.',
                       style: TextStyle(color: BarrioColors.gris, fontSize: 16),
                     ),
-                    if (_answer == null) ...[
+                    if (_turnos.isEmpty) ...[
                       const SizedBox(height: 24),
                       BarrioPanel(
                         padding: const EdgeInsets.all(18),
@@ -296,10 +325,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                     ],
-                    if (_answer != null) ...[
-                      const SizedBox(height: 24),
-                      _MessageCard(text: _answer!),
-                      for (final business in _businesses)
+                    for (final turno in _turnos) ...[
+                      const SizedBox(height: 20),
+                      _UserBubble(text: turno.pregunta),
+                      const SizedBox(height: 10),
+                      _MessageCard(text: turno.respuesta ?? 'Déjame ver…'),
+                      for (final business in turno.negocios)
                         _BusinessCard(
                             business: business,
                             onTap: () => Navigator.of(context).push(
@@ -307,6 +338,25 @@ class _ChatScreenState extends State<ChatScreen> {
                                     builder: (_) => BusinessScreen(
                                         businessId:
                                             (business['id'] as num).toInt())))),
+                      if (turno.seguimiento != null) ...[
+                        const SizedBox(height: 12),
+                        _MessageCard(text: turno.seguimiento!),
+                        // solo el último turno sigue abierto para contestar
+                        if (identical(turno, _turnos.last) && !_loading)
+                          for (final opcion in turno.opciones) ...[
+                            const SizedBox(height: 8),
+                            _SuggestionChip(
+                                label: opcion, onTap: _searchWith),
+                          ],
+                      ],
+                    ],
+                    if (_turnos.isNotEmpty && !_loading) ...[
+                      const SizedBox(height: 14),
+                      Align(
+                        child: TextButton(
+                            onPressed: _nuevaConversacion,
+                            child: const Text('Empezar otra búsqueda')),
+                      ),
                     ],
                   ],
                 ),
@@ -387,6 +437,34 @@ class _ChatScreenState extends State<ChatScreen> {
     _query.text = query;
     _search();
   }
+}
+
+class _Turno {
+  _Turno(this.pregunta);
+  final String pregunta;
+  String? respuesta;
+  String? seguimiento;
+  List<String> opciones = const [];
+  List<Map<String, dynamic>> negocios = const [];
+}
+
+class _UserBubble extends StatelessWidget {
+  const _UserBubble({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 300),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+              color: BarrioColors.marino,
+              borderRadius: BorderRadius.circular(8)),
+          child: Text(text,
+              style: const TextStyle(color: BarrioColors.crema, fontSize: 16)),
+        ),
+      );
 }
 
 class _SuggestionChip extends StatelessWidget {

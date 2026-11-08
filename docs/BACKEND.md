@@ -42,7 +42,7 @@ Prefijo `/api/v1`; JSON UTF-8; errores `{ "error": { "code", "message", "field?"
 | `GET /health` | — | Estado del servicio |
 | `GET /discovery` | opcional | Categorías y carruseles deterministas; afinidad ligera si hay sesión |
 | `GET /catalog/search?q=&zone=&category=&open_now=&min_amount_minor=&max_amount_minor=` | opcional | Búsqueda determinista con `match_reasons` y `score` |
-| `POST /search/agent` | opcional | Buscar con Barrio: `{ query, filters? }`; usa modelo + RAG si hay llave, si no cae al modo determinista (`meta.mode`) |
+| `POST /search/agent` | opcional | Buscar con Barrio: `{ query, filters?, history? }` (`history`: últimos 6 turnos `{role, text}`, sin confianza). Usa modelo + RAG si hay llave, si no cae al modo determinista (`meta.mode`). `meta.follow_up` trae `{question, options}` o `null`: máximo 3 preguntas por conversación, sin repetir; la zona o categoría contestada manda sobre el perfil |
 | `POST /discovery/events` | comprador | Señal `search`/`view`/`save`/`order` para el perfil |
 | `GET /businesses/{id}` | — | Perfil público y menú (sin teléfono ni datos de cobro) |
 | `GET /me`, `POST /me` | sesión | Comprador/negocio de la sesión; actualizar nombre, celular (10 dígitos, para el push), zona, colonia, ubicación |
